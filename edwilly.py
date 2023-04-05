@@ -12,13 +12,14 @@ CHAR_WIDTH = 8
 CHAR_HEIGHT = 8
 SCREEN_WIDTH = 42
 MAX_WIDTH = 40
-SCREEN_HEIGHT = 24
+SCREEN_HEIGHT = 25
+MAX_HEIGHT = 24
 
 def loadFont():
 
 	namedpart={}
 	namedpart["0"]="WILLY_RIGHT"
-	#namedpart["1"]="WILLY_LEFT"
+	namedpart["1"]="WILLY_LEFT"
 	namedpart["2"]="PRESENT"
 	namedpart["3"]="LADDER"
 	namedpart["4"]="TACK"
@@ -232,7 +233,7 @@ def main():
 				row = mouse_pos[1] // (CHAR_HEIGHT * SCALER)
 				col = mouse_pos[0] // (CHAR_WIDTH * SCALER)
 					 
-				if col<MAX_WIDTH:
+				if col<MAX_WIDTH and row<MAX_HEIGHT:
 					level_data[row][col] = font[currentitem[0]]
 					try:
 						level_data2[currentlevel][row][col] = currentitem[0]
