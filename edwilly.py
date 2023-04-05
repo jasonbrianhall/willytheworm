@@ -171,7 +171,8 @@ def main():
 	row = 0
 	col = SCREEN_WIDTH-1
 	#level_data[row][col] = font["WILLY_RIGHT"]
-
+	if level_data.get(currentlevel)==None:
+		level_data[curentlevel]={}
 	for row in range(SCREEN_HEIGHT):
 		if level_data.get(currentlevel).get(str(row))==None:
 			level_data[currentlevel][str(row)]={}
