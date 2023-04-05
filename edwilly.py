@@ -12,8 +12,8 @@ CHAR_WIDTH = 8
 CHAR_HEIGHT = 8
 SCREEN_WIDTH = 42
 MAX_WIDTH = 40
-SCREEN_HEIGHT = 25
-MAX_HEIGHT = 24
+SCREEN_HEIGHT = 26
+MAX_HEIGHT = 25
 
 def loadFont():
 
@@ -145,41 +145,23 @@ def main():
 	# Create a 2D array to store the level data
 	#level_data = [[None] * SCREEN_WIDTH for i in range(SCREEN_HEIGHT)]
 	# Create a 2D array to store the level data
-	#level_data2 = {}
-	#level_data2[currentlevel]={}
+	#level_data = {}
+	#level_data[currentlevel]={}
 
 
 	try:
 		with open('levels.json', 'r') as file:
 			# Load the data from the file using the json.load() function
-			level_data2 = json.load(file)
-			level_data = [[None] * SCREEN_WIDTH for i in range(SCREEN_HEIGHT)]
-			for col in range(0, SCREEN_WIDTH):
-				for row in range(0, SCREEN_HEIGHT):
-					level_data[row][col] = font["EMPTY"]
-			try:
-				level_data2[currentlevel]
-			except:
-				level_data2[currentlevel]={}
-			for level in level_data2:
-				for col in level_data2[currentlevel]:
-					for row in level_data2[currentlevel][col]:
-						data=level_data2[currentlevel][col][row]
-						try:
-							level_data[int(col)][int(row)]=font[data]
-						except:
-							traceback.print_exc()
-							pass
+			level_data = json.load(file)
+			for level in level_data:
+				for col in level_data[currentlevel]:
+					for row in level_data[currentlevel][col]:
+						data=level_data[currentlevel][col][row]
 	except:
 		traceback.print_exc()
 		print("Can't load levels.json; starting over")
-		level_data = [[None] * SCREEN_WIDTH for i in range(SCREEN_HEIGHT)]
-		level_data2 = {}
-		level_data2[currentlevel]={}
-		for col in range(0, SCREEN_WIDTH):
-			for row in range(0, SCREEN_HEIGHT):
-				level_data[row][col] = font["EMPTY"]
-
+		level_data = {}
+		level_data[currentlevel]={}
 
 	#print(level_data)
 
@@ -192,7 +174,7 @@ def main():
 
 	row = 0
 	col = SCREEN_WIDTH-1
-	level_data[row][col] = font["WILLY_RIGHT"]
+	#level_data[row][col] = font["WILLY_RIGHT"]
 
 	while running:
 		# Handle events
@@ -203,10 +185,10 @@ def main():
 			# Keyboard Events
 			elif event.type == pygame.KEYDOWN:
 				if event.key == pygame.K_s:
-					#data=json.dumps(level_data2)
+					#data=json.dumps(level_data)
 					with open('levels.json', 'w') as writefile:
 						# Write the data to the file using the json.dump() function
-						json.dump(level_data2, writefile)
+						json.dump(level_data, writefile)
 				elif event.key == pygame.K_q:
 					running=False
 			# Right Button Deletes Object
@@ -218,11 +200,10 @@ def main():
 				col = mouse_pos[0] // (CHAR_WIDTH * SCALER)
 				# Set the character image in the level data array
 				if col<MAX_WIDTH:
-					level_data[row][col] = font["EMPTY"]
 					try:
-						del level_data2[currentlevel][row][col]
-						if len(level_data2[currentlevel][row])==0:
-							 del level_data2[currentlevel][row]
+						del level_data[currentlevel][row][col]
+						if len(level_data[currentlevel][row])==0:
+							 del level_data[currentlevel][row]
 					except:
 						pass
 			# Left Click Places Object
@@ -234,12 +215,11 @@ def main():
 				col = mouse_pos[0] // (CHAR_WIDTH * SCALER)
 					 
 				if col<MAX_WIDTH and row<MAX_HEIGHT:
-					level_data[row][col] = font[currentitem[0]]
 					try:
-						level_data2[currentlevel][row][col] = currentitem[0]
+						level_data[currentlevel][row][col] = currentitem[0]
 					except:
-						level_data2[currentlevel][row] = {}
-						level_data2[currentlevel][row][col] = currentitem[0]
+						level_data[currentlevel][row] = {}
+						level_data[currentlevel][row][col] = currentitem[0]
 						pass
 					
 			# Wheel Button Down
@@ -257,12 +237,11 @@ def main():
 					iterator = iter(font.items())
 					currentitem=next(iterator)
 					pass
-				level_data[row][col] = font[currentitem[0]]
 				try:
-					level_data2[currentlevel][row][col] = currentitem[0]
+					level_data[currentlevel][row][col] = currentitem[0]
 				except:
-					level_data2[currentlevel][row] = {}
-					level_data2[currentlevel][row][col] = currentitem[0]
+					level_data[currentlevel][row] = {}
+					level_data[currentlevel][row][col] = currentitem[0]
 					pass
 
 			# Wheel Button UP
@@ -286,12 +265,11 @@ def main():
 						 previous=currentitem
 						 currentitem=next(iterator)
 				currentitem=previous
-				level_data[row][col] = font[currentitem[0]]
 				try:
-					level_data2[currentlevel][row][col] = currentitem[0]
+					level_data[currentlevel][row][col] = currentitem[0]
 				except:
-					level_data2[currentlevel][row] = {}
-					level_data2[currentlevel][row][col] = currentitem[0]
+					level_data[currentlevel][row] = {}
+					level_data[currentlevel][row][col] = currentitem[0]
 					pass
 
 
@@ -300,12 +278,24 @@ def main():
 		screen.fill((0, 0, 0))
 
 		# Draw the level data
-		for row in range(SCREEN_HEIGHT):
+		'''for row in range(SCREEN_HEIGHT):
 			for col in range(SCREEN_WIDTH):
-				char_img = level_data[row][col]
+				try:
+					char_img = font[level_data[row][col]]
+				except:
+					traceback.print_exc()
+					char_img = font["EMPTY"]
+					pass
 				if char_img is not None:
 					# Draw the character image
-					screen.blit(char_img, (col * CHAR_WIDTH * SCALER, row * CHAR_HEIGHT * SCALER))
+					screen.blit(char_img, (col * CHAR_WIDTH * SCALER, row * CHAR_HEIGHT * SCALER))'''
+		
+		for row in level_data[currentlevel]:
+			for col in level_data[currentlevel][row]:
+				#print(col,row, level_data[currentlevel][row][col])
+				char_img = font[level_data[currentlevel][row][col]]
+				screen.blit(char_img, (int(col) * CHAR_WIDTH * SCALER, int(row) * CHAR_HEIGHT * SCALER))
+				#print(char_img)	
 
 		# Update the screen
 		pygame.display.flip()
