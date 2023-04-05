@@ -129,7 +129,7 @@ def main():
     
 	level = int(sys.argv[1])
     
-	if level>0 and level <9:
+	if level>0 and level <=32:
 		currentlevel="level" + str(level)
 	else:
 		currentlevel="level1"
@@ -172,7 +172,8 @@ def main():
 	col = SCREEN_WIDTH-1
 	#level_data[row][col] = font["WILLY_RIGHT"]
 	if level_data.get(currentlevel)==None:
-		level_data[curentlevel]={}
+		#level_data[curentlevel]={}
+		level_data[currentlevel]={}
 	for row in range(SCREEN_HEIGHT):
 		if level_data.get(currentlevel).get(str(row))==None:
 			level_data[currentlevel][str(row)]={}
