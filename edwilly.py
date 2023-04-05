@@ -126,10 +126,12 @@ def loadFont():
 def main():
 
 	if len(sys.argv) != 2:
-		print("Usage: python script.py <level>")
-		return
-    
-	level = int(sys.argv[1])
+		level=1
+	else:
+		try:
+			level = int(sys.argv[1])
+		except:
+			level = 1
     
 	if level>0 and level <= MAX_LEVELS:
 		currentlevel="level" + str(level)
