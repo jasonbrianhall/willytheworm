@@ -4,6 +4,7 @@ import pygame
 from PIL import Image
 import json
 import traceback
+import sys
 
 # Constants
 SCALER = 4
@@ -120,6 +121,18 @@ def loadFont():
 	return char_array
 
 def main():
+
+	if len(sys.argv) != 2:
+		print("Usage: python script.py <level>")
+		return
+    
+	level = int(sys.argv[1])
+    
+	if level>0 and level <9:
+		currentlevel="level" + str(level)
+	else:
+		currentlevel="level1"
+
 	# Initialize Pygame
 	pygame.init()
 	screen = pygame.display.set_mode((SCREEN_WIDTH * CHAR_WIDTH * SCALER, SCREEN_HEIGHT * CHAR_HEIGHT * SCALER))
@@ -134,7 +147,6 @@ def main():
 	#level_data2 = {}
 	#level_data2[currentlevel]={}
 
-	currentlevel="level1"
 
 	try:
 		with open('levels.json', 'r') as file:
@@ -144,7 +156,10 @@ def main():
 			for col in range(0, SCREEN_WIDTH):
 				for row in range(0, SCREEN_HEIGHT):
 					level_data[row][col] = font["EMPTY"]
-
+			try:
+				level_data2[currentlevel]
+			except:
+				level_data2[currentlevel]={}
 			for level in level_data2:
 				for col in level_data2[currentlevel]:
 					for row in level_data2[currentlevel][col]:
@@ -155,6 +170,7 @@ def main():
 							traceback.print_exc()
 							pass
 	except:
+		traceback.print_exc()
 		print("Can't load levels.json; starting over")
 		level_data = [[None] * SCREEN_WIDTH for i in range(SCREEN_HEIGHT)]
 		level_data2 = {}
@@ -190,6 +206,8 @@ def main():
 					with open('levels.json', 'w') as writefile:
 						# Write the data to the file using the json.dump() function
 						json.dump(level_data2, writefile)
+				elif event.key == pygame.K_q:
+					running=False
 			# Right Button Deletes Object
 			elif event.type == pygame.MOUSEBUTTONDOWN  and event.button==3:
 				# Get the mouse position
