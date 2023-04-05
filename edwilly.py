@@ -204,7 +204,7 @@ def main():
 					print("Failed to delete object at ", row, " ", col)
 				if col<MAX_WIDTH:
 					try:
-						del level_data[currentlevel][row)][col]
+						del level_data[currentlevel][row][col]
 						if len(level_data[currentlevel][row))==0:
 							 del level_data[currentlevel][row]
 					except:
