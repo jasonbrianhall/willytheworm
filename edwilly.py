@@ -25,7 +25,7 @@ def loadFont():
 	namedpart["4"]="TACK"
 	namedpart["5"]="UPSPRING"
 	namedpart["6"]="SIDESPRING"
-	namedpart["7"]="BALL"
+	#namedpart["7"]="BALL"
 	namedpart["8"]="BELL"
 	namedpart["51"]="PIPE1"
 	namedpart["52"]="PIPE2"
