@@ -72,7 +72,7 @@ def loadFont():
 	
 
 	# Define the colors (in RGB format)
-	BLACK = (0, 0, 0)
+	BACKGROUND = (0, 0, 255)
 	WHITE = (255, 255, 255)
 
 	# Define the size of the output image (in pixels)
@@ -85,7 +85,7 @@ def loadFont():
 		data = bytearray(f.read())
 
 	# Create a new PIL image
-	img = Image.new('RGB', (IMAGE_WIDTH, IMAGE_HEIGHT), BLACK)
+	img = Image.new('RGB', (IMAGE_WIDTH, IMAGE_HEIGHT), BACKGROUND)
 
 	char_array={}
 
@@ -96,7 +96,7 @@ def loadFont():
 		bits = [((data[i * 8 + j] >> k) & 1) for j in range(8) for k in range(7, -1, -1)]
 		
 		# Create a new PIL image for the character
-		char_img = Image.new('RGB', (CHAR_WIDTH, CHAR_HEIGHT), BLACK)
+		char_img = Image.new('RGB', (CHAR_WIDTH, CHAR_HEIGHT), BACKGROUND)
 		# Loop through the rows of the character
 		for y in range(CHAR_HEIGHT):
 			# Loop through the pixels in the row
@@ -199,6 +199,7 @@ def main():
 				row = mouse_pos[1] // (CHAR_HEIGHT * SCALER)
 				col = mouse_pos[0] // (CHAR_WIDTH * SCALER)
 				# Set the character image in the level data array
+				print("Deleting Object: ", level_data[currentlevel][row][col])
 				if col<MAX_WIDTH:
 					try:
 						del level_data[currentlevel][row][col]
@@ -290,14 +291,9 @@ def main():
 					# Draw the character image
 					screen.blit(char_img, (col * CHAR_WIDTH * SCALER, row * CHAR_HEIGHT * SCALER))'''
 		
-		for row in range(SCREEN_HEIGHT):
-			for col in range(SCREEN_WIDTH):
-				#print(col,row, level_data[currentlevel][row][col])
-				try:
-					char_img = font[level_data[currentlevel][row][col]]
-				except:
-					char_img = font["EMPTY"]
-					pass				
+		for row in level_data[currentlevel]:
+			for col in level_data[currentlevel][row]:
+				char_img = font[level_data[currentlevel][row][col]]
 				screen.blit(char_img, (int(col) * CHAR_WIDTH * SCALER, int(row) * CHAR_HEIGHT * SCALER))
 				#print(char_img)	
 
