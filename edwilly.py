@@ -149,7 +149,6 @@ def main():
 				for col in level_data2[currentlevel]:
 					for row in level_data2[currentlevel][col]:
 						data=level_data2[currentlevel][col][row]
-						print(data)
 						try:
 							level_data[int(col)][int(row)]=font[data]
 						except:
