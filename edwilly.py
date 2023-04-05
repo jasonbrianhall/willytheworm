@@ -234,11 +234,12 @@ def main():
 						level_data[currentlevel][str(row)][str(col)] = currentitem[0]
 						pass
 					# Deleting extra Willies
-					for newrow in level_data[currentlevel]:
-						for newcol in level_data[currentlevel][newrow]:
-							if level_data[currentlevel][newrow][newcol]=="WILLY_RIGHT" or level_data[currentlevel][newrow][newcol]=="WILLY_LEFT":
-								if not (newcol==str(col) and newrow==str(row)):
-									level_data[currentlevel][newrow][newcol]="EMPTY"
+					if currentitem[0]=="WILLY_RIGHT" or currentitem[0]=="WILLY_LEFT":
+						for newrow in level_data[currentlevel]:
+							for newcol in level_data[currentlevel][newrow]:
+								if level_data[currentlevel][newrow][newcol]=="WILLY_RIGHT" or level_data[currentlevel][newrow][newcol]=="WILLY_LEFT":
+									if not (newcol==str(col) and newrow==str(row)):
+										level_data[currentlevel][newrow][newcol]="EMPTY"
 					
 			# Wheel Button Down
 			elif event.type == pygame.MOUSEBUTTONDOWN and event.button==5:
@@ -289,7 +290,7 @@ def main():
 					level_data[currentlevel][row] = {}
 					level_data[currentlevel][row][col] = currentitem[0]
 					pass
-
+			
 
 
 		# Clear the screen
