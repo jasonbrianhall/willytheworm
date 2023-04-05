@@ -172,7 +172,12 @@ def main():
 	col = SCREEN_WIDTH-1
 	#level_data[row][col] = font["WILLY_RIGHT"]
 
-
+	for row in range(SCREEN_HEIGHT):
+		if level_data.get(currentlevel).get(str(row))==None:
+			level_data[currentlevel][str(row)]={}
+		for col in range(SCREEN_WIDTH):
+			if level_data[currentlevel].get(str(row)).get(str(col))==None:
+				level_data[currentlevel][str(row)][str(col)]="EMPTY"
 
 	while running:
 		# Handle events
@@ -184,9 +189,21 @@ def main():
 			elif event.type == pygame.KEYDOWN:
 				if event.key == pygame.K_s:
 					#data=json.dumps(level_data)
+					level_data_temp={}
+					for curentlevel in level_data:
+						if level_data_temp.get(currentlevel)==None:
+							level_data_temp[currentlevel]={}
+						for row in level_data[currentlevel]:
+							if level_data_temp.get(currentlevel).get(row)==None:
+								level_data_temp[currentlevel][row]={}
+
+							for col in level_data[currentlevel][row]:
+								if not level_data.get(currentlevel).get(row).get(col)=="EMPTY":
+									level_data_temp[currentlevel][row][col]=level_data.get(currentlevel).get(row).get(col)
+									
 					with open('levels.json', 'w') as writefile:
 						# Write the data to the file using the json.dump() function
-						json.dump(level_data, writefile)
+						json.dump(level_data_temp, writefile, indent=4)
 				elif event.key == pygame.K_q:
 					running=False
 			# Right Button Deletes Object
@@ -197,17 +214,12 @@ def main():
 				row = mouse_pos[1] // (CHAR_HEIGHT * SCALER)
 				col = mouse_pos[0] // (CHAR_WIDTH * SCALER)
 				# Set the character image in the level data array
-				try:
-					print("Deleting Object: ", json.dumps(level_data.get(currentlevel).get(str(row)), indent=4))
-				except:
-					pass
-					print("Failed to delete object at ", row, " ", col)
-				if col<MAX_WIDTH:
+				if col<MAX_WIDTH and row<MAX_HEIGHT:
 					try:
-						del level_data[currentlevel][row][col]
-						if len(level_data[currentlevel][row))==0:
-							 del level_data[currentlevel][row]
+						level_data[currentlevel][str(row)][str(col)]="EMPTY"
+						level_data[currentlevel][str(row)][str(col)]="EMPTY"
 					except:
+						traceback.print_exc()
 						pass
 			# Left Click Places Object
 			elif event.type == pygame.MOUSEBUTTONDOWN and event.button==1:
@@ -219,10 +231,10 @@ def main():
 					 
 				if col<MAX_WIDTH and row<MAX_HEIGHT:
 					try:
-						level_data[currentlevel][row][col] = currentitem[0]
+						level_data[currentlevel][str(row)][str(col)] = currentitem[0]
 					except:
-						level_data[currentlevel][row] = {}
-						level_data[currentlevel][row][col] = currentitem[0]
+						level_data[currentlevel][str(row)] = {}
+						level_data[currentlevel][str(row)][str(col)] = currentitem[0]
 						pass
 					
 			# Wheel Button Down
