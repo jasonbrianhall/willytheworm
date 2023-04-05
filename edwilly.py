@@ -15,6 +15,7 @@ SCREEN_WIDTH = 42
 MAX_WIDTH = 40
 SCREEN_HEIGHT = 26
 MAX_HEIGHT = 25
+MAX_LEVELS = 32
 
 def loadFont():
 
@@ -130,7 +131,7 @@ def main():
     
 	level = int(sys.argv[1])
     
-	if level>0 and level <=32:
+	if level>0 and level <= MAX_LEVELS:
 		currentlevel="level" + str(level)
 	else:
 		currentlevel="level1"
@@ -160,8 +161,6 @@ def main():
 		level_data = {}
 		level_data[currentlevel]={}
 
-	#print(level_data)
-
 
 	iterator = iter(font.items())
 	currentitem=next(iterator)
@@ -190,14 +189,36 @@ def main():
 				running = False
 			# Keyboard Events
 			elif event.type == pygame.KEYDOWN:
-				if event.key == pygame.K_s:
+				if event.key == pygame.K_l:
+					level+=1
+					level=level%MAX_LEVELS
+					if level==0:
+						level=1
+					currentlevel="level" + str(level)
+					if level_data.get(currentlevel)==None:
+						level_data[currentlevel]={}
+					for row in range(SCREEN_HEIGHT):
+						if level_data.get(currentlevel).get(str(row))==None:
+							level_data[currentlevel][str(row)]={}
+						for col in range(SCREEN_WIDTH):
+							if level_data[currentlevel].get(str(row)).get(str(col))==None:
+								level_data[currentlevel][str(row)][str(col)]="EMPTY"
+				elif event.key == pygame.K_s:
 					#data=json.dumps(level_data)
 					new_dict=copy.deepcopy(level_data)
 					for x in level_data:
+						try:
+							del new_dict[x]["0"]["41"]
+						except:
+							pass
 						for y in level_data[x]:
 							for z in level_data[x][y]:
 								if level_data[x][y][z]=="EMPTY":
-									del new_dict[x][y][z]
+									try:
+										del new_dict[x][y][z]
+									except:
+										pass
+					
 					with open('levels.json', 'w') as writefile:
 						# Write the data to the file using the json.dump() function
 						json.dump(new_dict, writefile, indent=4)
@@ -257,10 +278,10 @@ def main():
 					currentitem=next(iterator)
 					pass
 				try:
-					level_data[currentlevel][row][col] = currentitem[0]
+					level_data[currentlevel][str(row)][str(col)] = currentitem[0]
 				except:
-					level_data[currentlevel][row] = {}
-					level_data[currentlevel][row][col] = currentitem[0]
+					level_data[currentlevel][str(row)] = {}
+					level_data[currentlevel][str(row)][str(col)] = currentitem[0]
 					pass
 
 			# Wheel Button UP
@@ -285,10 +306,10 @@ def main():
 						 currentitem=next(iterator)
 				currentitem=previous
 				try:
-					level_data[currentlevel][row][col] = currentitem[0]
+					level_data[currentlevel][str(row)][str(col)] = currentitem[0]
 				except:
-					level_data[currentlevel][row] = {}
-					level_data[currentlevel][row][col] = currentitem[0]
+					level_data[currentlevel][str(row)] = {}
+					level_data[currentlevel][str(row)][str(col)] = currentitem[0]
 					pass
 			
 
@@ -308,7 +329,6 @@ def main():
 				if char_img is not None:
 					# Draw the character image
 					screen.blit(char_img, (col * CHAR_WIDTH * SCALER, row * CHAR_HEIGHT * SCALER))'''
-		
 		for row in level_data[currentlevel]:
 			for col in level_data[currentlevel][row]:
 				char_img = font[level_data[currentlevel][row][col]]
