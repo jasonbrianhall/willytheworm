@@ -1,3 +1,5 @@
+#!/bin/bash
+
 import pygame
 from PIL import Image
 import json
