@@ -191,18 +191,12 @@ def main():
 			elif event.type == pygame.KEYDOWN:
 				if event.key == pygame.K_s:
 					#data=json.dumps(level_data)
-					level_data_temp={}
-					for curentlevel in level_data:
-						if level_data_temp.get(currentlevel)==None:
-							level_data_temp[currentlevel]={}
-						for row in level_data[currentlevel]:
-							if level_data_temp.get(currentlevel).get(row)==None:
-								level_data_temp[currentlevel][row]={}
-
-							for col in level_data[currentlevel][row]:
-								if not level_data.get(currentlevel).get(row).get(col)=="EMPTY":
-									level_data_temp[currentlevel][row][col]=level_data.get(currentlevel).get(row).get(col)
-									
+					level_data_temp=level_data.copy()
+					for x in level_data_temp:
+						for y in level_data_temp:
+							for z in level_data_temp:
+								if level_data_temp[x][y][z]=="EMPTY":
+									del level_data_temp[x][y][z]						
 					with open('levels.json', 'w') as writefile:
 						# Write the data to the file using the json.dump() function
 						json.dump(level_data_temp, writefile, indent=4)
