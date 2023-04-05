@@ -193,14 +193,11 @@ def main():
 				if event.key == pygame.K_s:
 					#data=json.dumps(level_data)
 					new_dict=copy.deepcopy(level_data)
-					deletethese=[]
 					for x in level_data:
 						for y in level_data[x]:
 							for z in level_data[x][y]:
 								if level_data[x][y][z]=="EMPTY":
-									deletethese.append((x,y,z))
-					for x,y,z in deletethese:
-						del new_dict[x][y][z]
+									del new_dict[x][y][z]
 					with open('levels.json', 'w') as writefile:
 						# Write the data to the file using the json.dump() function
 						json.dump(new_dict, writefile, indent=4)
@@ -236,6 +233,12 @@ def main():
 						level_data[currentlevel][str(row)] = {}
 						level_data[currentlevel][str(row)][str(col)] = currentitem[0]
 						pass
+					# Deleting extra Willies
+					for newrow in level_data[currentlevel]:
+						for newcol in level_data[currentlevel][newrow]:
+							if level_data[currentlevel][newrow][newcol]=="WILLY_RIGHT" or level_data[currentlevel][newrow][newcol]=="WILLY_LEFT":
+								if not (newcol==str(col) and newrow==str(row)):
+									level_data[currentlevel][newrow][newcol]="EMPTY"
 					
 			# Wheel Button Down
 			elif event.type == pygame.MOUSEBUTTONDOWN and event.button==5:
