@@ -153,10 +153,6 @@ def main():
 		with open('levels.json', 'r') as file:
 			# Load the data from the file using the json.load() function
 			level_data = json.load(file)
-			for level in level_data:
-				for col in level_data[currentlevel]:
-					for row in level_data[currentlevel][col]:
-						data=level_data[currentlevel][col][row]
 	except:
 		traceback.print_exc()
 		print("Can't load levels.json; starting over")
@@ -175,6 +171,8 @@ def main():
 	row = 0
 	col = SCREEN_WIDTH-1
 	#level_data[row][col] = font["WILLY_RIGHT"]
+
+
 
 	while running:
 		# Handle events
@@ -199,11 +197,15 @@ def main():
 				row = mouse_pos[1] // (CHAR_HEIGHT * SCALER)
 				col = mouse_pos[0] // (CHAR_WIDTH * SCALER)
 				# Set the character image in the level data array
-				print("Deleting Object: ", level_data[currentlevel][row][col])
+				try:
+					print("Deleting Object: ", json.dumps(level_data.get(currentlevel).get(str(row)), indent=4))
+				except:
+					pass
+					print("Failed to delete object at ", row, " ", col)
 				if col<MAX_WIDTH:
 					try:
-						del level_data[currentlevel][row][col]
-						if len(level_data[currentlevel][row])==0:
+						del level_data[currentlevel][row)][col]
+						if len(level_data[currentlevel][row))==0:
 							 del level_data[currentlevel][row]
 					except:
 						pass
