@@ -6,6 +6,7 @@ import json
 import traceback
 import sys
 import copy
+import threading
 
 # Constants
 SCALER = 4
@@ -18,7 +19,11 @@ MAX_HEIGHT = 25
 MAX_LEVELS = 32
 fps=10
 
-
+def play_audio(filename):
+    pygame.mixer.init()
+    pygame.mixer.music.load(filename)
+    pygame.mixer.music.play()
+    
 def loadFont():
 
 	namedpart={}
@@ -204,7 +209,7 @@ def main():
 	clock = pygame.time.Clock()
 
 	while running:
-		clock.tick(fps)  # limit the frame rate to 30 fps
+		clock.tick(fps)	 # limit the frame rate to 30 fps
 	
 		# Handle events
 		for event in pygame.event.get():
@@ -216,6 +221,8 @@ def main():
 				if event.key == pygame.K_SPACE:
 					willy_yvelocity=3
 					print("Spacebar Pressed")
+					t = threading.Thread(target=play_audio, args=("audio/bell.wav",))
+					t.start()
 				elif event.key == pygame.K_LEFT:
 					willy_xvelocity=1
 					print("Left Key Pressed")
