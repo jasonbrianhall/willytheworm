@@ -255,7 +255,6 @@ def main():
 				willy_yvelocity=0
 		
 		if willy_yvelocity>0:
-			print("Jumping")
 			# Convert tuple to list
 			willy_list = list(willy_position)
 
@@ -268,7 +267,6 @@ def main():
 			print(willy_position)
 
 		if willy_yvelocity<0:
-			print("Falling")
 			# Convert tuple to list
 			willy_list = list(willy_position)
 
@@ -278,6 +276,29 @@ def main():
 			# Convert list back to tuple
 			willy_position = tuple(willy_list)
 			print(willy_position)
+
+		if willy_xvelocity<0:
+			# Convert tuple to list
+			willy_list = list(willy_position)
+
+			# Subtract 1 from the first element of the list
+			willy_list[1] += 1
+
+			# Convert list back to tuple
+			willy_position = tuple(willy_list)
+			print(willy_position)
+
+		if willy_xvelocity>0:
+			# Convert tuple to list
+			willy_list = list(willy_position)
+
+			# Subtract 1 from the first element of the list
+			willy_list[1] -= 1
+
+			# Convert list back to tuple
+			willy_position = tuple(willy_list)
+			print(willy_position)
+
 
 
 		for row in level_data[currentlevel]:
