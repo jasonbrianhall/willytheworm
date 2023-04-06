@@ -219,7 +219,8 @@ def main():
 			# Keyboard Events
 			elif event.type == pygame.KEYDOWN:
 				if event.key == pygame.K_SPACE:
-					willy_yvelocity=4
+					if willy_yvelocity==0:
+						willy_yvelocity=3
 					print("Spacebar Pressed")
 					t = threading.Thread(target=play_audio, args=("audio/jump.wav",))
 					t.start()
@@ -227,10 +228,13 @@ def main():
 					willy_xvelocity=1
 					print("Left Key Pressed")
 					willy_direction="LEFT"
+					ladder_direction="LEFT"
+
 				elif event.key == pygame.K_RIGHT:
 					willy_xvelocity=-1
 					print("RIGHT Key Pressed")
 					willy_direction="RIGHT"
+					ladder_direction="RIGHT"
 				elif event.key == pygame.K_UP:
 					print("Up Key Pressed")
 					ladder_direction="UP"
@@ -259,7 +263,11 @@ def main():
 			else:
 				if willy_yvelocity<=0:
 					willy_yvelocity=0
-					
+
+		if level_data[currentlevel][str(willy_position[0])][str(willy_position[1])].startswith("LADDER") and ladder_direction==None:
+			willy_yvelocity=0
+			willy_xvelocity=0		
+
 		if level_data[currentlevel][str(willy_position[0])][str(willy_position[1])].startswith("UPSPRING"):
 			willy_yvelocity=4
 			t = threading.Thread(target=play_audio, args=("audio/jump.wav",))
@@ -361,6 +369,8 @@ def main():
 
 			if level_data[currentlevel][str(test_list[0])][str(test_list[1])].startswith("LADDER"):
 				willy_list=test_list.copy()
+			else:
+				print("Why is this false?")
 				
 			# Convert list back to tuple
 			willy_position = tuple(willy_list)
