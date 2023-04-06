@@ -238,6 +238,7 @@ def main():
 				if not (str(y + 1) in level_data[currentlevel] and str(x) in level_data[currentlevel][str(y + 1)] and level_data[currentlevel][str(y + 1)][str(x)].startswith("PIPE")):
 					if willy_yvelocity==0:
 						willy_yvelocity = -1
+						
 			except:
 				willy_yvelocity=0  # Bottom of Screen
 				pass
@@ -250,13 +251,39 @@ def main():
 			except:
 				willy_yvelociy=0  # Top of screen
 				pass
+		
+		if willy_yvelocity>0:
+			print("Jumping")
+			# Convert tuple to list
+			willy_list = list(willy_position)
+
+			# Subtract 1 from the first element of the list
+			willy_list[0] -= 1
+
+			# Convert list back to tuple
+			willy_position = tuple(willy_list)
+			willy_yvelocity-=1
+			print(willy_position)
+
+		if willy_yvelocity<0:
+			print("Falling")
+			# Convert tuple to list
+			willy_list = list(willy_position)
+
+			# Subtract 1 from the first element of the list
+			willy_list[0] += 1
+
+			# Convert list back to tuple
+			willy_position = tuple(willy_list)
+			print(willy_position)
+
 
 		for row in level_data[currentlevel]:
 			for col in level_data[currentlevel][row]:
 				char_img = font[level_data[currentlevel][row][col]]
 				screen.blit(char_img, (int(col) * CHAR_WIDTH * SCALER, int(row) * CHAR_HEIGHT * SCALER))
 				#print(char_img)	
-
+		
 		#print(willy_direction)
 		if willy_direction=="LEFT":
 			char_img = font["WILLY_LEFT"]
