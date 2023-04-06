@@ -535,7 +535,11 @@ def main():
 			#print(balls[ball])
 			col=balls[ball]["Location"][1]
 			row=balls[ball]["Location"][0]
-			if not level_data[currentlevel][str(row+1)][str(col)].startswith("PIPE") and row<MAX_HEIGHT:
+			if level_data[currentlevel][str(row)][str(col)].startswith("BALLPIT") and not (col==primaryballpit[1] or row==primaryballpit[0]):
+				print("Ball Catcher")
+				balls[ball]["Location"][1]=primaryballpit[1]
+				balls[ball]["Location"][0]=primaryballpit[0]
+			elif not level_data[currentlevel][str(row+1)][str(col)].startswith("PIPE") and row<MAX_HEIGHT:
 				print(primaryballpit, row, col)
 				if col==primaryballpit[1] and row==primaryballpit[0]:
 					data=random.randint(0,40)
@@ -549,46 +553,27 @@ def main():
 				if balls[ball]["Direction"]==None:
 					data=random.randint(0,1)
 					if data==0:
-						balls[ball]["Location"][1]+=1
-						balls[ball]["Direction"]="RIGHT"
-						
+						if not level_data[currentlevel][str(row)][str(col+1)].startswith("PIPE"):
+							balls[ball]["Location"][1]+=1
+							balls[ball]["Direction"]="RIGHT"
+						else:
+							balls[ball]["Direction"]="LEFT"
 					else:
-						balls[ball]["Location"][1]-=1
-						balls[ball]["Direction"]="LEFT"
+						if not level_data[currentlevel][str(row)][str(col-1)].startswith("PIPE"):
+							balls[ball]["Location"][1]-=1
+							balls[ball]["Direction"]="LEFT"
+						else:
+							balls[ball]["Direction"]="RIGHT"
 				elif balls[ball]["Direction"]=="RIGHT":
-					if (balls[ball]["Location"][1]+1)<(MAX_WIDTH):
+					if (balls[ball]["Location"][1]+1)<(MAX_WIDTH) and not level_data[currentlevel][str(row)][str(col+1)].startswith("PIPE"):
 						balls[ball]["Location"][1]+=1
 					else:
 						balls[ball]["Direction"]="LEFT"
 				else:
-					if (balls[ball]["Location"][1]-1)>=0:
+					if (balls[ball]["Location"][1]-1)>=0 and not level_data[currentlevel][str(row)][str(col-1)].startswith("PIPE"):
 						balls[ball]["Location"][1]-=1
 					else:
-						balls[ball]["Direction"]="RIGHT"
-					
-						
-			'''	if balls[ball]["Direction"]==None:
-					data=random.randint(0,1)
-					if data==0 and col<MAX_WIDTH and not level_data[currentlevel][str(row)][str(col+1)].startswith("PIPE"):
-						print("Going Right")
-						balls[ball]["Location"][1]+=1
-						balls[ball]["Direction"]="RIGHT"
-					elif col>0 and not level_data[currentlevel][str(row)][str(col-1)].startswith("PIPE"):
-						print("Going Left")
-						balls[ball]["Location"][1]-=1
-						balls[ball]["Direction"]="LEFT"
-				elif balls[ball]["Direction"]=="RIGHT":
-					if data==0 and col<MAX_WIDTH and not level_data[currentlevel][str(row)][str(col+1)].startswith("PIPE"):
-						balls[ball]["Location"][1]+=1
-					else:
-						balls[ball]["Direction"]="LEFT"			
-				else:
-					if col>0 and not level_data[currentlevel][str(row)][str(col-1)].startswith("PIPE"):
-						balls[ball]["Location"][1]-=1
-						balls[ball]["Direction"]="LEFT"			
-					else:
-						balls[ball]["Direction"]="RIGHT"			
-			'''		
+						balls[ball]["Direction"]="RIGHT"						
 			char_img = font["BALL"]
 			screen.blit(char_img, (int(col) * CHAR_WIDTH * SCALER, int(row) * CHAR_HEIGHT * SCALER))
 		
