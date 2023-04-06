@@ -283,6 +283,34 @@ def main():
 			if level>MAX_LEVELS:
 				level=1
 			currentlevel="level" + str(level)
+			if level_data.get(currentlevel)==None:
+				#level_data[curentlevel]={}
+				level_data[currentlevel]={}
+			for row in range(SCREEN_HEIGHT):
+				if level_data.get(currentlevel).get(str(row))==None:
+					level_data[currentlevel][str(row)]={}
+				for col in range(SCREEN_WIDTH):
+					if level_data[currentlevel].get(str(row)).get(str(col))==None:
+						level_data[currentlevel][str(row)][str(col)]="EMPTY"
+
+			willy_position = None
+			willy_object = None
+			willy_yvelocity = 0
+			willy_xvelocity = 0
+			willy_direction = None
+			ladder_direction = None
+
+			for y, x_data in level_data[currentlevel].items():
+				if willy_position is not None:
+					break
+				for x, obj in x_data.items():
+					if obj.startswith("WILLY"):
+						willy_position = (int(y), int(x))
+						willy_object = obj
+						break
+			level_data[currentlevel][str(willy_position[0])][str(willy_position[1])]="EMPTY"
+
+
 
 
 		# If willy is Jumping, check if theres a pipe beside him.
