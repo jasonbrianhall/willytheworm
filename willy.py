@@ -231,14 +231,25 @@ def main():
 		# Clear the screen
 		screen.fill((0, 0, 0))
 
-		# Check if there's a PIPE object at Willy's position
+		# Check if there's a PIPE object at Willy's position (below him)
 		if willy_position is not None:
 			y, x = willy_position
-			if not (str(y + 1) in level_data[currentlevel] and str(x) in level_data[currentlevel][str(y + 1)] and level_data[currentlevel][str(y + 1)][str(x)].startswith("PIPE")):
-				if willy_yvelocity==0:
-					willy_yvelocity = -1
+			try:
+				if not (str(y + 1) in level_data[currentlevel] and str(x) in level_data[currentlevel][str(y + 1)] and level_data[currentlevel][str(y + 1)][str(x)].startswith("PIPE")):
+					if willy_yvelocity==0:
+						willy_yvelocity = -1
+			except:
+				willy_yvelocity=0  # Bottom of Screen
+				pass
 
-
+		# If willy is Jumping, check if theres a pipe above him.
+		if willy_yvelocity>0:
+			try:
+				if str(y - 1) in level_data[currentlevel] and str(x) in level_data[current][str(y - 1)] and level_data[currentlevel][str(y - 1)][str(x)].startswith("PIPE"):
+					willy_yvelocity=0
+			except:
+				willy_yvelociy=0  # Top of screen
+				pass
 
 		for row in level_data[currentlevel]:
 			for col in level_data[currentlevel][row]:
