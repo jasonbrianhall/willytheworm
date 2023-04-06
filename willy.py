@@ -265,6 +265,12 @@ def main():
 			t = threading.Thread(target=play_audio, args=("audio/jump.wav",))
 			t.start()
 
+		if level_data[currentlevel][str(willy_position[0])][str(willy_position[1])].startswith("BELL"):
+			#willy_xvelocity=0
+			#willy_yvelocity=0
+			t = threading.Thread(target=play_audio, args=("audio/bell.wav",))
+			t.start()
+
 
 		# If willy is Jumping, check if theres a pipe beside him.
 		if willy_xvelocity>0:
@@ -344,7 +350,7 @@ def main():
 			# Convert list back to tuple
 			willy_position = tuple(willy_list)
 
-		if ladder_direction=="UP" and level_data[currentlevel][str(test_list[0])][str(test_list[1])].startswith("LADDER"):
+		if ladder_direction=="UP" and level_data[currentlevel][str(willy_list[0])][str(willy_list[1])].startswith("LADDER"):
 			print("Going up Ladder")
 			# Convert tuple to list
 			willy_list = list(willy_position)
@@ -360,7 +366,7 @@ def main():
 			willy_position = tuple(willy_list)
 			willy_xvelocity=0
 
-		if ladder_direction=="DOWN" and level_data[currentlevel][str(test_list[0])][str(test_list[1])].startswith("LADDER"):
+		if ladder_direction=="DOWN" and level_data[currentlevel][str(willy_list[0])][str(willy_list[1])].startswith("LADDER"):
 			print("Going Down Ladder")
 			# Convert tuple to list
 			willy_list = list(willy_position)
