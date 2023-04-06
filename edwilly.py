@@ -268,7 +268,8 @@ def main():
 										level_data[currentlevel][newrow][newcol]="EMPTY"
 				# Last ballpit added is where the balls come out of
 				if currentitem[0]=="BALLPIT":
-					level_data[currentlevel]["PRIMARYBALLPIT"]=(row,col)
+					level_data[currentlevel+"PIT"]={}
+					level_data[currentlevel+"PIT"]["PRIMARYBALLPIT"]=(row,col)
 					
 			# Wheel Button Down
 			elif event.type == pygame.MOUSEBUTTONDOWN and event.button==5:
