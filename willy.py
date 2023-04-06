@@ -227,7 +227,7 @@ def main():
 					if willy_yvelocity==0:
 						willy_yvelocity=3
 						#print("Spacebar Pressed")
-						t = threading.Thread(target=play_audio, args=("audio/jump.wav",))
+						t = threading.Thread(target=play_audio, args=("audio/jump.mp3",))
 						t.start()
 				elif event.key == pygame.K_LEFT:
 					willy_xvelocity=1
@@ -275,7 +275,7 @@ def main():
 
 		if level_data[currentlevel][str(willy_position[0])][str(willy_position[1])].startswith("UPSPRING"):
 			willy_yvelocity=4
-			t = threading.Thread(target=play_audio, args=("audio/jump.wav",))
+			t = threading.Thread(target=play_audio, args=("audio/jump.mp3",))
 			t.start()
 
 		if level_data[currentlevel][str(willy_position[0])][str(willy_position[1])].startswith("PRESENT"):
@@ -287,7 +287,7 @@ def main():
 		if level_data[currentlevel][str(willy_position[0])][str(willy_position[1])].startswith("BELL"):
 			#willy_xvelocity=0
 			#willy_yvelocity=0
-			t = threading.Thread(target=play_audio, args=("audio/bell.wav",))
+			t = threading.Thread(target=play_audio, args=("audio/bell.mp3",))
 			t.start()
 			level+=1
 			if level>MAX_LEVELS:
@@ -421,7 +421,7 @@ def main():
 			willy_position = tuple(willy_list)
 			willy_xvelocity=0
 			willy_yvelocity=0
-			t = threading.Thread(target=play_audio, args=("audio/ladder.wav",))
+			t = threading.Thread(target=play_audio, args=("audio/ladder.mp3",))
 			t.start()
 
 
@@ -440,7 +440,7 @@ def main():
 			willy_position = tuple(willy_list)
 			willy_xvelocity=0
 			willy_yvelocity=0
-			t = threading.Thread(target=play_audio, args=("audio/ladder.wav",))
+			t = threading.Thread(target=play_audio, args=("audio/ladder.mp3",))
 			t.start()
 
 
