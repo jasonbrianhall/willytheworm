@@ -210,7 +210,7 @@ def main():
 					new_dict=copy.deepcopy(level_data)
 					for x in level_data:
 						try:
-							del new_dict[x]["0"]["41"]
+							del new_dict[x]["0"][str(SCREEN_WIDTH-1)]
 						except:
 							pass
 						for y in level_data[x]:
