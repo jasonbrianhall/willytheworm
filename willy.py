@@ -230,7 +230,7 @@ def main():
 	counter=0
 	for ball in range(numberofballs):
 		balls[str(counter)]={}
-		balls[str(counter)]["Location"]=primaryballpit
+		balls[str(counter)]["Location"]=primaryballpit.copy()
 		balls[str(counter)]["Direction"]=None
 
 		counter+=1
@@ -530,13 +530,15 @@ def main():
 		font_size = 8*SCALER
 		fontdata = pygame.font.SysFont(None, font_size)
 
-		'''for ball in balls:
+		for ball in balls:
 			#print(balls[ball])
 			col=balls[ball]["Location"][1]
 			row=balls[ball]["Location"][0]
 			if not level_data[currentlevel][str(row+1)][str(col)].startswith("PIPE") and row<MAX_HEIGHT:
-				if col==primaryballpit[1] and row==primaryballpit[1]:
+				print(primaryballpit, row, col)
+				if col==primaryballpit[1] and row==primaryballpit[0]:
 					data=random.randint(0,20)
+					print("Here")
 				else:
 					data=0
 				if data==0:
@@ -559,12 +561,11 @@ def main():
 				else:
 					if col>0 and not level_data[currentlevel][str(row)][str(col-1)].startswith("PIPE"):
 						balls[ball]["Location"][1]-=1
-						balls[ball]["Direction"]="LEFT"				
-		'
+						balls[ball]["Direction"]="LEFT"			
 					
 			char_img = font["BALL"]
 			screen.blit(char_img, (int(col) * CHAR_WIDTH * SCALER, int(row) * CHAR_HEIGHT * SCALER))
-		'''
+		
 		
 		# Render the text as a surface
 		text = "SCORE:  " + str(score)
