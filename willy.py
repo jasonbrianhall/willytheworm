@@ -229,7 +229,10 @@ def main():
 	balls={}
 	counter=0
 	for ball in range(numberofballs):
-		balls[str(counter)]=primaryballpit
+		balls[str(counter)]={}
+		balls[str(counter)]["Location"]=primaryballpit
+		balls[str(counter)]["Direction"]=None
+
 		counter+=1
 
 	while running:
@@ -527,16 +530,42 @@ def main():
 		font_size = 8*SCALER
 		fontdata = pygame.font.SysFont(None, font_size)
 
-		for ball in balls:
+		'''for ball in balls:
 			#print(balls[ball])
-			col=balls[ball][1]
-			row=balls[ball][0]
+			col=balls[ball]["Location"][1]
+			row=balls[ball]["Location"][0]
 			if not level_data[currentlevel][str(row+1)][str(col)].startswith("PIPE") and row<MAX_HEIGHT:
-				balls[ball][0]+=1
-							
+				if col==primaryballpit[1] and row==primaryballpit[1]:
+					data=random.randint(0,20)
+				else:
+					data=0
+				if data==0:
+					balls[ball]["Location"][0]+=1
+					balls[ball]["Direction"]=None
+			else:
+				if balls[ball]["Direction"]==None:
+					data=random.randint(0,1)
+					if data==0 and col<MAX_WIDTH and not level_data[currentlevel][str(row)][str(col+1)].startswith("PIPE"):
+						print("Going Right")
+						balls[ball]["Location"][1]+=1
+						balls[ball]["Direction"]="RIGHT"
+					elif col>0 and not level_data[currentlevel][str(row)][str(col-1)].startswith("PIPE"):
+						print("Going Left")
+						balls[ball]["Location"][1]-=1
+						balls[ball]["Direction"]="LEFT"
+				elif balls[ball]["Direction"]=="RIGHT":
+					if data==0 and col<MAX_WIDTH and not level_data[currentlevel][str(row)][str(col+1)].startswith("PIPE"):
+						balls[ball]["Location"][1]+=1
+				else:
+					if col>0 and not level_data[currentlevel][str(row)][str(col-1)].startswith("PIPE"):
+						balls[ball]["Location"][1]-=1
+						balls[ball]["Direction"]="LEFT"				
+		'
+					
 			char_img = font["BALL"]
 			screen.blit(char_img, (int(col) * CHAR_WIDTH * SCALER, int(row) * CHAR_HEIGHT * SCALER))
-
+		'''
+		
 		# Render the text as a surface
 		text = "SCORE:  " + str(score)
 		text_surface = fontdata.render(text, True, (255, 255, 255))
