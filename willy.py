@@ -186,7 +186,8 @@ def main():
 	willy_object = None
 	willy_yvelocity = 0
 	willy_xvelocity = 0
-	willy_direction = "LEFT"
+	print("Running this code")
+	willy_direction = None
         
 	for y, x_data in level_data[currentlevel].items():
 		if willy_position is not None:
@@ -207,18 +208,22 @@ def main():
 			# Keyboard Events
 			elif event.type == pygame.KEYDOWN:
 				if event.key == pygame.K_SPACE:
+					willy_yvelocity=4
 					print("Spacebar Pressed")
 				elif event.key == pygame.K_LEFT:
+					willy_xvelocity=1
 					print("Left Key Pressed")
+					willy_direction="LEFT"
 				elif event.key == pygame.K_RIGHT:
+					willy_xvelocity=-1
 					print("RIGHT Key Pressed")
+					willy_direction="RIGHT"
 				elif event.key == pygame.K_UP:
 					print("Up Key Pressed")
 				elif event.key == pygame.K_DOWN:
 					print("Down Key Pressed")
 				else:
 					print("Any Key Pressed")
-
 			# Right Button Deletes Object
 			
 
@@ -229,10 +234,7 @@ def main():
 		# Check if there's a PIPE object at Willy's position
 		if willy_position is not None:
 			y, x = willy_position
-			if str(y + 1) in level_data[currentlevel] and str(x) in level_data[currentlevel][str(y + 1)] and level_data[currentlevel][str(y + 1)][str(x)].startswith("PIPE"):
-				if willy_yvelocity>0:
-					willy_yvelocity = 0
-			else:
+			if not (str(y + 1) in level_data[currentlevel] and str(x) in level_data[currentlevel][str(y + 1)] and level_data[currentlevel][str(y + 1)][str(x)].startswith("PIPE")):
 				if willy_yvelocity==0:
 					willy_yvelocity = -1
 
@@ -244,6 +246,7 @@ def main():
 				screen.blit(char_img, (int(col) * CHAR_WIDTH * SCALER, int(row) * CHAR_HEIGHT * SCALER))
 				#print(char_img)	
 
+		#print(willy_direction)
 		if willy_direction=="LEFT":
 			char_img = font["WILLY_LEFT"]
 		else:
