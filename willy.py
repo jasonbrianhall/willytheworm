@@ -196,6 +196,7 @@ def main():
 	willy_direction = None
 	ladder_direction = None
 	score=0
+	bonus=1000
 
 	for y, x_data in level_data[currentlevel].items():
 		if willy_position is not None:
@@ -212,6 +213,8 @@ def main():
 		pass
 
 	clock = pygame.time.Clock()
+	fpscounter=0
+
 
 	while running:
 		clock.tick(fps)	 # limit the frame rate to 30 fps
@@ -290,6 +293,7 @@ def main():
 			t = threading.Thread(target=play_audio, args=("audio/bell.mp3",))
 			t.start()
 			level+=1
+			score+=bonus
 			if level>MAX_LEVELS:
 				level=1
 			currentlevel="level" + str(level)
@@ -309,6 +313,8 @@ def main():
 			willy_xvelocity = 0
 			willy_direction = None
 			ladder_direction = None
+			bonus=1000
+			fpscounter=0
 
 			for y, x_data in level_data[currentlevel].items():
 				if willy_position is not None:
@@ -472,6 +478,22 @@ def main():
 		text_y = (SCREEN_HEIGHT * CHAR_HEIGHT * SCALER) - font_size
 		#print(SCREEN_WIDTH * CHAR_WIDTH * SCALER, SCREEN_HEIGHT * CHAR_HEIGHT * SCALER)
 		screen.blit(text_surface, (text_x, text_y))
+
+		# Render the text as a surface
+		text = "BONUS:  " + str(bonus)
+		text_surface = fontdata.render(text, True, (255, 255, 255))
+
+		# Blit the text surface onto the screen at a specific location
+		#text_x = (SCREEN_WIDTH * CHAR_WIDTH * SCALER)-10
+		#text_y = (SCREEN_HEIGHT * CHAR_HEIGHT * SCALER) - 10 
+		text_x = 4*25*SCALER
+		text_y = (SCREEN_HEIGHT * CHAR_HEIGHT * SCALER) - font_size
+		#print(SCREEN_WIDTH * CHAR_WIDTH * SCALER, SCREEN_HEIGHT * CHAR_HEIGHT * SCALER)
+		screen.blit(text_surface, (text_x, text_y))
+		fpscounter+=1
+		if fpscounter>=fps:
+			fpscounter=0
+			bonus-=10
 
 		# Update the screen
 		pygame.display.flip()
