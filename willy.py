@@ -219,7 +219,7 @@ def main():
 			# Keyboard Events
 			elif event.type == pygame.KEYDOWN:
 				if event.key == pygame.K_SPACE:
-					willy_yvelocity=3
+					willy_yvelocity=4
 					print("Spacebar Pressed")
 					t = threading.Thread(target=play_audio, args=("audio/jump.wav",))
 					t.start()
@@ -233,11 +233,15 @@ def main():
 					willy_direction="RIGHT"
 				elif event.key == pygame.K_UP:
 					print("Up Key Pressed")
+					ladder_direction="UP"
 				elif event.key == pygame.K_DOWN:
 					print("Down Key Pressed")
+					ladder_direction="DOWN"
 				else:
 					print("Any Key Pressed")
 					willy_xvelocity=0
+					ladder_direction=None
+
 
 			# Right Button Deletes Object
 			
@@ -256,17 +260,28 @@ def main():
 				if willy_yvelocity<=0:
 					willy_yvelocity=0
 					
-		# If willy is Jumping, check if theres a pipe above him.
+		# If willy is Jumping, check if theres a pipe beside him.
+		if willy_xvelocity>0:
+			if str(y) in level_data[currentlevel] and str(x - 1) in level_data[currentlevel][str(y)] and level_data[currentlevel][str(y)][str(x - 1)].startswith("PIPE"):
+				willy_xvelocity=0
+
+		if willy_xvelocity<0:
+			if str(y) in level_data[currentlevel] and str(x + 1) in level_data[currentlevel][str(y)] and level_data[currentlevel][str(y)][str(x + 1)].startswith("PIPE"):
+				willy_xvelocity=0
+
+
 		if willy_yvelocity>0:
 			if str(y - 1) in level_data[currentlevel] and str(x) in level_data[currentlevel][str(y - 1)] and level_data[currentlevel][str(y - 1)][str(x)].startswith("PIPE"):
 				willy_yvelocity=0
+		
 		
 		if willy_yvelocity>0:
 			# Convert tuple to list
 			willy_list = list(willy_position)
 
 			# Subtract 1 from the first element of the list
-			willy_list[0] -= 1
+			if willy_list[0]>0:
+				willy_list[0] -= 1
 
 			# Convert list back to tuple
 			willy_position = tuple(willy_list)
@@ -277,7 +292,9 @@ def main():
 			willy_list = list(willy_position)
 
 			# Subtract 1 from the first element of the list
-			willy_list[0] += 1
+			if willy_list[0]<(MAX_HEIGHT-1):
+				willy_list[0] += 1
+				
 
 			# Convert list back to tuple
 			willy_position = tuple(willy_list)
@@ -287,7 +304,8 @@ def main():
 			willy_list = list(willy_position)
 
 			# Subtract 1 from the first element of the list
-			willy_list[1] += 1
+			if willy_list[1]<(MAX_WIDTH-1):
+				willy_list[1] += 1
 
 			# Convert list back to tuple
 			willy_position = tuple(willy_list)
@@ -297,10 +315,13 @@ def main():
 			willy_list = list(willy_position)
 
 			# Subtract 1 from the first element of the list
-			willy_list[1] -= 1
+			if willy_list[1]>0:
+				willy_list[1] -= 1
 
 			# Convert list back to tuple
 			willy_position = tuple(willy_list)
+
+
 
 		for row in level_data[currentlevel]:
 			for col in level_data[currentlevel][row]:
