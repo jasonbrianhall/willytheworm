@@ -248,12 +248,10 @@ def main():
 		if willy_position is not None:
 			y, x = willy_position
 			if not (str(y + 1) in level_data[currentlevel] and str(x) in level_data[currentlevel][str(y + 1)] and level_data[currentlevel][str(y + 1)][str(x)].startswith("PIPE")):
-				print("No pipe below")
 				if willy_yvelocity==0:
 					willy_yvelocity = -1
 			else:
 				if willy_yvelocity<=0:
-					print("Pipe below")
 					willy_yvelocity=0
 					
 		# If willy is Jumping, check if theres a pipe above him.
@@ -271,7 +269,6 @@ def main():
 			# Convert list back to tuple
 			willy_position = tuple(willy_list)
 			willy_yvelocity-=1
-			print(willy_position)
 
 		if willy_yvelocity<0:
 			# Convert tuple to list
@@ -282,7 +279,6 @@ def main():
 
 			# Convert list back to tuple
 			willy_position = tuple(willy_list)
-			print(willy_position)
 
 		if willy_xvelocity<0:
 			# Convert tuple to list
@@ -293,7 +289,6 @@ def main():
 
 			# Convert list back to tuple
 			willy_position = tuple(willy_list)
-			print(willy_position)
 
 		if willy_xvelocity>0:
 			# Convert tuple to list
@@ -304,9 +299,6 @@ def main():
 
 			# Convert list back to tuple
 			willy_position = tuple(willy_list)
-			print(willy_position)
-
-
 
 		for row in level_data[currentlevel]:
 			for col in level_data[currentlevel][row]:
