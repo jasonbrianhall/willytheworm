@@ -200,6 +200,7 @@ def main():
 	score=0
 	bonus=1000
 	numberoflives=5
+	numberofballs=6
 
 	for y, x_data in level_data[currentlevel].items():
 		if willy_position is not None:
@@ -218,8 +219,18 @@ def main():
 	init_position=willy_position
 	
 	clock = pygame.time.Clock()
+
+	# Used for bonuses
 	fpscounter=0
 
+	primaryballpit=level_data.get(currentlevel+"PIT").get("PRIMARYBALLPIT")
+	print(primaryballpit)
+
+	balls={}
+	counter=0
+	for ball in range(numberofballs):
+		balls[str(counter)]=primaryballpit
+		counter+=1
 
 	while running:
 		clock.tick(fps)	 # limit the frame rate to 30 fps
@@ -515,6 +526,10 @@ def main():
 
 		font_size = 8*SCALER
 		fontdata = pygame.font.SysFont(None, font_size)
+
+		for ball in balls:
+			#print(balls[ball])
+			True
 
 		# Render the text as a surface
 		text = "SCORE:  " + str(score)
