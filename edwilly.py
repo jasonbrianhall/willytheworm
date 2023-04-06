@@ -215,12 +215,15 @@ def main():
 							pass
 						for y in level_data[x]:
 							for z in level_data[x][y]:
-								if level_data[x][y][z]=="EMPTY":
-									try:
-										del new_dict[x][y][z]
-									except:
-										pass
+								try:
+									if level_data[x][y][z]=="EMPTY":
+										try:
+											del new_dict[x][y][z]
+										except:
+											pass
 					
+								except:
+									pass
 					with open('levels.json', 'w') as writefile:
 						# Write the data to the file using the json.dump() function
 						json.dump(new_dict, writefile, indent=4)
@@ -263,6 +266,9 @@ def main():
 								if level_data[currentlevel][newrow][newcol]=="WILLY_RIGHT" or level_data[currentlevel][newrow][newcol]=="WILLY_LEFT":
 									if not (newcol==str(col) and newrow==str(row)):
 										level_data[currentlevel][newrow][newcol]="EMPTY"
+				# Last ballpit added is where the balls come out of
+				if currentitem[0]=="BALLPIT":
+					level_data[currentlevel]["PRIMARYBALLPIT"]=(row,col)
 					
 			# Wheel Button Down
 			elif event.type == pygame.MOUSEBUTTONDOWN and event.button==5:
@@ -333,8 +339,12 @@ def main():
 					screen.blit(char_img, (col * CHAR_WIDTH * SCALER, row * CHAR_HEIGHT * SCALER))'''
 		for row in level_data[currentlevel]:
 			for col in level_data[currentlevel][row]:
-				char_img = font[level_data[currentlevel][row][col]]
-				screen.blit(char_img, (int(col) * CHAR_WIDTH * SCALER, int(row) * CHAR_HEIGHT * SCALER))
+				# This will error on primary ball pit
+				try:
+					char_img = font[level_data[currentlevel][row][col]]
+					screen.blit(char_img, (int(col) * CHAR_WIDTH * SCALER, int(row) * CHAR_HEIGHT * SCALER))
+				except:
+					pass
 				#print(char_img)	
 
 		# Update the screen
