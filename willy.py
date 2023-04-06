@@ -530,6 +530,7 @@ def main():
 		font_size = 8*SCALER
 		fontdata = pygame.font.SysFont(None, font_size)
 
+
 		for ball in balls:
 			#print(balls[ball])
 			col=balls[ball]["Location"][1]
@@ -537,7 +538,7 @@ def main():
 			if not level_data[currentlevel][str(row+1)][str(col)].startswith("PIPE") and row<MAX_HEIGHT:
 				print(primaryballpit, row, col)
 				if col==primaryballpit[1] and row==primaryballpit[0]:
-					data=random.randint(0,20)
+					data=random.randint(0,40)
 					print("Here")
 				else:
 					data=0
@@ -546,6 +547,27 @@ def main():
 					balls[ball]["Direction"]=None
 			else:
 				if balls[ball]["Direction"]==None:
+					data=random.randint(0,1)
+					if data==0:
+						balls[ball]["Location"][1]+=1
+						balls[ball]["Direction"]="RIGHT"
+						
+					else:
+						balls[ball]["Location"][1]-=1
+						balls[ball]["Direction"]="LEFT"
+				elif balls[ball]["Direction"]=="RIGHT":
+					if (balls[ball]["Location"][1]+1)<(MAX_WIDTH):
+						balls[ball]["Location"][1]+=1
+					else:
+						balls[ball]["Direction"]="LEFT"
+				else:
+					if (balls[ball]["Location"][1]-1)>=0:
+						balls[ball]["Location"][1]-=1
+					else:
+						balls[ball]["Direction"]="RIGHT"
+					
+						
+			'''	if balls[ball]["Direction"]==None:
 					data=random.randint(0,1)
 					if data==0 and col<MAX_WIDTH and not level_data[currentlevel][str(row)][str(col+1)].startswith("PIPE"):
 						print("Going Right")
@@ -558,11 +580,15 @@ def main():
 				elif balls[ball]["Direction"]=="RIGHT":
 					if data==0 and col<MAX_WIDTH and not level_data[currentlevel][str(row)][str(col+1)].startswith("PIPE"):
 						balls[ball]["Location"][1]+=1
+					else:
+						balls[ball]["Direction"]="LEFT"			
 				else:
 					if col>0 and not level_data[currentlevel][str(row)][str(col-1)].startswith("PIPE"):
 						balls[ball]["Location"][1]-=1
 						balls[ball]["Direction"]="LEFT"			
-					
+					else:
+						balls[ball]["Direction"]="RIGHT"			
+			'''		
 			char_img = font["BALL"]
 			screen.blit(char_img, (int(col) * CHAR_WIDTH * SCALER, int(row) * CHAR_HEIGHT * SCALER))
 		
