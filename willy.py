@@ -278,6 +278,12 @@ def main():
 			t = threading.Thread(target=play_audio, args=("audio/jump.wav",))
 			t.start()
 
+		if level_data[currentlevel][str(willy_position[0])][str(willy_position[1])].startswith("PRESENT"):
+			score+=100
+			t = threading.Thread(target=play_audio, args=("audio/jump.wav",))
+			t.start()
+			level_data[currentlevel][str(willy_position[0])][str(willy_position[1])]="EMPTY"
+
 		if level_data[currentlevel][str(willy_position[0])][str(willy_position[1])].startswith("BELL"):
 			#willy_xvelocity=0
 			#willy_yvelocity=0
