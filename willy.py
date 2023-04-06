@@ -278,6 +278,8 @@ def main():
 					willy_yvelocity=0
 
 		if level_data[currentlevel][str(willy_position[0])][str(willy_position[1])].startswith("TACK") or bonus<=0:
+			t = threading.Thread(target=play_audio, args=("audio/tack.mp3",))
+			t.start()
 			numberoflives-=1
 			if numberoflives<1:
 				# Todo; make main screen
