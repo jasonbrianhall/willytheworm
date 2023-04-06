@@ -260,6 +260,12 @@ def main():
 				if willy_yvelocity<=0:
 					willy_yvelocity=0
 					
+		if level_data[currentlevel][str(willy_position[0])][str(willy_position[1])].startswith("UPSPRING"):
+			willy_yvelocity=4
+			t = threading.Thread(target=play_audio, args=("audio/jump.wav",))
+			t.start()
+
+
 		# If willy is Jumping, check if theres a pipe beside him.
 		if willy_xvelocity>0:
 			if str(y) in level_data[currentlevel] and str(x - 1) in level_data[currentlevel][str(y)] and level_data[currentlevel][str(y)][str(x - 1)].startswith("PIPE"):
