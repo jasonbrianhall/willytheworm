@@ -316,6 +316,16 @@ def main():
 			t = threading.Thread(target=play_audio, args=("audio/jump.mp3",))
 			t.start()
 
+		if level_data[currentlevel][str(willy_position[0])][str(willy_position[1])].startswith("SIDESPRING"):
+			willy_xvelocity*=-1
+			t = threading.Thread(target=play_audio, args=("audio/jump.mp3",))
+			t.start()
+			if willy_direction=="LEFT":
+				willy_direction="RIGHT"
+			else:
+				willy_direction="LEFT"
+
+
 		if level_data[currentlevel][str(willy_position[0])][str(willy_position[1])].startswith("PRESENT"):
 			score+=100
 			t = threading.Thread(target=play_audio, args=("audio/present.mp3",))
