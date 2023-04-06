@@ -414,6 +414,10 @@ def main():
 			# Convert list back to tuple
 			willy_position = tuple(willy_list)
 			willy_xvelocity=0
+			willy_yvelocity=0
+			t = threading.Thread(target=play_audio, args=("audio/ladder.wav",))
+			t.start()
+
 
 		if ladder_direction=="DOWN" and level_data[currentlevel][str(willy_list[0])][str(willy_list[1])].startswith("LADDER"):
 			# Convert tuple to list
@@ -429,6 +433,9 @@ def main():
 			# Convert list back to tuple
 			willy_position = tuple(willy_list)
 			willy_xvelocity=0
+			willy_yvelocity=0
+			t = threading.Thread(target=play_audio, args=("audio/ladder.wav",))
+			t.start()
 
 
 		for row in level_data[currentlevel]:
