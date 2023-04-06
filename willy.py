@@ -7,6 +7,7 @@ import traceback
 import sys
 import copy
 import threading
+import random
 
 # Constants
 SCALER = 4
@@ -224,7 +225,6 @@ def main():
 	fpscounter=0
 
 	primaryballpit=level_data.get(currentlevel+"PIT").get("PRIMARYBALLPIT")
-	print(primaryballpit)
 
 	balls={}
 	counter=0
@@ -529,7 +529,13 @@ def main():
 
 		for ball in balls:
 			#print(balls[ball])
-			True
+			col=balls[ball][1]
+			row=balls[ball][0]
+			if not level_data[currentlevel][str(row+1)][str(col)].startswith("PIPE") and row<MAX_HEIGHT:
+				balls[ball][0]+=1
+							
+			char_img = font["BALL"]
+			screen.blit(char_img, (int(col) * CHAR_WIDTH * SCALER, int(row) * CHAR_HEIGHT * SCALER))
 
 		# Render the text as a surface
 		text = "SCORE:  " + str(score)
