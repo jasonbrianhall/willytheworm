@@ -195,6 +195,7 @@ def main():
 	willy_xvelocity = 0
 	willy_direction = None
 	ladder_direction = None
+	score=0
 
 	for y, x_data in level_data[currentlevel].items():
 		if willy_position is not None:
@@ -221,28 +222,28 @@ def main():
 				if event.key == pygame.K_SPACE:
 					if willy_yvelocity==0:
 						willy_yvelocity=3
-					print("Spacebar Pressed")
-					t = threading.Thread(target=play_audio, args=("audio/jump.wav",))
-					t.start()
+						#print("Spacebar Pressed")
+						t = threading.Thread(target=play_audio, args=("audio/jump.wav",))
+						t.start()
 				elif event.key == pygame.K_LEFT:
 					willy_xvelocity=1
-					print("Left Key Pressed")
+					#print("Left Key Pressed")
 					willy_direction="LEFT"
 					ladder_direction="LEFT"
 
 				elif event.key == pygame.K_RIGHT:
 					willy_xvelocity=-1
-					print("RIGHT Key Pressed")
+					#print("RIGHT Key Pressed")
 					willy_direction="RIGHT"
 					ladder_direction="RIGHT"
 				elif event.key == pygame.K_UP:
-					print("Up Key Pressed")
+					#print("Up Key Pressed")
 					ladder_direction="UP"
 				elif event.key == pygame.K_DOWN:
-					print("Down Key Pressed")
+					#print("Down Key Pressed")
 					ladder_direction="DOWN"
 				else:
-					print("Any Key Pressed")
+					#print("Any Key Pressed")
 					willy_xvelocity=0
 					ladder_direction=None
 
@@ -359,27 +360,22 @@ def main():
 			willy_position = tuple(willy_list)
 
 		if ladder_direction=="UP" and level_data[currentlevel][str(willy_list[0])][str(willy_list[1])].startswith("LADDER"):
-			print("Going up Ladder")
+			#print("Going up Ladder")
 			# Convert tuple to list
 			willy_list = list(willy_position)
 			test_list=willy_list.copy()
 			# Subtract 1 from the first element of the list
 			if test_list[0]>0:
 				test_list[0] -= 1
-			else:
-				print("Did this fail")
 
 			if level_data[currentlevel][str(test_list[0])][str(test_list[1])].startswith("LADDER"):
 				willy_list=test_list.copy()
-			else:
-				print("Why is this false?")
 				
 			# Convert list back to tuple
 			willy_position = tuple(willy_list)
 			willy_xvelocity=0
 
 		if ladder_direction=="DOWN" and level_data[currentlevel][str(willy_list[0])][str(willy_list[1])].startswith("LADDER"):
-			print("Going Down Ladder")
 			# Convert tuple to list
 			willy_list = list(willy_position)
 			test_list=willy_list.copy()
@@ -410,11 +406,10 @@ def main():
 		screen.blit(char_img, (int(col) * CHAR_WIDTH * SCALER, int(row) * CHAR_HEIGHT * SCALER))
 
 		font_size = 8*SCALER
-		print(SCALER)
 		fontdata = pygame.font.SysFont(None, font_size)
 
 		# Render the text as a surface
-		text = "Hello, World!"
+		text = "SCORE:  " + str(score)
 		text_surface = fontdata.render(text, True, (255, 255, 255))
 
 		# Blit the text surface onto the screen at a specific location
