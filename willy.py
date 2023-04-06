@@ -16,6 +16,8 @@ MAX_WIDTH = 40
 SCREEN_HEIGHT = 26
 MAX_HEIGHT = 25
 MAX_LEVELS = 32
+fps=10
+
 
 def loadFont():
 
@@ -186,9 +188,9 @@ def main():
 	willy_object = None
 	willy_yvelocity = 0
 	willy_xvelocity = 0
-	print("Running this code")
 	willy_direction = None
-        
+
+
 	for y, x_data in level_data[currentlevel].items():
 		if willy_position is not None:
 			break
@@ -199,7 +201,11 @@ def main():
 				break
 	level_data[currentlevel][str(willy_position[0])][str(willy_position[1])]="EMPTY"
 
+	clock = pygame.time.Clock()
+
 	while running:
+		clock.tick(fps)  # limit the frame rate to 30 fps
+	
 		# Handle events
 		for event in pygame.event.get():
 			# Close Event
@@ -208,7 +214,7 @@ def main():
 			# Keyboard Events
 			elif event.type == pygame.KEYDOWN:
 				if event.key == pygame.K_SPACE:
-					willy_yvelocity=4
+					willy_yvelocity=3
 					print("Spacebar Pressed")
 				elif event.key == pygame.K_LEFT:
 					willy_xvelocity=1
@@ -234,23 +240,19 @@ def main():
 		# Check if there's a PIPE object at Willy's position (below him)
 		if willy_position is not None:
 			y, x = willy_position
-			try:
-				if not (str(y + 1) in level_data[currentlevel] and str(x) in level_data[currentlevel][str(y + 1)] and level_data[currentlevel][str(y + 1)][str(x)].startswith("PIPE")):
-					if willy_yvelocity==0:
-						willy_yvelocity = -1
-						
-			except:
-				willy_yvelocity=0  # Bottom of Screen
-				pass
-
+			if not (str(y + 1) in level_data[currentlevel] and str(x) in level_data[currentlevel][str(y + 1)] and level_data[currentlevel][str(y + 1)][str(x)].startswith("PIPE")):
+				print("No pipe below")
+				if willy_yvelocity==0:
+					willy_yvelocity = -1
+			else:
+				if willy_yvelocity<=0:
+					print("Pipe below")
+					willy_yvelocity=0
+					
 		# If willy is Jumping, check if theres a pipe above him.
 		if willy_yvelocity>0:
-			try:
-				if str(y - 1) in level_data[currentlevel] and str(x) in level_data[current][str(y - 1)] and level_data[currentlevel][str(y - 1)][str(x)].startswith("PIPE"):
-					willy_yvelocity=0
-			except:
-				willy_yvelociy=0  # Top of screen
-				pass
+			if str(y - 1) in level_data[currentlevel] and str(x) in level_data[currentlevel][str(y - 1)] and level_data[currentlevel][str(y - 1)][str(x)].startswith("PIPE"):
+				willy_yvelocity=0
 		
 		if willy_yvelocity>0:
 			print("Jumping")
