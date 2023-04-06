@@ -280,7 +280,7 @@ def main():
 
 		if level_data[currentlevel][str(willy_position[0])][str(willy_position[1])].startswith("PRESENT"):
 			score+=100
-			t = threading.Thread(target=play_audio, args=("audio/jump.wav",))
+			t = threading.Thread(target=play_audio, args=("audio/present.mp3",))
 			t.start()
 			level_data[currentlevel][str(willy_position[0])][str(willy_position[1])]="EMPTY"
 
