@@ -279,6 +279,10 @@ def main():
 			#willy_yvelocity=0
 			t = threading.Thread(target=play_audio, args=("audio/bell.wav",))
 			t.start()
+			level+=1
+			if level>MAX_LEVELS:
+				level=1
+			currentlevel="level" + str(level)
 
 
 		# If willy is Jumping, check if theres a pipe beside him.
