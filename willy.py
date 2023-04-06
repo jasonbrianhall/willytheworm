@@ -205,7 +205,11 @@ def main():
 				willy_position = (int(y), int(x))
 				willy_object = obj
 				break
-	level_data[currentlevel][str(willy_position[0])][str(willy_position[1])]="EMPTY"
+	try:
+		level_data[currentlevel][str(willy_position[0])][str(willy_position[1])]="EMPTY"
+	except:
+		willy_position = (0,0)
+		pass
 
 	clock = pygame.time.Clock()
 
@@ -308,7 +312,11 @@ def main():
 						willy_position = (int(y), int(x))
 						willy_object = obj
 						break
-			level_data[currentlevel][str(willy_position[0])][str(willy_position[1])]="EMPTY"
+			try:
+				level_data[currentlevel][str(willy_position[0])][str(willy_position[1])]="EMPTY"
+			except:
+				willy_position = (0,0)
+				pass
 
 
 
