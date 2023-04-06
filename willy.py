@@ -224,7 +224,7 @@ def main():
 			# Keyboard Events
 			elif event.type == pygame.KEYDOWN:
 				if event.key == pygame.K_SPACE:
-					if willy_yvelocity==0:
+					if willy_yvelocity==0 and level_data[currentlevel][str(y + 1)][str(x)].startswith("PIPE"):
 						willy_yvelocity=3
 						#print("Spacebar Pressed")
 						t = threading.Thread(target=play_audio, args=("audio/jump.mp3",))
