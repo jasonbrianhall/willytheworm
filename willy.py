@@ -278,11 +278,14 @@ def main():
 		if willy_yvelocity>0:
 			# Convert tuple to list
 			willy_list = list(willy_position)
-
+			test_list=willy_list.copy()
 			# Subtract 1 from the first element of the list
-			if willy_list[0]>0:
-				willy_list[0] -= 1
+			if test_list[0]>0:
+				test_list[0] -= 1
 
+			if not level_data[currentlevel][str(test_list[0])][str(test_list[1])].startswith("PIPE"):
+				willy_list=test_list.copy()
+				
 			# Convert list back to tuple
 			willy_position = tuple(willy_list)
 			willy_yvelocity-=1
@@ -290,11 +293,15 @@ def main():
 		if willy_yvelocity<0:
 			# Convert tuple to list
 			willy_list = list(willy_position)
+			test_list=willy_list.copy()
 
 			# Subtract 1 from the first element of the list
-			if willy_list[0]<(MAX_HEIGHT-1):
-				willy_list[0] += 1
+			if test_list[0]<(MAX_HEIGHT-1):
+				test_list[0] += 1
 				
+			if not level_data[currentlevel][str(test_list[0])][str(test_list[1])].startswith("PIPE"):
+				willy_list=test_list.copy()
+
 
 			# Convert list back to tuple
 			willy_position = tuple(willy_list)
@@ -302,22 +309,32 @@ def main():
 		if willy_xvelocity<0:
 			# Convert tuple to list
 			willy_list = list(willy_position)
+			test_list=willy_list.copy()
+
 
 			# Subtract 1 from the first element of the list
-			if willy_list[1]<(MAX_WIDTH-1):
-				willy_list[1] += 1
+			if test_list[1]<(MAX_WIDTH-1):
+				test_list[1] += 1
 
+			if not level_data[currentlevel][str(test_list[0])][str(test_list[1])].startswith("PIPE"):
+				willy_list=test_list.copy()
+
+	
 			# Convert list back to tuple
 			willy_position = tuple(willy_list)
 
 		if willy_xvelocity>0:
 			# Convert tuple to list
 			willy_list = list(willy_position)
+			test_list=willy_list.copy()
 
 			# Subtract 1 from the first element of the list
-			if willy_list[1]>0:
-				willy_list[1] -= 1
+			if test_list[1]>0:
+				test_list[1] -= 1
 
+			if not level_data[currentlevel][str(test_list[0])][str(test_list[1])].startswith("PIPE"):
+				willy_list=test_list.copy()
+					
 			# Convert list back to tuple
 			willy_position = tuple(willy_list)
 
