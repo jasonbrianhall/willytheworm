@@ -194,7 +194,7 @@ def main():
 	willy_yvelocity = 0
 	willy_xvelocity = 0
 	willy_direction = None
-
+	ladder_direction = None
 
 	for y, x_data in level_data[currentlevel].items():
 		if willy_position is not None:
@@ -338,6 +338,37 @@ def main():
 			# Convert list back to tuple
 			willy_position = tuple(willy_list)
 
+		if ladder_direction=="UP" and level_data[currentlevel][str(test_list[0])][str(test_list[1])].startswith("LADDER"):
+			print("Going up Ladder")
+			# Convert tuple to list
+			willy_list = list(willy_position)
+			test_list=willy_list.copy()
+			# Subtract 1 from the first element of the list
+			if test_list[0]>0:
+				test_list[0] -= 1
+
+			if level_data[currentlevel][str(test_list[0])][str(test_list[1])].startswith("LADDER"):
+				willy_list=test_list.copy()
+				
+			# Convert list back to tuple
+			willy_position = tuple(willy_list)
+			willy_xvelocity=0
+
+		if ladder_direction=="DOWN" and level_data[currentlevel][str(test_list[0])][str(test_list[1])].startswith("LADDER"):
+			print("Going Down Ladder")
+			# Convert tuple to list
+			willy_list = list(willy_position)
+			test_list=willy_list.copy()
+			# Subtract 1 from the first element of the list
+			if test_list[0]<(MAX_HEIGHT-1):
+				test_list[0] += 1
+
+			if level_data[currentlevel][str(test_list[0])][str(test_list[1])].startswith("LADDER"):
+				willy_list=test_list.copy()
+				
+			# Convert list back to tuple
+			willy_position = tuple(willy_list)
+			willy_xvelocity=0
 
 
 		for row in level_data[currentlevel]:
