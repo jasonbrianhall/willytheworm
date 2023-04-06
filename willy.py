@@ -575,7 +575,8 @@ def main():
 					else:
 						balls[ball]["Direction"]="RIGHT"						
 			char_img = font["BALL"]
-			screen.blit(char_img, (int(col) * CHAR_WIDTH * SCALER, int(row) * CHAR_HEIGHT * SCALER))
+			if not level_data[currentlevel][str(row)][str(col)].startswith("BALLPIT"):
+				screen.blit(char_img, (int(col) * CHAR_WIDTH * SCALER, int(row) * CHAR_HEIGHT * SCALER))
 		
 		
 		# Render the text as a surface
