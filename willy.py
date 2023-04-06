@@ -17,6 +17,8 @@ MAX_WIDTH = 40
 SCREEN_HEIGHT = 26
 MAX_HEIGHT = 25
 MAX_LEVELS = 32
+
+# The higher the number, the faster the game goes
 fps=10
 
 def play_audio(filename):
@@ -197,6 +199,7 @@ def main():
 	ladder_direction = None
 	score=0
 	bonus=1000
+	numberoflives=5
 
 	for y, x_data in level_data[currentlevel].items():
 		if willy_position is not None:
@@ -209,9 +212,11 @@ def main():
 	try:
 		level_data[currentlevel][str(willy_position[0])][str(willy_position[1])]="EMPTY"
 	except:
-		willy_position = (0,0)
+		willy_position = (1,1)
 		pass
 
+	init_position=willy_position
+	
 	clock = pygame.time.Clock()
 	fpscounter=0
 
@@ -228,7 +233,7 @@ def main():
 			elif event.type == pygame.KEYDOWN:
 				if event.key == pygame.K_SPACE:
 					if willy_yvelocity==0 and level_data[currentlevel][str(y + 1)][str(x)].startswith("PIPE"):
-						willy_yvelocity=3
+						willy_yvelocity=4
 						#print("Spacebar Pressed")
 						t = threading.Thread(target=play_audio, args=("audio/jump.mp3",))
 						t.start()
@@ -272,6 +277,34 @@ def main():
 				if willy_yvelocity<=0:
 					willy_yvelocity=0
 
+		if level_data[currentlevel][str(willy_position[0])][str(willy_position[1])].startswith("TACK") or bonus<=0:
+			numberoflives-=1
+			if numberoflives<1:
+				# Todo; make main screen
+				sys.exit()
+			else:
+				if level_data.get(currentlevel)==None:
+					#level_data[curentlevel]={}
+					level_data[currentlevel]={}
+				for row in range(SCREEN_HEIGHT):
+					if level_data.get(currentlevel).get(str(row))==None:
+						level_data[currentlevel][str(row)]={}
+					for col in range(SCREEN_WIDTH):
+						if level_data[currentlevel].get(str(row)).get(str(col))==None:
+							level_data[currentlevel][str(row)][str(col)]="EMPTY"
+
+
+				willy_position = None
+				willy_object = None
+				willy_yvelocity = 0
+				willy_xvelocity = 0
+				willy_direction = None
+				ladder_direction = None
+				bonus=1000
+				fpscounter=0
+				willy_position=init_position			
+
+
 		if level_data[currentlevel][str(willy_position[0])][str(willy_position[1])].startswith("LADDER") and ladder_direction==None:
 			willy_yvelocity=0
 			willy_xvelocity=0		
@@ -294,6 +327,9 @@ def main():
 			t.start()
 			level+=1
 			score+=bonus
+			with open('levels.json', 'r') as file:
+				# Load the data from the file using the json.load() function
+				level_data = json.load(file)
 			if level>MAX_LEVELS:
 				level=1
 			currentlevel="level" + str(level)
@@ -327,8 +363,9 @@ def main():
 			try:
 				level_data[currentlevel][str(willy_position[0])][str(willy_position[1])]="EMPTY"
 			except:
-				willy_position = (0,0)
+				willy_position = (1,1)
 				pass
+			init_position=willy_position
 
 
 
@@ -483,17 +520,22 @@ def main():
 		text = "BONUS:  " + str(bonus)
 		text_surface = fontdata.render(text, True, (255, 255, 255))
 
-		# Blit the text surface onto the screen at a specific location
-		#text_x = (SCREEN_WIDTH * CHAR_WIDTH * SCALER)-10
-		#text_y = (SCREEN_HEIGHT * CHAR_HEIGHT * SCALER) - 10 
 		text_x = 4*25*SCALER
 		text_y = (SCREEN_HEIGHT * CHAR_HEIGHT * SCALER) - font_size
-		#print(SCREEN_WIDTH * CHAR_WIDTH * SCALER, SCREEN_HEIGHT * CHAR_HEIGHT * SCALER)
 		screen.blit(text_surface, (text_x, text_y))
 		fpscounter+=1
 		if fpscounter>=fps:
 			fpscounter=0
 			bonus-=10
+
+		# Render the text as a surface
+		text = "Lives Left:  " + str(numberoflives)
+		text_surface = fontdata.render(text, True, (255, 255, 255))
+
+		text_x = 8*25*SCALER
+		text_y = (SCREEN_HEIGHT * CHAR_HEIGHT * SCALER) - font_size
+		screen.blit(text_surface, (text_x, text_y))
+
 
 		# Update the screen
 		pygame.display.flip()
