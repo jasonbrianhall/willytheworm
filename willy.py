@@ -221,7 +221,7 @@ def main():
 				if event.key == pygame.K_SPACE:
 					willy_yvelocity=3
 					print("Spacebar Pressed")
-					t = threading.Thread(target=play_audio, args=("audio/bell.wav",))
+					t = threading.Thread(target=play_audio, args=("audio/jump.wav",))
 					t.start()
 				elif event.key == pygame.K_LEFT:
 					willy_xvelocity=1
@@ -237,6 +237,8 @@ def main():
 					print("Down Key Pressed")
 				else:
 					print("Any Key Pressed")
+					willy_xvelocity=0
+
 			# Right Button Deletes Object
 			
 
