@@ -366,6 +366,8 @@ def main():
 			# Subtract 1 from the first element of the list
 			if test_list[0]>0:
 				test_list[0] -= 1
+			else:
+				print("Did this fail")
 
 			if level_data[currentlevel][str(test_list[0])][str(test_list[1])].startswith("LADDER"):
 				willy_list=test_list.copy()
@@ -406,6 +408,22 @@ def main():
 			char_img = font["WILLY_RIGHT"]	
 		row, col = willy_position
 		screen.blit(char_img, (int(col) * CHAR_WIDTH * SCALER, int(row) * CHAR_HEIGHT * SCALER))
+
+		font_size = 8*SCALER
+		print(SCALER)
+		fontdata = pygame.font.SysFont(None, font_size)
+
+		# Render the text as a surface
+		text = "Hello, World!"
+		text_surface = fontdata.render(text, True, (255, 255, 255))
+
+		# Blit the text surface onto the screen at a specific location
+		#text_x = (SCREEN_WIDTH * CHAR_WIDTH * SCALER)-10
+		#text_y = (SCREEN_HEIGHT * CHAR_HEIGHT * SCALER) - 10 
+		text_x = 25*SCALER
+		text_y = (SCREEN_HEIGHT * CHAR_HEIGHT * SCALER) - font_size
+		#print(SCREEN_WIDTH * CHAR_WIDTH * SCALER, SCREEN_HEIGHT * CHAR_HEIGHT * SCALER)
+		screen.blit(text_surface, (text_x, text_y))
 
 		# Update the screen
 		pygame.display.flip()
