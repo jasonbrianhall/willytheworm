@@ -182,6 +182,22 @@ def main():
 			if level_data[currentlevel].get(str(row)).get(str(col))==None:
 				level_data[currentlevel][str(row)][str(col)]="EMPTY"
 
+	willy_position = None
+	willy_object = None
+	willy_yvelocity = 0
+	willy_xvelocity = 0
+	willy_direction = "LEFT"
+        
+	for y, x_data in level_data[currentlevel].items():
+		if willy_position is not None:
+			break
+		for x, obj in x_data.items():
+			if obj.startswith("WILLY"):
+				willy_position = (int(y), int(x))
+				willy_object = obj
+				break
+	level_data[currentlevel][str(willy_position[0])][str(willy_position[1])]="EMPTY"
+
 	while running:
 		# Handle events
 		for event in pygame.event.get():
@@ -196,6 +212,12 @@ def main():
 					print("Left Key Pressed")
 				elif event.key == pygame.K_RIGHT:
 					print("RIGHT Key Pressed")
+				elif event.key == pygame.K_UP:
+					print("Up Key Pressed")
+				elif event.key == pygame.K_DOWN:
+					print("Down Key Pressed")
+				else:
+					print("Any Key Pressed")
 
 			# Right Button Deletes Object
 			
@@ -204,24 +226,16 @@ def main():
 		# Clear the screen
 		screen.fill((0, 0, 0))
 
-		willy_position = None
-		willy_object = None
-		for y, x_data in level_data[currentlevel].items():
-			if willy_position is not None:
-				break
-			for x, obj in x_data.items():
-				if obj.startswith("WILLY"):
-					willy_position = (int(y), int(x))
-					willy_object = obj
-					break
-
 		# Check if there's a PIPE object at Willy's position
 		if willy_position is not None:
 			y, x = willy_position
 			if str(y + 1) in level_data[currentlevel] and str(x) in level_data[currentlevel][str(y + 1)] and level_data[currentlevel][str(y + 1)][str(x)].startswith("PIPE"):
-				print("Willy is on a PIPE")
+				if willy_yvelocity>0:
+					willy_yvelocity = 0
 			else:
-				print("Willy is not on a PIPE")
+				if willy_yvelocity==0:
+					willy_yvelocity = -1
+
 
 
 		for row in level_data[currentlevel]:
@@ -229,6 +243,13 @@ def main():
 				char_img = font[level_data[currentlevel][row][col]]
 				screen.blit(char_img, (int(col) * CHAR_WIDTH * SCALER, int(row) * CHAR_HEIGHT * SCALER))
 				#print(char_img)	
+
+		if willy_direction=="LEFT":
+			char_img = font["WILLY_LEFT"]
+		else:
+			char_img = font["WILLY_RIGHT"]	
+		row, col = willy_position
+		screen.blit(char_img, (int(col) * CHAR_WIDTH * SCALER, int(row) * CHAR_HEIGHT * SCALER))
 
 		# Update the screen
 		pygame.display.flip()
