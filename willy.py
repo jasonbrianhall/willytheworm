@@ -19,6 +19,7 @@ MAX_WIDTH = 40
 SCREEN_HEIGHT = 26
 MAX_HEIGHT = 25
 MAX_LEVELS = 32
+NEWLIFEPOINTS = 2000
 
 # The higher the number, the faster the game goes
 fps=10
@@ -232,10 +233,12 @@ def main():
 		balls[str(counter)]["Direction"]=None
 
 		counter+=1
-
+	liveadder=0
 	while running:
 		clock.tick(fps)	 # limit the frame rate to 30 fps
-	
+		if int(score/NEWLIFEPOINTS = 2000)>liveadder:
+			numberoflives+=1
+			liveadder+=1
 		# Handle events
 		for event in pygame.event.get():
 			# Close Event
