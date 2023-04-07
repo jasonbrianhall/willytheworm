@@ -610,7 +610,7 @@ def main():
 						else:
 							balls[ball]["Direction"]="LEFT"
 					else:
-						if not level_data[currentlevel][str(row)][str(col-1)].startswith("PIPE"):
+						if (col-1)>=0 and not level_data[currentlevel][str(row)][str(col-1)].startswith("PIPE"):
 							balls[ball]["Location"][1]-=1
 							balls[ball]["Direction"]="LEFT"
 						else:
