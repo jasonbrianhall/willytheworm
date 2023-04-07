@@ -203,14 +203,25 @@ def loadFont():
 def main():
 	pygame.init()
 	screen = pygame.display.set_mode((SCREEN_WIDTH * CHAR_WIDTH * SCALER, SCREEN_HEIGHT * CHAR_HEIGHT * SCALER), pygame.FULLSCREEN)
-	if len(sys.argv) != 2:
-		level=1
-	else:
-		try:
-			level = int(sys.argv[1])
-		except:
-			level = 1
-	
+	wasd=False
+	level=1
+	i = 1
+	while i < len(sys.argv):
+		arg = sys.argv[i]
+		if arg == "-l" and i + 1 < len(sys.argv):
+			try:
+				level = int(sys.argv[i + 1])
+			except ValueError:
+				print("Invalid argument for -l")
+				sys.exit(1)
+			i += 1
+		elif arg == "-w":
+			wasd = True
+		else:
+			print("Unknown argument:", arg)
+			sys.exit(1)
+		i += 1
+		
 	if level>0 and level <= MAX_LEVELS:
 		currentlevel="level" + str(level)
 	else:
@@ -222,7 +233,7 @@ def main():
 
 
 
-def game(screen, currentlevel, level):
+def game(screen, currentlevel, level, wasd=False):
 
 
 	# Initialize Pygame
@@ -346,23 +357,23 @@ def game(screen, currentlevel, level):
 						#print("Spacebar Pressed")
 						t = threading.Thread(target=play_audio, args=("audio/jump.mp3",))
 						t.start()
-				elif event.key == pygame.K_LEFT or event.key == pygame.K_a:
+				elif (event.key == pygame.K_LEFT and wasd==False) or (event.key == pygame.K_a and wasd==True):
 					willy_xvelocity=1
 					#print("Left Key Pressed")
 					willy_direction="LEFT"
 					ladder_direction="LEFT"
 
-				elif event.key == pygame.K_RIGHT or event.key == pygame.K_d:
+				elif (event.key == pygame.K_RIGHT and wasd==False) or (event.key == pygame.K_d and wasd==True):
 					willy_xvelocity=-1
 					#print("RIGHT Key Pressed")
 					willy_direction="RIGHT"
 					ladder_direction="RIGHT"
 				#elif event.key == pygame.K_UP or event.key == pygame.K_w or (event.type == pygame.MOUSEBUTTONDOWN and event.button==3):
-				elif event.key == pygame.K_UP or event.key == pygame.K_w:
+				elif (event.key == pygame.K_UP and wasd==False) or (event.key == pygame.K_w or wasd==True):
 					#print("Up Key Pressed")
 					ladder_direction="UP"
 				#elif event.key == pygame.K_DOWN or event.key == pygame.K_s or (event.type == pygame.MOUSEBUTTONDOWN and event.button==2):
-				elif event.key == pygame.K_DOWN or event.key == pygame.K_s:
+				elif (event.key == pygame.K_DOWN and wasd==False) or (event.key == pygame.K_s and wasd==True):
 
 					#print("Down Key Pressed")
 					ladder_direction="DOWN"
