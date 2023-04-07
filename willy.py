@@ -201,7 +201,7 @@ def main():
 	score=0
 	bonus=1000
 	numberoflives=5
-	numberofballs=6
+	numberofballs=1
 
 	for y, x_data in level_data[currentlevel].items():
 		if willy_position is not None:
@@ -535,15 +535,17 @@ def main():
 			#print(balls[ball])
 			col=balls[ball]["Location"][1]
 			row=balls[ball]["Location"][0]
+			willyrow, willycol = willy_position
+			print("Willy death checker", willyrow,willycol, row, col)
+			if willyrow==row and willycol==col:
+				print("I'm dead Jim")
+			
 			if level_data[currentlevel][str(row)][str(col)].startswith("BALLPIT") and not (col==primaryballpit[1] or row==primaryballpit[0]):
-				print("Ball Catcher")
 				balls[ball]["Location"][1]=primaryballpit[1]
 				balls[ball]["Location"][0]=primaryballpit[0]
 			elif not level_data[currentlevel][str(row+1)][str(col)].startswith("PIPE") and row<MAX_HEIGHT:
-				print(primaryballpit, row, col)
 				if col==primaryballpit[1] and row==primaryballpit[0]:
 					data=random.randint(0,40)
-					print("Here")
 				else:
 					data=0
 				if data==0:
