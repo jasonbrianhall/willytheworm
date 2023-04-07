@@ -641,6 +641,8 @@ def main():
 				if str(y + i) in level_data[currentlevel] and str(x) in level_data[currentlevel][str(y + i)] and (y+i)==row and x==col and willy_yvelocity>0:
 					# Add 20 points to Willy's score here
 					score+=20
+					t = threading.Thread(target=play_audio, args=("audio/boop.mp3",))
+					t.start()
 					break
 		
 		
