@@ -672,7 +672,7 @@ def main():
 				if balls[ball]["Direction"]==None:
 					data=random.randint(0,1)
 					if data==0:
-						if not level_data[currentlevel][str(row)][str(col+1)].startswith("PIPE"):
+						if (col+1)<MAX_WIDTH and not level_data[currentlevel][str(row)][str(col+1)].startswith("PIPE"):
 							balls[ball]["Location"][1]+=1
 							balls[ball]["Direction"]="RIGHT"
 						else:
