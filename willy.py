@@ -28,52 +28,52 @@ def intro(screen):
 
 	exit=False
 	while exit==False:
+		datasize=0
+		screenwidth=SCREEN_WIDTH * CHAR_WIDTH * SCALER
 		font_size = 8*SCALER
 		fontdata = pygame.font.SysFont(None, font_size)
-		datasize=150
 		# Render the text as a surface
 		text = "Willy the Worm"
+		#text = "01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789"
 		text_surface = fontdata.render(text, True, (255, 255, 255))
-		spaces=int((datasize-len(text))/2)
-		text=" "*spaces + text
-		text_surface = fontdata.render(text, True, (255, 255, 255))
-		text_x = 0
+		text_rect = text_surface.get_rect()
+		text_x = (screenwidth - text_rect.width) // 2
 		#text_y = (SCREEN_HEIGHT * CHAR_HEIGHT * SCALER) - font_size
 		text_y = 0
 		screen.blit(text_surface, (text_x, text_y))
 
 		text = "By Jason Hall (original version by Alan Farmer 1985)"
 		spaces=int((datasize-len(text))/2)
-		text=" "*spaces + text
 		text_surface = fontdata.render(text, True, (255, 255, 255))
-		text_x = 0
+		text_rect = text_surface.get_rect()
+		text_x = (screenwidth - text_rect.width) // 2
 		#text_y = (SCREEN_HEIGHT * CHAR_HEIGHT * SCALER) - font_size
 		text_y = font_size+2
 		screen.blit(text_surface, (text_x, text_y))
 
-		text = "This code is Free Open Source Software; please feel free to do with it whatever you wish."
+		text = "This code is Free Open Source Software (FOSS); please feel free to do with it whatever you wish."
 		spaces=int((datasize-len(text))/2)
-		text=" "*spaces + text
 		text_surface = fontdata.render(text, True, (255, 255, 255))
-		text_x = 0
+		text_rect = text_surface.get_rect()
+		text_x = (screenwidth - text_rect.width) // 2
 		#text_y = (SCREEN_HEIGHT * CHAR_HEIGHT * SCALER) - font_size
 		text_y = 3*font_size+2
 		screen.blit(text_surface, (text_x, text_y))
 
 		text = "If you do make changes though such as new levels; please share them with the world."
 		spaces=int((datasize-len(text))/2)
-		text=" "*spaces + text
 		text_surface = fontdata.render(text, True, (255, 255, 255))
-		text_x = 0
+		text_rect = text_surface.get_rect()
+		text_x = (screenwidth - text_rect.width) // 2
 		#text_y = (SCREEN_HEIGHT * CHAR_HEIGHT * SCALER) - font_size
 		text_y = 4*font_size+2
 		screen.blit(text_surface, (text_x, text_y))
 
 		text = "Press Enter to Continue"
 		spaces=int((datasize-len(text))/2)
-		text=" "*spaces + text
 		text_surface = fontdata.render(text, True, (255, 255, 255))
-		text_x = 0
+		text_rect = text_surface.get_rect()
+		text_x = (screenwidth - text_rect.width) // 2
 		#text_y = (SCREEN_HEIGHT * CHAR_HEIGHT * SCALER) - font_size
 		text_y = 6*font_size+2
 		screen.blit(text_surface, (text_x, text_y))
