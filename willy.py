@@ -659,7 +659,7 @@ def main():
 				if not (balls[ball]["Location"][1]==primaryballpit[1] and balls[ball]["Location"][0]==primaryballpit[0]):
 					balls[ball]["Location"][1]=primaryballpit[1]
 					balls[ball]["Location"][0]=primaryballpit[0]
-			if not level_data[currentlevel][str(row+1)][str(col)].startswith("PIPE") and row<MAX_HEIGHT:
+			if not level_data[currentlevel][str(row+1)][str(col)].startswith("PIPE") and row<(MAX_HEIGHT-1):
 				if col==primaryballpit[1] and row==primaryballpit[0]:
 					data=random.randint(0,40)
 				else:
