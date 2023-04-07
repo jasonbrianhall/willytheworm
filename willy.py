@@ -201,7 +201,7 @@ def main():
 	score=0
 	bonus=1000
 	numberoflives=5
-	numberofballs=1
+	numberofballs=6
 
 	for y, x_data in level_data[currentlevel].items():
 		if willy_position is not None:
