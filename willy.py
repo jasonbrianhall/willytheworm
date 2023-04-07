@@ -151,8 +151,7 @@ def main():
 
 	# Initialize Pygame
 	pygame.init()
-	screen = pygame.display.set_mode((SCREEN_WIDTH * CHAR_WIDTH * SCALER, SCREEN_HEIGHT * CHAR_HEIGHT * SCALER))
-
+	screen = pygame.display.set_mode((SCREEN_WIDTH * CHAR_WIDTH * SCALER, SCREEN_HEIGHT * CHAR_HEIGHT * SCALER), pygame.FULLSCREEN)
 	# Load the font
 	font = loadFont()
 
@@ -242,6 +241,11 @@ def main():
 				running = False
 			# Keyboard Events
 			elif event.type == pygame.KEYDOWN:
+				if event.key == pygame.K_ESCAPE:
+					print("Goodbye")
+					sys.exit(0)
+				if event.key == pygame.K_F11:
+					pygame.display.toggle_fullscreen()
 				if event.key == pygame.K_SPACE:
 					if willy_yvelocity==0 and level_data[currentlevel][str(y + 1)][str(x)].startswith("PIPE"):
 						willy_yvelocity=4
@@ -618,10 +622,6 @@ def main():
 			#print(balls[ball])
 			col=balls[ball]["Location"][1]
 			row=balls[ball]["Location"][0]
-			'''willyrow, willycol = willy_position
-			print("Willy death checker", willyrow,willycol, row, col)
-			if willyrow==row and willycol==col:
-				print("I'm dead Jim")'''
 			
 			if level_data[currentlevel][str(row)][str(col)].startswith("BALLPIT"):
 				if not (balls[ball]["Location"][1]==primaryballpit[1] and balls[ball]["Location"][0]==primaryballpit[0]):
