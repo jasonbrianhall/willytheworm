@@ -8,6 +8,7 @@ import sys
 import copy
 import threading
 import random
+import time
 
 # Constants
 SCALER = 4
@@ -23,10 +24,10 @@ MAX_LEVELS = 32
 fps=10
 
 def play_audio(filename):
-    pygame.mixer.init()
-    pygame.mixer.music.load(filename)
-    pygame.mixer.music.play()
-    
+	pygame.mixer.init()
+	pygame.mixer.music.load(filename)
+	pygame.mixer.music.play()
+	
 def loadFont():
 
 	namedpart={}
@@ -302,6 +303,30 @@ def main():
 				t = threading.Thread(target=play_audio, args=("audio/tack.mp3",))
 				t.start()
 				numberoflives-=1
+				color1 = (255, 255, 255)
+				color2 = (0, 0, 0)
+
+				# Calculate the duration of the flashing in seconds
+				duration = 0.25
+
+				# Calculate the number of times to switch between colors
+				num_flashes = int(duration * 60) # assuming a 60 FPS refresh rate
+
+				# Start the flashing
+				for i in range(num_flashes):
+					# Alternate between the two colors
+					if i % 2 == 0:
+						screen.fill(color1)
+					else:
+						screen.fill(color2)
+					
+					# Update the display
+					pygame.display.update()
+					
+					# Wait for a short amount of time before the next frame
+					time.sleep(1/60)
+
+
 			else:
 				t = threading.Thread(target=play_audio, args=("audio/bell.mp3",))
 				t.start()
@@ -640,7 +665,7 @@ def main():
 		
 		
 		# Render the text as a surface
-		text = "SCORE:  " + str(score)
+		text = "SCORE:	" + str(score)
 		text_surface = fontdata.render(text, True, (255, 255, 255))
 
 		# Blit the text surface onto the screen at a specific location
@@ -652,7 +677,7 @@ def main():
 		screen.blit(text_surface, (text_x, text_y))
 
 		# Render the text as a surface
-		text = "BONUS:  " + str(bonus)
+		text = "BONUS:	" + str(bonus)
 		text_surface = fontdata.render(text, True, (255, 255, 255))
 
 		text_x = 4*25*SCALER
@@ -664,7 +689,7 @@ def main():
 			bonus-=10
 
 		# Render the text as a surface
-		text = "Lives Left:  " + str(numberoflives)
+		text = "Lives Left:	 " + str(numberoflives)
 		text_surface = fontdata.render(text, True, (255, 255, 255))
 
 		text_x = 8*25*SCALER
