@@ -140,7 +140,7 @@ def main():
 
 	# Initialize Pygame
 	pygame.init()
-	screen = pygame.display.set_mode((SCREEN_WIDTH * CHAR_WIDTH * SCALER, SCREEN_HEIGHT * CHAR_HEIGHT * SCALER))
+	screen = pygame.display.set_mode((SCREEN_WIDTH * CHAR_WIDTH * SCALER, SCREEN_HEIGHT * CHAR_HEIGHT * SCALER), pygame.FULLSCREEN)
 
 	# Load the font
 	font = loadFont()
@@ -191,7 +191,9 @@ def main():
 				running = False
 			# Keyboard Events
 			elif event.type == pygame.KEYDOWN:
-				if event.key == pygame.K_l:
+				if event.key == pygame.K_F11:
+					pygame.display.toggle_fullscreen()
+				elif event.key == pygame.K_l:
 					level+=1
 					level=level%MAX_LEVELS
 					if level==0:
