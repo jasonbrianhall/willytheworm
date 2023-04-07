@@ -665,7 +665,7 @@ def main():
 		
 		
 		# Render the text as a surface
-		text = "SCORE:	" + str(score)
+		text = "SCORE: " + str(score)
 		text_surface = fontdata.render(text, True, (255, 255, 255))
 
 		# Blit the text surface onto the screen at a specific location
@@ -677,7 +677,7 @@ def main():
 		screen.blit(text_surface, (text_x, text_y))
 
 		# Render the text as a surface
-		text = "BONUS:	" + str(bonus)
+		text = "BONUS: " + str(bonus)
 		text_surface = fontdata.render(text, True, (255, 255, 255))
 
 		text_x = 4*25*SCALER
@@ -689,7 +689,7 @@ def main():
 			bonus-=10
 
 		# Render the text as a surface
-		text = "Lives Left:	 " + str(numberoflives)
+		text = "Lives Left: " + str(numberoflives)
 		text_surface = fontdata.render(text, True, (255, 255, 255))
 
 		text_x = 8*25*SCALER
