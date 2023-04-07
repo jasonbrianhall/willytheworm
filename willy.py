@@ -229,7 +229,7 @@ def main():
 
 	while True:
 		intro(screen)
-		game(screen, currentlevel, level)
+		game(screen, currentlevel, level, wasd)
 
 
 
@@ -369,12 +369,11 @@ def game(screen, currentlevel, level, wasd=False):
 					willy_direction="RIGHT"
 					ladder_direction="RIGHT"
 				#elif event.key == pygame.K_UP or event.key == pygame.K_w or (event.type == pygame.MOUSEBUTTONDOWN and event.button==3):
-				elif (event.key == pygame.K_UP and wasd==False) or (event.key == pygame.K_w or wasd==True):
+				elif (event.key == pygame.K_UP and wasd==False) or (event.key == pygame.K_w and wasd==True):
 					#print("Up Key Pressed")
 					ladder_direction="UP"
 				#elif event.key == pygame.K_DOWN or event.key == pygame.K_s or (event.type == pygame.MOUSEBUTTONDOWN and event.button==2):
 				elif (event.key == pygame.K_DOWN and wasd==False) or (event.key == pygame.K_s and wasd==True):
-
 					#print("Down Key Pressed")
 					ladder_direction="DOWN"
 				else:
@@ -621,6 +620,7 @@ def game(screen, currentlevel, level, wasd=False):
 			# Convert list back to tuple
 			willy_position = tuple(willy_list)
 
+		willy_list = list(willy_position)
 		if ladder_direction=="UP" and level_data[currentlevel][str(willy_list[0])][str(willy_list[1])].startswith("LADDER"):
 			#print("Going up Ladder")
 			# Convert tuple to list
@@ -640,16 +640,17 @@ def game(screen, currentlevel, level, wasd=False):
 			t = threading.Thread(target=play_audio, args=("audio/ladder.mp3",))
 			t.start()
 
-
+		willy_list = list(willy_position)
 		if ladder_direction=="DOWN" and level_data[currentlevel][str(willy_list[0])][str(willy_list[1])].startswith("LADDER"):
 			# Convert tuple to list
+			willy_xvelocity=-1
 			willy_list = list(willy_position)
 			test_list=willy_list.copy()
 			# Subtract 1 from the first element of the list
 			if test_list[0]<(MAX_HEIGHT-1):
 				test_list[0] += 1
 
-			if level_data[currentlevel][str(test_list[0])][str(test_list[1])].startswith("LADDER"):
+			if level_data[currentlevel][str(test_list[0])][str(test_list[1])].startswith("LADDER") or level_data[currentlevel][str(test_list[0])][str(test_list[1])].startswith("EMPTY"):
 				willy_list=test_list.copy()
 				
 			# Convert list back to tuple
