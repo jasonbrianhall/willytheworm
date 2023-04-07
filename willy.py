@@ -388,7 +388,7 @@ def main():
 				t.start()
 				numberoflives-=1
 				color1 = (255, 255, 255)
-				color2 = (0, 0, 0)
+				color2 = (255, 255, 255)
 
 				# Calculate the duration of the flashing in seconds
 				duration = 0.25
