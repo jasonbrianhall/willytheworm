@@ -302,6 +302,9 @@ def main():
 			if willyrow==row and willycol==col:
 				ballkilledwilly=True
 		
+		if level_data[currentlevel][str(willy_position[0]+1)][str(willy_position[1])].startswith("PIPE18"):
+			level_data[currentlevel][str(willy_position[0]+1)][str(willy_position[1])]="EMPTY"
+		
 		if level_data[currentlevel][str(willy_position[0])][str(willy_position[1])].startswith("TACK") or bonus<=0 or ballkilledwilly==True or level_data[currentlevel][str(willy_position[0])][str(willy_position[1])].startswith("BELL"):
 			ballkilledwilly=False
 			if not level_data[currentlevel][str(willy_position[0])][str(willy_position[1])].startswith("BELL"):
