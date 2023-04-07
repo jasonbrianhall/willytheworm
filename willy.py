@@ -310,11 +310,12 @@ def main():
 		
 		if level_data[currentlevel][str(willy_position[0])][str(willy_position[1])].startswith("TACK") or bonus<=0 or ballkilledwilly==True or level_data[currentlevel][str(willy_position[0])][str(willy_position[1])].startswith("BELL"):
 			ballkilledwilly=False
-			with open('levels.json', 'r') as file:
-				# Load the data from the file using the json.load() function
-				level_data = json.load(file)
-
 			if not level_data[currentlevel][str(willy_position[0])][str(willy_position[1])].startswith("BELL"):
+				with open('levels.json', 'r') as file:
+					# Load the data from the file using the json.load() function
+					level_data = json.load(file)
+
+
 				t = threading.Thread(target=play_audio, args=("audio/tack.mp3",))
 				t.start()
 				numberoflives-=1
@@ -343,6 +344,9 @@ def main():
 
 
 			else:
+				with open('levels.json', 'r') as file:
+					# Load the data from the file using the json.load() function
+					level_data = json.load(file)
 				t = threading.Thread(target=play_audio, args=("audio/bell.mp3",))
 				t.start()
 				level+=1
