@@ -236,7 +236,7 @@ def main():
 	liveadder=0
 	while running:
 		clock.tick(fps)	 # limit the frame rate to 30 fps
-		if int(score/NEWLIFEPOINTS = 2000)>liveadder:
+		if int(score/NEWLIFEPOINTS)>liveadder:
 			numberoflives+=1
 			liveadder+=1
 		# Handle events
@@ -310,6 +310,10 @@ def main():
 		
 		if level_data[currentlevel][str(willy_position[0])][str(willy_position[1])].startswith("TACK") or bonus<=0 or ballkilledwilly==True or level_data[currentlevel][str(willy_position[0])][str(willy_position[1])].startswith("BELL"):
 			ballkilledwilly=False
+			with open('levels.json', 'r') as file:
+				# Load the data from the file using the json.load() function
+				level_data = json.load(file)
+
 			if not level_data[currentlevel][str(willy_position[0])][str(willy_position[1])].startswith("BELL"):
 				t = threading.Thread(target=play_audio, args=("audio/tack.mp3",))
 				t.start()
@@ -343,41 +347,40 @@ def main():
 				t.start()
 				level+=1
 				score+=bonus
-				with open('levels.json', 'r') as file:
-					# Load the data from the file using the json.load() function
-					level_data = json.load(file)
 				if level>MAX_LEVELS:
 					level=1
 				currentlevel="level" + str(level)
 				if level_data.get(currentlevel)==None:
 					#level_data[curentlevel]={}
 					level_data[currentlevel]={}
-				for row in range(SCREEN_HEIGHT):
-					if level_data.get(currentlevel).get(str(row))==None:
-						level_data[currentlevel][str(row)]={}
-					for col in range(SCREEN_WIDTH):
-						if level_data[currentlevel].get(str(row)).get(str(col))==None:
-							level_data[currentlevel][str(row)][str(col)]="EMPTY"
+			for row in range(SCREEN_HEIGHT):
+				if level_data.get(currentlevel).get(str(row))==None:
+					level_data[currentlevel][str(row)]={}
+				for col in range(SCREEN_WIDTH):
+					if level_data[currentlevel].get(str(row)).get(str(col))==None:
+						level_data[currentlevel][str(row)][str(col)]="EMPTY"
 
-				willy_position = None
-				willy_object = None
-				willy_yvelocity = 0
-				willy_xvelocity = 0
-				willy_direction = None
-				ladder_direction = None
-				bonus=1000
-				fpscounter=0
+			willy_position = None
+			willy_object = None
+			willy_yvelocity = 0
+			willy_xvelocity = 0
+			willy_direction = None
+			ladder_direction = None
+			bonus=1000
+			fpscounter=0
 
-				for y, x_data in level_data[currentlevel].items():
-					if willy_position is not None:
+			for y, x_data in level_data[currentlevel].items():
+				if willy_position is not None:
+					break
+				for x, obj in x_data.items():
+					if obj.startswith("WILLY"):
+						willy_position = (int(y), int(x))
+						willy_object = obj
 						break
-					for x, obj in x_data.items():
-						if obj.startswith("WILLY"):
-							willy_position = (int(y), int(x))
-							willy_object = obj
-							break
-				level_data[currentlevel][str(willy_position[0])][str(willy_position[1])]="EMPTY"
-				init_position=willy_position
+			level_data[currentlevel][str(willy_position[0])][str(willy_position[1])]="EMPTY"
+			init_position=willy_position
+			willy_position=init_position
+			primaryballpit=level_data.get(currentlevel+"PIT").get("PRIMARYBALLPIT")
 
 
 
@@ -396,26 +399,14 @@ def main():
 						if level_data[currentlevel].get(str(row)).get(str(col))==None:
 							level_data[currentlevel][str(row)][str(col)]="EMPTY"
 
+			balls={}
+			counter=0
+			for ball in range(numberofballs):
+				balls[str(counter)]={}
+				balls[str(counter)]["Location"]=primaryballpit.copy()
+				balls[str(counter)]["Direction"]=None
 
-				willy_position = None
-				willy_object = None
-				willy_yvelocity = 0
-				willy_xvelocity = 0
-				willy_direction = None
-				ladder_direction = None
-				bonus=1000
-				fpscounter=0
-				willy_position=init_position
-				primaryballpit=level_data.get(currentlevel+"PIT").get("PRIMARYBALLPIT")
-
-				balls={}
-				counter=0
-				for ball in range(numberofballs):
-					balls[str(counter)]={}
-					balls[str(counter)]["Location"]=primaryballpit.copy()
-					balls[str(counter)]["Direction"]=None
-
-					counter+=1
+				counter+=1
 			
 
 
