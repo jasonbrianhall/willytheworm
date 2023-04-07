@@ -306,7 +306,21 @@ def main():
 		if int(score/NEWLIFEPOINTS)>liveadder:
 			numberoflives+=1
 			liveadder+=1
+		'''
 		# Handle events
+		mouse_movement = pygame.mouse.get_rel()
+		
+		print("Mouse Movement", mouse_movement)
+		if mouse_movement[0] < 0:
+			willy_xvelocity=1
+			#print("Left Key Pressed")
+			willy_direction="LEFT"
+			ladder_direction="LEFT"
+		elif mouse_movement[0] > 0:
+			willy_xvelocity=-1
+			#print("RIGHT Key Pressed")
+			willy_direction="RIGHT"
+			ladder_direction="RIGHT"'''		
 		for event in pygame.event.get():
 			# Close Event
 			if event.type == pygame.QUIT:
@@ -318,7 +332,7 @@ def main():
 					sys.exit(0)
 				if event.key == pygame.K_F11:
 					pygame.display.toggle_fullscreen()
-				if event.key == pygame.K_SPACE:
+				if event.key == pygame.K_SPACE '''or (event.type == pygame.MOUSEBUTTONDOWN and event.button==1)''':
 					y,x = willy_position
 					if (willy_yvelocity==0 and level_data[currentlevel][str(y + 1)][str(x)].startswith("PIPE")) or y==(MAX_HEIGHT-1):
 						willy_yvelocity=4
@@ -336,10 +350,10 @@ def main():
 					#print("RIGHT Key Pressed")
 					willy_direction="RIGHT"
 					ladder_direction="RIGHT"
-				elif event.key == pygame.K_UP or event.key == pygame.K_w:
+				elif event.key == pygame.K_UP or event.key == pygame.K_w '''or (event.type == pygame.MOUSEBUTTONDOWN and event.button==3)''':
 					#print("Up Key Pressed")
 					ladder_direction="UP"
-				elif event.key == pygame.K_DOWN or event.key == pygame.K_s:
+				elif event.key == pygame.K_DOWN or event.key == pygame.K_s '''or (event.type == pygame.MOUSEBUTTONDOWN and event.button==2)''':
 					#print("Down Key Pressed")
 					ladder_direction="DOWN"
 				else:
