@@ -555,6 +555,14 @@ def main():
 			t = threading.Thread(target=play_audio, args=("audio/ladder.mp3",))
 			t.start()
 
+		for ball in balls:
+			#print(balls[ball])
+			col=balls[ball]["Location"][1]
+			row=balls[ball]["Location"][0]
+			willyrow, willycol = willy_position
+			if willyrow==row and willycol==col:
+				ballkilledwilly=True
+
 
 		for row in level_data[currentlevel]:
 			for col in level_data[currentlevel][row]:
