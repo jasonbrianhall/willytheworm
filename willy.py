@@ -203,7 +203,7 @@ def main():
 	score=0
 	bonus=1000
 	numberoflives=5
-	numberofballs=1
+	numberofballs=6
 	ballkilledwilly=False
 
 	for y, x_data in level_data[currentlevel].items():
@@ -616,7 +616,7 @@ def main():
 						else:
 							balls[ball]["Direction"]="RIGHT"
 				elif balls[ball]["Direction"]=="RIGHT":
-					if (balls[ball]["Location"][1]+1)<(MAX_WIDTH) and not level_data[currentlevel][str(row)][str(col+1)].startswith("PIPE"):
+					if (balls[ball]["Location"][1]+1)<(MAX_WIDTH) and (col+1)<MAX_WIDTH and not level_data[currentlevel][str(row)][str(col+1)].startswith("PIPE"):
 						balls[ball]["Location"][1]+=1
 					else:
 						balls[ball]["Direction"]="LEFT"
