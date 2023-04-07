@@ -319,7 +319,8 @@ def main():
 				if event.key == pygame.K_F11:
 					pygame.display.toggle_fullscreen()
 				if event.key == pygame.K_SPACE:
-					if willy_yvelocity==0 and level_data[currentlevel][str(y + 1)][str(x)].startswith("PIPE"):
+					y,x = willy_position
+					if (willy_yvelocity==0 and level_data[currentlevel][str(y + 1)][str(x)].startswith("PIPE")) or y==(MAX_HEIGHT-1):
 						willy_yvelocity=4
 						#print("Spacebar Pressed")
 						t = threading.Thread(target=play_audio, args=("audio/jump.mp3",))
