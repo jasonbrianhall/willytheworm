@@ -739,6 +739,15 @@ def main():
 			bonus-=10
 
 		# Render the text as a surface
+		text = "Level: " + str(level)
+		text_surface = fontdata.render(text, True, (255, 255, 255))
+
+		text_x = 6*25*SCALER
+		text_y = (SCREEN_HEIGHT * CHAR_HEIGHT * SCALER) - font_size
+		screen.blit(text_surface, (text_x, text_y))
+
+
+		# Render the text as a surface
 		text = "Willy the Worms Left: " + str(numberoflives)
 		text_surface = fontdata.render(text, True, (255, 255, 255))
 
