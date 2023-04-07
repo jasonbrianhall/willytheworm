@@ -201,7 +201,8 @@ def loadFont():
 	return char_array
 
 def main():
-
+	pygame.init()
+	screen = pygame.display.set_mode((SCREEN_WIDTH * CHAR_WIDTH * SCALER, SCREEN_HEIGHT * CHAR_HEIGHT * SCALER), pygame.FULLSCREEN)
 	if len(sys.argv) != 2:
 		level=1
 	else:
@@ -215,9 +216,16 @@ def main():
 	else:
 		currentlevel="level1"
 
+	while True:
+		intro(screen)
+		game(screen, currentlevel, level)
+
+
+
+def game(screen, currentlevel, level):
+
+
 	# Initialize Pygame
-	pygame.init()
-	screen = pygame.display.set_mode((SCREEN_WIDTH * CHAR_WIDTH * SCALER, SCREEN_HEIGHT * CHAR_HEIGHT * SCALER), pygame.FULLSCREEN)
 	# Load the font
 	font = loadFont()
 
@@ -298,8 +306,6 @@ def main():
 
 		counter+=1
 	liveadder=0
-	
-	intro(screen)
 	
 	while running:
 		clock.tick(fps)	 # limit the frame rate to 30 fps
