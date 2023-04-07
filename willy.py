@@ -334,7 +334,7 @@ def game(screen, currentlevel, level):
 			# Keyboard Events
 			elif event.type == pygame.KEYDOWN:
 				if event.key == pygame.K_ESCAPE:
-					print("Goodbye")
+					print("Goodbye.  Thank you for playing Willy the Worm!!!")
 					sys.exit(0)
 				if event.key == pygame.K_F11:
 					pygame.display.toggle_fullscreen()
