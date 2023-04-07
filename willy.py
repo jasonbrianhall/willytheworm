@@ -696,6 +696,9 @@ def game(screen, currentlevel, level, wasd=False):
 				if not (balls[ball]["Location"][1]==primaryballpit[1] and balls[ball]["Location"][0]==primaryballpit[0]):
 					balls[ball]["Location"][1]=primaryballpit[1]
 					balls[ball]["Location"][0]=primaryballpit[0]
+					balls[ball]["Direction"]==None
+					col=balls[ball]["Location"][1]
+					row=balls[ball]["Location"][0]
 			if not level_data[currentlevel][str(row+1)][str(col)].startswith("PIPE") and row<(MAX_HEIGHT-1):
 				if col==primaryballpit[1] and row==primaryballpit[0]:
 					data=random.randint(0,40)
@@ -708,7 +711,11 @@ def game(screen, currentlevel, level, wasd=False):
 				if balls[ball]["Direction"]==None:
 					data=random.randint(0,1)
 					if data==0:
-						if (col+1)<MAX_WIDTH and not level_data[currentlevel][str(row)][str(col+1)].startswith("PIPE"):
+						balls[ball]["Direction"]="RIGHT"
+					else:
+						balls[ball]["Direction"]="LEFT"
+					
+					'''	if (col+1)<MAX_WIDTH and not level_data[currentlevel][str(row)][str(col+1)].startswith("PIPE"):
 							balls[ball]["Location"][1]+=1
 							balls[ball]["Direction"]="RIGHT"
 						else:
@@ -718,8 +725,8 @@ def game(screen, currentlevel, level, wasd=False):
 							balls[ball]["Location"][1]-=1
 							balls[ball]["Direction"]="LEFT"
 						else:
-							balls[ball]["Direction"]="RIGHT"
-				elif balls[ball]["Direction"]=="RIGHT":
+							balls[ball]["Direction"]="RIGHT"'''
+				if balls[ball]["Direction"]=="RIGHT":
 					if (balls[ball]["Location"][1]+1)<(MAX_WIDTH) and (col+1)<MAX_WIDTH and not level_data[currentlevel][str(row)][str(col+1)].startswith("PIPE"):
 						balls[ball]["Location"][1]+=1
 					else:
