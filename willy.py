@@ -203,7 +203,7 @@ def main():
 	score=0
 	bonus=1000
 	numberoflives=5
-	numberofballs=6
+	numberofballs=1
 	ballkilledwilly=False
 
 	for y, x_data in level_data[currentlevel].items():
@@ -636,7 +636,12 @@ def main():
 			willyrow, willycol = willy_position
 			if willyrow==row and willycol==col:
 				ballkilledwilly=True
-
+			y, x = willy_position
+			for i in range(1, 5):
+				if str(y + i) in level_data[currentlevel] and str(x) in level_data[currentlevel][str(y + i)] and (y+i)==row and x==col and willy_yvelocity>0:
+					# Add 20 points to Willy's score here
+					score+=20
+					break
 		
 		
 		# Render the text as a surface
