@@ -337,7 +337,14 @@
             "3": "LADDER",
             "8": "SIDESPRING",
             "14": "PIPE1",
-            "36": "LADDER"
+            "36": "LADDER",
+            "11": "PRESENT",
+            "19": "PRESENT",
+            "20": "PRESENT",
+            "21": "PRESENT",
+            "30": "PRESENT",
+            "31": "PRESENT",
+            "32": "PRESENT"
         },
         "0": {
             "14": "BALLPIT"
@@ -358,11 +365,22 @@
             "0": "PIPE22",
             "1": "PIPE27",
             "2": "PIPE10",
-            "3": "LADDER"
+            "3": "LADDER",
+            "8": "PRESENT",
+            "26": "PRESENT"
         },
         "5": {
             "3": "LADDER",
-            "36": "LADDER"
+            "36": "LADDER",
+            "0": "PRESENT",
+            "1": "PRESENT",
+            "2": "PRESENT",
+            "7": "PRESENT",
+            "8": "PRESENT",
+            "9": "PRESENT",
+            "25": "PRESENT",
+            "26": "PRESENT",
+            "27": "PRESENT"
         },
         "6": {
             "0": "PIPE27",
@@ -413,7 +431,9 @@
         },
         "10": {
             "14": "PIPE1",
-            "36": "LADDER"
+            "36": "LADDER",
+            "20": "PRESENT",
+            "31": "PRESENT"
         },
         "15": {
             "3": "LADDER"
@@ -440,7 +460,8 @@
             "21": "TACK",
             "30": "TACK",
             "31": "TACK",
-            "32": "TACK"
+            "32": "TACK",
+            "39": "PRESENT"
         },
         "18": {
             "2": "PIPE27",
@@ -525,7 +546,8 @@
             "30": "TACK",
             "31": "TACK",
             "35": "LADDER",
-            "14": "BALLPIT"
+            "14": "BALLPIT",
+            "5": "PRESENT"
         },
         "24": {
             "1": "PIPE27",
