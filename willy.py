@@ -24,6 +24,70 @@ NEWLIFEPOINTS = 2000
 # The higher the number, the faster the game goes
 fps=10
 
+def intro(screen):
+
+	exit=False
+	while exit==False:
+		font_size = 8*SCALER
+		fontdata = pygame.font.SysFont(None, font_size)
+		datasize=150
+		# Render the text as a surface
+		text = "Willy the Worm"
+		text_surface = fontdata.render(text, True, (255, 255, 255))
+		spaces=int((datasize-len(text))/2)
+		text=" "*spaces + text
+		text_surface = fontdata.render(text, True, (255, 255, 255))
+		text_x = 0
+		#text_y = (SCREEN_HEIGHT * CHAR_HEIGHT * SCALER) - font_size
+		text_y = 0
+		screen.blit(text_surface, (text_x, text_y))
+
+		text = "By Jason Hall (original version by Alan Farmer 1985)"
+		spaces=int((datasize-len(text))/2)
+		text=" "*spaces + text
+		text_surface = fontdata.render(text, True, (255, 255, 255))
+		text_x = 0
+		#text_y = (SCREEN_HEIGHT * CHAR_HEIGHT * SCALER) - font_size
+		text_y = font_size+2
+		screen.blit(text_surface, (text_x, text_y))
+
+		text = "This code is Free Open Source Software; please feel free to do with it whatever you wish."
+		spaces=int((datasize-len(text))/2)
+		text=" "*spaces + text
+		text_surface = fontdata.render(text, True, (255, 255, 255))
+		text_x = 0
+		#text_y = (SCREEN_HEIGHT * CHAR_HEIGHT * SCALER) - font_size
+		text_y = 3*font_size+2
+		screen.blit(text_surface, (text_x, text_y))
+
+		text = "If you do make changes though such as new levels; please share them with the world."
+		spaces=int((datasize-len(text))/2)
+		text=" "*spaces + text
+		text_surface = fontdata.render(text, True, (255, 255, 255))
+		text_x = 0
+		#text_y = (SCREEN_HEIGHT * CHAR_HEIGHT * SCALER) - font_size
+		text_y = 4*font_size+2
+		screen.blit(text_surface, (text_x, text_y))
+
+		text = "Press Enter to Continue"
+		spaces=int((datasize-len(text))/2)
+		text=" "*spaces + text
+		text_surface = fontdata.render(text, True, (255, 255, 255))
+		text_x = 0
+		#text_y = (SCREEN_HEIGHT * CHAR_HEIGHT * SCALER) - font_size
+		text_y = 6*font_size+2
+		screen.blit(text_surface, (text_x, text_y))
+
+
+
+		pygame.display.flip()
+		for event in pygame.event.get():
+			# Keyboard Events
+			if event.type == pygame.KEYDOWN:
+				if event.key == pygame.K_RETURN:
+					exit=True
+
+
 def play_audio(filename):
 	pygame.mixer.init()
 	pygame.mixer.music.load(filename)
@@ -234,6 +298,9 @@ def main():
 
 		counter+=1
 	liveadder=0
+	
+	intro(screen)
+	
 	while running:
 		clock.tick(fps)	 # limit the frame rate to 30 fps
 		if int(score/NEWLIFEPOINTS)>liveadder:
@@ -671,7 +738,7 @@ def main():
 			bonus-=10
 
 		# Render the text as a surface
-		text = "Lives Left: " + str(numberoflives)
+		text = "Willy the Worms Left: " + str(numberoflives)
 		text_surface = fontdata.render(text, True, (255, 255, 255))
 
 		text_x = 8*25*SCALER
