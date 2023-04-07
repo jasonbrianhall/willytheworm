@@ -325,21 +325,21 @@ def main():
 						#print("Spacebar Pressed")
 						t = threading.Thread(target=play_audio, args=("audio/jump.mp3",))
 						t.start()
-				elif event.key == pygame.K_LEFT:
+				elif event.key == pygame.K_LEFT or event.key == pygame.K_a:
 					willy_xvelocity=1
 					#print("Left Key Pressed")
 					willy_direction="LEFT"
 					ladder_direction="LEFT"
 
-				elif event.key == pygame.K_RIGHT:
+				elif event.key == pygame.K_RIGHT or event.key == pygame.K_d:
 					willy_xvelocity=-1
 					#print("RIGHT Key Pressed")
 					willy_direction="RIGHT"
 					ladder_direction="RIGHT"
-				elif event.key == pygame.K_UP:
+				elif event.key == pygame.K_UP or event.key == pygame.K_w:
 					#print("Up Key Pressed")
 					ladder_direction="UP"
-				elif event.key == pygame.K_DOWN:
+				elif event.key == pygame.K_DOWN or event.key == pygame.K_s:
 					#print("Down Key Pressed")
 					ladder_direction="DOWN"
 				else:
