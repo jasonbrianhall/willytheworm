@@ -623,10 +623,11 @@ def main():
 			if willyrow==row and willycol==col:
 				print("I'm dead Jim")'''
 			
-			if level_data[currentlevel][str(row)][str(col)].startswith("BALLPIT") and not (col==primaryballpit[1] or row==primaryballpit[0]):
-				balls[ball]["Location"][1]=primaryballpit[1]
-				balls[ball]["Location"][0]=primaryballpit[0]
-			elif not level_data[currentlevel][str(row+1)][str(col)].startswith("PIPE") and row<MAX_HEIGHT:
+			if level_data[currentlevel][str(row)][str(col)].startswith("BALLPIT"):
+				if not (balls[ball]["Location"][1]==primaryballpit[1] and balls[ball]["Location"][0]==primaryballpit[0]):
+					balls[ball]["Location"][1]=primaryballpit[1]
+					balls[ball]["Location"][0]=primaryballpit[0]
+			if not level_data[currentlevel][str(row+1)][str(col)].startswith("PIPE") and row<MAX_HEIGHT:
 				if col==primaryballpit[1] and row==primaryballpit[0]:
 					data=random.randint(0,40)
 				else:
