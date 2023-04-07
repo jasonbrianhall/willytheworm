@@ -94,8 +94,8 @@ def loadFont():
 	IMAGE_WIDTH = 128
 	IMAGE_HEIGHT = 256
 
-	# Open the WILLY.CHR file
-	with open('WILLY.CHR', 'rb') as f:
+	# Open the willy.chr file
+	with open('willy.chr', 'rb') as f:
 		# Read the file contents into a bytearray
 		data = bytearray(f.read())
 
