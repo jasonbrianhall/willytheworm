@@ -69,7 +69,7 @@ def game_score(screen, score):
 		score_desc = "Absolutely fantastic! You should consider a career as an earthworm!"
 
 	messagepointer=0
-	incrementer=25
+	incrementer=32
 	
 	screen.fill((0, 0, 255))
 	
@@ -192,14 +192,14 @@ def game_score(screen, score):
 	for key in hiscores:
 		hiscores[key] = sorted(hiscores[key], key=lambda x: x[1], reverse=True)
 
-	messagepointer=10
+	messagepointer=15
 	screen.fill((0, 0, 255)) # clear the screen
 
 
 
 
 	# Render the "All-time Nightcrawlers" header
-	header_text = font.render("All-time Nightcrawlers", False, (255, 255, 255))
+	header_text = font.render("All-time Nightcrawlers", False, (255, 255, 0))
 	header_rect = header_text.get_rect(center=(screen.get_width() // 2, messagepointer))
 	screen.blit(header_text, header_rect)
 	messagepointer+=incrementer
@@ -208,7 +208,7 @@ def game_score(screen, score):
 	table_x = screen.get_width() // 4
 	table_y = messagepointer 
 	table_width = screen.get_width() // 2
-	table_height = screen.get_height() // 2
+	table_height = incrementer*11
 
 	# Draw a black background for the table
 	pygame.draw.rect(screen, (0, 0, 0), (table_x, table_y, table_width, table_height))
@@ -219,10 +219,47 @@ def game_score(screen, score):
 		formatted_number = '{:2d}'.format(x)
 		formatted_score = '{:8d}'.format(hiscores["hiscoreP"][x][1])
 		username=hiscores["hiscoreP"][x][0]
-		message_input_text = font.render(formatted_number + "     " + formatted_score + "     " + username, False, (255, 255, 255))
+		message_input_text = font.render(formatted_number + "     " + formatted_score + "     " + username, False, (255, 255, 0))
 		
 		screen.blit(message_input_text, (table_x+10, messagepointer))
 		messagepointer+=incrementer
+
+	messagepointer+=2*incrementer
+
+
+	# Render the "All-time Nightcrawlers" header
+	header_text = font.render("Today's Best Pinworms", False, (0, 255, 255))
+	header_rect = header_text.get_rect(center=(screen.get_width() // 2, messagepointer))
+	screen.blit(header_text, header_rect)
+
+	# Define the dimensions of the table
+	table_x = screen.get_width() // 4
+	table_y = messagepointer + table_y-16
+	table_width = screen.get_width() // 2
+	table_height = incrementer*11
+
+	messagepointer+=incrementer
+
+	# Draw a black background for the table
+	pygame.draw.rect(screen, (0, 0, 0), (table_x, table_y, table_width, table_height))
+
+
+	# Render the scores in the table
+	for x in range(10):
+		formatted_number = '{:2d}'.format(x)
+		formatted_score = '{:8d}'.format(hiscores["hiscoreT"][x][1])
+		username=hiscores["hiscoreT"][x][0]
+		message_input_text = font.render(formatted_number + "     " + formatted_score + "     " + username, False, (0, 255, 255))
+		
+		screen.blit(message_input_text, (table_x+10, messagepointer))
+		messagepointer+=incrementer
+
+	messagepointer+=incrementer*2
+
+	header_text = font.render("Hit any key to play again or ESC to exit", False, (255, 255, 255))
+	header_rect = header_text.get_rect(center=(screen.get_width() // 2, messagepointer))
+	screen.blit(header_text, header_rect)
+
 
 	pygame.display.flip()
 	pygame.display.update()
@@ -238,7 +275,10 @@ def game_score(screen, score):
 				pygame.quit()
 				return
 			elif event.type == pygame.KEYDOWN:
-				exittheloop=True
+				if event.key == pygame.K_ESCAPE:
+					pygame.quit()
+				else:
+					exittheloop=True
 
 	
 	
@@ -498,7 +538,7 @@ def main():
 		else:
 			currentlevel="level1"
 
-		#score=game(screen, currentlevel, level, wasd)
+		score=game(screen, currentlevel, level, wasd)
 		game_score(screen, 1000)
 		level=1
 
