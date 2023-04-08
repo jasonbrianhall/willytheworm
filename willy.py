@@ -90,6 +90,9 @@ def game_score(screen, score):
 
 
 	pygame.display.update()
+	
+	for key in hiscores:
+		hiscores[key] = sorted(hiscores[key], key=lambda x: x[1], reverse=True)[:10]
 
 	if score > hiscores["hiscoreT"][9][1]:
 		#messagepointer+=incrementer
@@ -144,15 +147,26 @@ def game_score(screen, score):
 				screen.blit(screen, (0,0))
 				pygame.display.flip()
 				pygame.display.update()
-		hiscores["hiscoreT"].append((name_input, score))
-		hiscores["hiscoreP"].append((name_input, score))
+		'''hiscores["hiscoreT"].append((name_input, score))
+		#hiscores["hiscoreP"].append((name_input, score))
 
 		for key in hiscores:
-			hiscores[key] = sorted(hiscores[key], key=lambda x: x[1], reverse=True)
+			hiscores[key] = sorted(hiscores[key], key=lambda x: x[1], reverse=True)[:10]
 			
-		print(hiscores)
+		print(hiscores)'''
+		
+		new_data = [name_input, score]
 
-		f.write(json.dumps(hiscores))
+		# Append the new data to the 'hiscoreT' list
+		hiscores['hiscoreT'].append(new_data)
+		hiscores['hiscoreP'].append(new_data)
+
+
+		for key in hiscores:
+			hiscores[key] = sorted(hiscores[key], key=lambda x: x[1], reverse=True)[:10]
+
+
+		json.dump(hiscores, f)
 		
 		
 	else:
@@ -538,8 +552,8 @@ def main():
 		else:
 			currentlevel="level1"
 
-		score=game(screen, currentlevel, level, wasd)
-		game_score(screen, score)
+		#score=game(screen, currentlevel, level, wasd)
+		game_score(screen, random.randint(100,500))
 		level=1
 
 
