@@ -147,10 +147,10 @@ def game_score(screen, score):
 		hiscores["hiscoreT"].append((name_input, score))
 		hiscores["hiscoreP"].append((name_input, score))
 
-		'''for key in hiscores:
-			hiscores[key] = sorted(hiscores[key], key=lambda x: x[1], reverse=True)'''
+		for key in hiscores:
+			hiscores[key] = sorted(hiscores[key], key=lambda x: x[1], reverse=True)
 			
-		#print(hiscores)
+		print(hiscores)
 
 		f.write(json.dumps(hiscores))
 		
@@ -539,7 +539,7 @@ def main():
 			currentlevel="level1"
 
 		score=game(screen, currentlevel, level, wasd)
-		game_score(screen, 1000)
+		game_score(screen, score)
 		level=1
 
 
