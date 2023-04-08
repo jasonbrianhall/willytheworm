@@ -516,9 +516,9 @@ def game(screen, currentlevel, level, wasd=False):
 			
 
 
-		if level_data[currentlevel][str(willy_position[0])][str(willy_position[1])].startswith("LADDER") and ladder_direction==None:
+		'''if level_data[currentlevel][str(willy_position[0])][str(willy_position[1])].startswith("LADDER") and ladder_direction==None:
 			willy_yvelocity=0
-			willy_xvelocity=0		
+			willy_xvelocity=0'''		
 
 		if level_data[currentlevel][str(willy_position[0])][str(willy_position[1])].startswith("UPSPRING"):
 			willy_yvelocity=4
