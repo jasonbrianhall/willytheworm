@@ -454,7 +454,7 @@ def game(screen, currentlevel, level, wasd=False):
 			col=balls[ball]["Location"][1]
 			row=balls[ball]["Location"][0]
 			willyrow, willycol = willy_position
-			if willyrow==row and willycol==col:
+			if willyrow==row and willycol==col and not level_data[currentlevel][str(row)][str(col)].startswith("BALLPIT"):
 				ballkilledwilly=True
 		
 		if level_data[currentlevel][str(willy_position[0]+1)][str(willy_position[1])].startswith("PIPE18"):
@@ -727,7 +727,7 @@ def game(screen, currentlevel, level, wasd=False):
 			col=balls[ball]["Location"][1]
 			row=balls[ball]["Location"][0]
 			willyrow, willycol = willy_position
-			if willyrow==row and willycol==col:
+			if willyrow==row and willycol==col and not level_data[currentlevel][str(row)][str(col)].startswith("BALLPIT"):
 				ballkilledwilly=True
 
 
@@ -807,7 +807,7 @@ def game(screen, currentlevel, level, wasd=False):
 			col=balls[ball]["Location"][1]
 			row=balls[ball]["Location"][0]
 			willyrow, willycol = willy_position
-			if willyrow==row and willycol==col:
+			if willyrow==row and willycol==col and not level_data[currentlevel][str(row)][str(col)].startswith("BALLPIT"):
 				ballkilledwilly=True
 			y, x = willy_position
 			for i in range(1, 5):
