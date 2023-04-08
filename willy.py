@@ -35,8 +35,8 @@ def game_score(screen, score):
 		data = f.read()
 		hiscores = json.loads(data) 
 		#hiscores["hiscoreT"]=[]
+		f.close()
 	except:
-		f=open('willy.scr', 'w')
 		hiscores={}
 		hiscores["hiscoreT"]=[]
 		hiscores["hiscoreP"]=[]
@@ -165,8 +165,9 @@ def game_score(screen, score):
 		for key in hiscores:
 			hiscores[key] = sorted(hiscores[key], key=lambda x: x[1], reverse=True)[:10]
 
-
-		json.dump(hiscores, f)
+		# Write the updated data back to the file
+		with open('willy.scr', 'w') as f:
+			json.dump(hiscores, f)
 		
 		
 	else:
