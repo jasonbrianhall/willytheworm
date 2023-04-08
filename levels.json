@@ -2029,37 +2029,231 @@
         "25": {}
     },
     "level10": {
-        "0": {},
-        "1": {},
-        "2": {
-            "9": "WILLY_LEFT"
+        "0": {
+            "0": "BELL",
+            "3": "LADDER"
         },
-        "3": {},
+        "1": {
+            "0": "PIPE27",
+            "1": "PIPE27",
+            "2": "PIPE27",
+            "3": "LADDER"
+        },
+        "2": {
+            "3": "LADDER",
+            "0": "BALLPIT"
+        },
+        "3": {
+            "3": "LADDER"
+        },
         "4": {
-            "18": "BALLPIT"
+            "3": "LADDER"
         },
         "5": {
-            "18": "BALLPIT"
+            "5": "TACK",
+            "3": "LADDER"
         },
-        "6": {},
-        "7": {},
-        "8": {},
-        "9": {},
-        "10": {},
-        "11": {},
-        "12": {},
-        "13": {},
-        "14": {},
-        "15": {},
-        "16": {},
-        "17": {},
-        "18": {},
-        "19": {},
-        "20": {},
-        "21": {},
-        "22": {},
-        "23": {},
-        "24": {},
+        "6": {
+            "2": "SIDESPRING",
+            "4": "TACK",
+            "5": "TACK",
+            "6": "TACK",
+            "7": "LADDER",
+            "3": "LADDER"
+        },
+        "7": {
+            "0": "PIPE27",
+            "1": "PIPE27",
+            "2": "PIPE27",
+            "3": "PIPE27",
+            "4": "PIPE27",
+            "5": "PIPE27",
+            "6": "PIPE27",
+            "7": "LADDER",
+            "8": "PIPE27",
+            "9": "PIPE27",
+            "10": "PIPE27"
+        },
+        "8": {
+            "7": "LADDER"
+        },
+        "9": {
+            "7": "LADDER"
+        },
+        "10": {
+            "7": "LADDER"
+        },
+        "11": {
+            "4": "TACK",
+            "7": "LADDER",
+            "10": "TACK",
+            "13": "PRESENT",
+            "14": "PRESENT"
+        },
+        "12": {
+            "1": "LADDER",
+            "3": "TACK",
+            "4": "TACK",
+            "5": "TACK",
+            "7": "LADDER",
+            "9": "TACK",
+            "10": "TACK",
+            "11": "TACK",
+            "13": "PRESENT",
+            "14": "PRESENT"
+        },
+        "13": {
+            "0": "PIPE27",
+            "1": "LADDER",
+            "2": "PIPE27",
+            "3": "PIPE27",
+            "4": "PIPE27",
+            "5": "PIPE27",
+            "6": "PIPE27",
+            "7": "PIPE27",
+            "8": "PIPE27",
+            "9": "PIPE27",
+            "10": "PIPE27",
+            "11": "PIPE27",
+            "12": "PIPE27",
+            "13": "PIPE27",
+            "14": "PIPE27"
+        },
+        "14": {
+            "1": "LADDER"
+        },
+        "15": {
+            "1": "LADDER"
+        },
+        "16": {
+            "1": "LADDER",
+            "21": "TACK",
+            "22": "TACK"
+        },
+        "17": {
+            "1": "LADDER",
+            "5": "PRESENT",
+            "11": "SIDESPRING",
+            "19": "LADDER",
+            "21": "TACK",
+            "22": "TACK",
+            "0": "BALLPIT"
+        },
+        "18": {
+            "0": "PIPE27",
+            "1": "PIPE27",
+            "2": "PIPE27",
+            "3": "PIPE27",
+            "4": "PIPE27",
+            "5": "PIPE27",
+            "6": "PIPE27",
+            "7": "PIPE27",
+            "8": "PIPE27",
+            "9": "PIPE27",
+            "10": "PIPE27",
+            "11": "PIPE27",
+            "12": "PIPE27",
+            "13": "PIPE27",
+            "14": "PIPE27",
+            "15": "PIPE27",
+            "16": "PIPE27",
+            "17": "PIPE27",
+            "18": "PIPE27",
+            "19": "LADDER",
+            "20": "PIPE27",
+            "21": "PIPE27",
+            "22": "PIPE27"
+        },
+        "19": {
+            "19": "LADDER"
+        },
+        "20": {
+            "19": "LADDER"
+        },
+        "21": {
+            "19": "LADDER"
+        },
+        "22": {
+            "6": "TACK",
+            "19": "LADDER",
+            "22": "TACK",
+            "27": "TACK",
+            "32": "TACK",
+            "0": "WILLY_LEFT",
+            "10": "PRESENT",
+            "14": "TACK",
+            "35": "PRESENT",
+            "36": "PRESENT",
+            "37": "PRESENT"
+        },
+        "23": {
+            "5": "TACK",
+            "6": "TACK",
+            "7": "TACK",
+            "9": "PRESENT",
+            "15": "TACK",
+            "19": "LADDER",
+            "21": "TACK",
+            "22": "TACK",
+            "23": "TACK",
+            "26": "TACK",
+            "27": "TACK",
+            "28": "TACK",
+            "31": "TACK",
+            "32": "TACK",
+            "39": "BALLPIT",
+            "33": "TACK",
+            "0": "BALLPIT",
+            "10": "PRESENT",
+            "11": "PRESENT",
+            "13": "TACK",
+            "14": "TACK",
+            "35": "PRESENT",
+            "36": "PRESENT",
+            "37": "PRESENT"
+        },
+        "24": {
+            "0": "PIPE27",
+            "1": "PIPE27",
+            "2": "PIPE27",
+            "3": "PIPE27",
+            "4": "PIPE27",
+            "5": "PIPE27",
+            "6": "PIPE27",
+            "7": "PIPE27",
+            "8": "PIPE27",
+            "9": "PIPE27",
+            "10": "PIPE27",
+            "11": "PIPE27",
+            "12": "PIPE27",
+            "13": "PIPE27",
+            "14": "PIPE27",
+            "15": "PIPE27",
+            "16": "PIPE27",
+            "17": "PIPE27",
+            "18": "PIPE27",
+            "19": "PIPE27",
+            "20": "PIPE27",
+            "21": "PIPE27",
+            "22": "PIPE27",
+            "23": "PIPE27",
+            "24": "PIPE27",
+            "25": "PIPE27",
+            "26": "PIPE27",
+            "27": "PIPE27",
+            "28": "PIPE27",
+            "29": "PIPE27",
+            "30": "PIPE27",
+            "31": "PIPE27",
+            "32": "PIPE27",
+            "33": "PIPE27",
+            "34": "PIPE27",
+            "35": "PIPE27",
+            "36": "PIPE27",
+            "37": "PIPE27",
+            "38": "PIPE27",
+            "39": "PIPE27"
+        },
         "25": {}
     },
     "level11": {
@@ -2538,8 +2732,8 @@
     },
     "level10PIT": {
         "PRIMARYBALLPIT": [
-            5,
-            18
+            2,
+            0
         ]
     },
     "level11PIT": {
@@ -2719,35 +2913,80 @@
     "level2": {
         "0": {
             "0": "BELL",
-            "3": "LADDER"
+            "1": "PRESENT",
+            "4": "PRESENT",
+            "8": "PRESENT",
+            "11": "PRESENT"
         },
         "1": {
             "0": "PIPE27",
             "1": "PIPE27",
             "2": "PIPE27",
-            "3": "LADDER"
+            "3": "PIPE27",
+            "4": "PIPE27",
+            "5": "PIPE27",
+            "6": "PIPE27",
+            "7": "PIPE27",
+            "8": "PIPE27",
+            "9": "PIPE27",
+            "10": "PIPE27",
+            "11": "PIPE27",
+            "12": "PIPE27",
+            "13": "PIPE9"
         },
         "2": {
-            "3": "LADDER",
-            "0": "BALLPIT"
+            "9": "BALLPIT",
+            "13": "PIPE22",
+            "14": "PIPE27",
+            "15": "PIPE9"
         },
         "3": {
-            "3": "LADDER"
+            "15": "PIPE22",
+            "16": "PIPE27",
+            "17": "PIPE9",
+            "22": "PRESENT",
+            "33": "PRESENT"
         },
         "4": {
-            "3": "LADDER"
+            "17": "PIPE8",
+            "21": "PRESENT",
+            "22": "PRESENT",
+            "23": "PRESENT",
+            "28": "TACK",
+            "32": "PRESENT",
+            "33": "PRESENT",
+            "34": "PRESENT",
+            "38": "LADDER"
         },
         "5": {
-            "5": "TACK",
-            "3": "LADDER"
+            "17": "PIPE22",
+            "18": "PIPE27",
+            "19": "PIPE27",
+            "20": "PIPE27",
+            "21": "PIPE27",
+            "22": "PIPE27",
+            "23": "PIPE27",
+            "24": "PIPE27",
+            "25": "PIPE27",
+            "26": "PIPE27",
+            "27": "PIPE27",
+            "28": "PIPE27",
+            "29": "PIPE27",
+            "30": "PIPE27",
+            "31": "PIPE27",
+            "32": "PIPE27",
+            "33": "PIPE27",
+            "34": "PIPE27",
+            "35": "PIPE27",
+            "36": "PIPE27",
+            "37": "PIPE27",
+            "38": "LADDER",
+            "39": "PIPE27"
         },
         "6": {
             "2": "SIDESPRING",
-            "4": "TACK",
-            "5": "TACK",
-            "6": "TACK",
             "7": "LADDER",
-            "3": "LADDER"
+            "38": "LADDER"
         },
         "7": {
             "0": "PIPE27",
@@ -2760,35 +2999,40 @@
             "7": "LADDER",
             "8": "PIPE27",
             "9": "PIPE27",
-            "10": "PIPE27"
+            "10": "PIPE27",
+            "11": "PIPE9",
+            "38": "LADDER"
         },
         "8": {
-            "7": "LADDER"
+            "7": "LADDER",
+            "11": "PIPE8",
+            "38": "LADDER"
         },
         "9": {
-            "7": "LADDER"
+            "7": "LADDER",
+            "11": "PIPE8",
+            "38": "LADDER"
         },
         "10": {
-            "7": "LADDER"
+            "7": "LADDER",
+            "11": "PIPE8",
+            "38": "LADDER"
         },
         "11": {
-            "4": "TACK",
             "7": "LADDER",
-            "10": "TACK",
             "13": "PRESENT",
-            "14": "PRESENT"
+            "14": "PRESENT",
+            "11": "PIPE8",
+            "38": "LADDER"
         },
         "12": {
             "1": "LADDER",
-            "3": "TACK",
-            "4": "TACK",
-            "5": "TACK",
             "7": "LADDER",
-            "9": "TACK",
-            "10": "TACK",
-            "11": "TACK",
+            "11": "PIPE8",
             "13": "PRESENT",
-            "14": "PRESENT"
+            "14": "PRESENT",
+            "33": "UPSPRING",
+            "38": "LADDER"
         },
         "13": {
             "0": "PIPE27",
@@ -2802,10 +3046,34 @@
             "8": "PIPE27",
             "9": "PIPE27",
             "10": "PIPE27",
-            "11": "PIPE27",
+            "11": "PIPE24",
             "12": "PIPE27",
             "13": "PIPE27",
-            "14": "PIPE27"
+            "14": "PIPE27",
+            "15": "PIPE27",
+            "16": "PIPE27",
+            "17": "PIPE27",
+            "18": "PIPE27",
+            "19": "PIPE27",
+            "20": "PIPE27",
+            "21": "PIPE27",
+            "22": "PIPE27",
+            "23": "PIPE27",
+            "24": "PIPE27",
+            "25": "PIPE27",
+            "26": "PIPE27",
+            "27": "PIPE27",
+            "28": "PIPE27",
+            "29": "PIPE27",
+            "30": "PIPE27",
+            "31": "PIPE27",
+            "32": "PIPE27",
+            "33": "PIPE27",
+            "34": "PIPE27",
+            "35": "PIPE27",
+            "37": "PIPE27",
+            "38": "PIPE27",
+            "39": "PIPE27"
         },
         "14": {
             "1": "LADDER"
@@ -2814,18 +3082,14 @@
             "1": "LADDER"
         },
         "16": {
-            "1": "LADDER",
-            "21": "TACK",
-            "22": "TACK"
+            "1": "LADDER"
         },
         "17": {
             "1": "LADDER",
             "5": "PRESENT",
             "11": "SIDESPRING",
-            "19": "LADDER",
-            "21": "TACK",
-            "22": "TACK",
-            "0": "BALLPIT"
+            "0": "BALLPIT",
+            "38": "LADDER"
         },
         "18": {
             "0": "PIPE27",
@@ -2847,58 +3111,60 @@
             "16": "PIPE27",
             "17": "PIPE27",
             "18": "PIPE27",
-            "19": "LADDER",
+            "19": "PRESENT",
             "20": "PIPE27",
             "21": "PIPE27",
-            "22": "PIPE27"
+            "22": "PIPE27",
+            "23": "PIPE27",
+            "24": "PIPE27",
+            "25": "PIPE27",
+            "26": "PIPE27",
+            "27": "PIPE27",
+            "28": "PIPE27",
+            "29": "PIPE27",
+            "30": "PIPE27",
+            "31": "PIPE27",
+            "32": "PIPE27",
+            "33": "PIPE27",
+            "34": "PIPE27",
+            "35": "PIPE27",
+            "36": "PIPE27",
+            "37": "PIPE27",
+            "38": "LADDER",
+            "39": "PIPE27"
         },
         "19": {
-            "19": "LADDER"
+            "19": "LADDER",
+            "38": "LADDER"
         },
         "20": {
-            "19": "LADDER"
+            "19": "LADDER",
+            "38": "LADDER"
         },
         "21": {
-            "19": "LADDER"
+            "19": "LADDER",
+            "38": "LADDER"
         },
         "22": {
-            "6": "TACK",
             "19": "LADDER",
-            "22": "TACK",
-            "27": "TACK",
-            "32": "TACK",
             "0": "WILLY_LEFT",
             "10": "PRESENT",
-            "14": "TACK",
             "35": "PRESENT",
             "36": "PRESENT",
-            "37": "PRESENT"
+            "37": "PRESENT",
+            "38": "LADDER"
         },
         "23": {
-            "5": "TACK",
-            "6": "TACK",
-            "7": "TACK",
             "9": "PRESENT",
-            "15": "TACK",
             "19": "LADDER",
-            "21": "TACK",
-            "22": "TACK",
-            "23": "TACK",
-            "26": "TACK",
-            "27": "TACK",
-            "28": "TACK",
-            "31": "TACK",
-            "32": "TACK",
             "39": "BALLPIT",
-            "33": "TACK",
             "0": "BALLPIT",
             "10": "PRESENT",
             "11": "PRESENT",
-            "13": "TACK",
-            "14": "TACK",
             "35": "PRESENT",
             "36": "PRESENT",
-            "37": "PRESENT"
+            "37": "PRESENT",
+            "38": "LADDER"
         },
         "24": {
             "0": "PIPE27",
@@ -2947,7 +3213,7 @@
     "level2PIT": {
         "PRIMARYBALLPIT": [
             2,
-            0
+            9
         ]
     }
 }
