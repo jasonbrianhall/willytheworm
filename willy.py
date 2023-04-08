@@ -24,8 +24,56 @@ NEWLIFEPOINTS = 2000
 # The higher the number, the faster the game goes
 fps=10
 
+def deadscreen(screen, score):
+	screen.fill((0, 0, 255))
+	exit=False
+	while exit==False:
+		datasize=0
+		screenwidth=SCREEN_WIDTH * CHAR_WIDTH * SCALER
+		font_size = 8*SCALER
+		fontdata = pygame.font.SysFont(None, font_size)
+		# Render the text as a surface
+		text = "You have died"
+		#text = "01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789"
+		text_surface = fontdata.render(text, True, (255, 255, 255))
+		text_rect = text_surface.get_rect()
+		text_x = (screenwidth - text_rect.width) // 2
+		#text_y = (SCREEN_HEIGHT * CHAR_HEIGHT * SCALER) - font_size
+		text_y = 0
+		screen.blit(text_surface, (text_x, text_y))
+
+		text = "When you died, you had " + str(score) + " points."
+		spaces=int((datasize-len(text))/2)
+		text_surface = fontdata.render(text, True, (255, 255, 255))
+		text_rect = text_surface.get_rect()
+		text_x = (screenwidth - text_rect.width) // 2
+		#text_y = (SCREEN_HEIGHT * CHAR_HEIGHT * SCALER) - font_size
+		text_y = font_size+2
+		screen.blit(text_surface, (text_x, text_y))
+
+		text = "Press Enter to Continue"
+		spaces=int((datasize-len(text))/2)
+		text_surface = fontdata.render(text, True, (255, 255, 255))
+		text_rect = text_surface.get_rect()
+		text_x = (screenwidth - text_rect.width) // 2
+		#text_y = (SCREEN_HEIGHT * CHAR_HEIGHT * SCALER) - font_size
+		text_y = 4*font_size+2
+		screen.blit(text_surface, (text_x, text_y))
+
+
+
+		pygame.display.flip()
+		for event in pygame.event.get():
+			# Keyboard Events
+			if event.type == pygame.KEYDOWN:
+				if event.key == pygame.K_RETURN:
+					exit=True
+
+
+
 def intro(screen):
 
+	screen.fill((0, 0, 255))
 	exit=False
 	while exit==False:
 		datasize=0
@@ -222,15 +270,17 @@ def main():
 			sys.exit(1)
 		i += 1
 		
-	if level>0 and level <= MAX_LEVELS:
-		currentlevel="level" + str(level)
-	else:
-		currentlevel="level1"
 
+	intro(screen)
 	while True:
-		intro(screen)
-		game(screen, currentlevel, level, wasd)
+		if level>0 and level <= MAX_LEVELS:
+			currentlevel="level" + str(level)
+		else:
+			currentlevel="level1"
 
+		score=game(screen, currentlevel, level, wasd)
+		deadscreen(screen, score)
+		level=1
 
 
 def game(screen, currentlevel, level, wasd=False):
@@ -493,7 +543,7 @@ def game(screen, currentlevel, level, wasd=False):
 			
 			if numberoflives<1:
 				# Todo; make main screen
-				sys.exit()
+				return score
 			else:
 				if level_data.get(currentlevel)==None:
 					#level_data[curentlevel]={}
@@ -573,6 +623,7 @@ def game(screen, currentlevel, level, wasd=False):
 			if not level_data[currentlevel][str(test_list[0])][str(test_list[1])].startswith("PIPE"):
 				willy_list=test_list.copy()
 				
+			del test_list
 			# Convert list back to tuple
 			willy_position = tuple(willy_list)
 			willy_yvelocity-=1
@@ -589,7 +640,7 @@ def game(screen, currentlevel, level, wasd=False):
 			if not level_data[currentlevel][str(test_list[0])][str(test_list[1])].startswith("PIPE"):
 				willy_list=test_list.copy()
 
-
+			del test_list
 			# Convert list back to tuple
 			willy_position = tuple(willy_list)
 
@@ -605,7 +656,7 @@ def game(screen, currentlevel, level, wasd=False):
 
 			if not level_data[currentlevel][str(test_list[0])][str(test_list[1])].startswith("PIPE"):
 				willy_list=test_list.copy()
-
+			del test_list
 	
 			# Convert list back to tuple
 			willy_position = tuple(willy_list)
@@ -621,7 +672,9 @@ def game(screen, currentlevel, level, wasd=False):
 
 			if not level_data[currentlevel][str(test_list[0])][str(test_list[1])].startswith("PIPE"):
 				willy_list=test_list.copy()
-					
+
+
+			del test_list					
 			# Convert list back to tuple
 			willy_position = tuple(willy_list)
 
@@ -638,6 +691,8 @@ def game(screen, currentlevel, level, wasd=False):
 			if level_data[currentlevel][str(test_list[0])][str(test_list[1])].startswith("LADDER"):
 				willy_list=test_list.copy()
 				
+			del test_list
+
 			# Convert list back to tuple
 			willy_position = tuple(willy_list)
 			willy_xvelocity=0
@@ -657,6 +712,8 @@ def game(screen, currentlevel, level, wasd=False):
 
 			if level_data[currentlevel][str(test_list[0])][str(test_list[1])].startswith("LADDER") or level_data[currentlevel][str(test_list[0])][str(test_list[1])].startswith("EMPTY"):
 				willy_list=test_list.copy()
+			del test_list
+
 				
 			# Convert list back to tuple
 			willy_position = tuple(willy_list)
