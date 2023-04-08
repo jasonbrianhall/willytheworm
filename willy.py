@@ -8,6 +8,8 @@ import sys
 import threading
 import random
 import time
+import os
+from datetime import datetime, date
 
 # Constants
 SCALER = 4
@@ -36,6 +38,19 @@ def game_score(screen, score):
 		hiscores = json.loads(data) 
 		#hiscores["hiscoreT"]=[]
 		f.close()
+		# Get the modification time of the file
+		mod_time = os.path.getmtime('willy.scr')
+
+		# Convert the modification time to a datetime object
+		mod_datetime = datetime.fromtimestamp(mod_time)
+
+		# Get today's date
+		today = date.today()
+
+		# Compare the modification date with today's date
+		if not mod_datetime.date() == today:
+			hiscores["hiscoreT"]=[]
+			
 	except:
 		hiscores={}
 		hiscores["hiscoreT"]=[]
@@ -553,8 +568,8 @@ def main():
 		else:
 			currentlevel="level1"
 
-		#score=game(screen, currentlevel, level, wasd)
-		game_score(screen, random.randint(100,500))
+		score=game(screen, currentlevel, level, wasd)
+		game_score(screen, score)
 		level=1
 
 
