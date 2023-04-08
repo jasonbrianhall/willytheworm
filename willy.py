@@ -23,6 +23,227 @@ NEWLIFEPOINTS = 2000
 # The higher the number, the faster the game goes
 fps=10
 
+
+def game_score(screen, score):
+	pygame.display.set_caption('Willy the Worm Game Score')
+
+	font = pygame.font.SysFont("Courier", 32)
+	hiscore_msg = ''
+	name = ''
+	try:
+		f=open('willy.scr', 'r+')
+		data = f.read()
+		hiscores = json.loads(data) 
+		#hiscores["hiscoreT"]=[]
+	except:
+		f=open('willy.scr', 'w')
+		hiscores={}
+		hiscores["hiscoreT"]=[]
+		hiscores["hiscoreP"]=[]
+		for x in hiscores:
+			for y in range(10):
+				hiscores[x].append(("nobody", 0))
+				
+		pass
+
+	hiscore_msg=""
+	if score > hiscores["hiscoreP"][9][1]:
+		hiscore_msg = "You're an Official Nightcrawler!"
+	elif score > hiscores["hiscoreT"][9][1]:
+		hiscore_msg = "You're a Daily Pinworm!"
+
+	score_msg = f"Your score for this game is {score}..."
+	if score < 1000:
+		score_desc = "Didn't you even read the instructions?"
+	elif score < 2000:
+		score_desc = "If you can't say anything nice..."
+	elif score < 3000:
+		score_desc = "Okay. Maybe you're not so bad after all."
+	elif score < 4000:
+		score_desc = "Wow! Absolutely mediocre!"
+	elif score < 5000:
+		score_desc = "Pretty darn good, for a vertebrate!"
+	elif score < 6000:
+		score_desc = "Well done! Do you often eat garbage?"
+	else:
+		score_desc = "Absolutely fantastic! You should consider a career as an earthworm!"
+
+	messagepointer=0
+	incrementer=25
+	
+	screen.fill((0, 0, 255))
+	
+	if not hiscore_msg=="":
+		message_input_text = font.render(hiscore_msg, False, (255, 255, 255))
+		screen.blit(message_input_text, (0, messagepointer))
+		messagepointer+=incrementer
+
+
+	
+	message_input_text = font.render(score_desc, False, (255, 255, 255))
+	screen.blit(message_input_text, (0, messagepointer))
+	messagepointer+=2*incrementer
+
+	message_input_text = font.render("Your score for this game is " + str(score) + "...", False, (255, 255, 255))
+	screen.blit(message_input_text, (0, messagepointer))
+	messagepointer+=2*incrementer
+
+
+	pygame.display.update()
+
+	if score > hiscores["hiscoreT"][9][1]:
+		#messagepointer+=incrementer
+
+
+		exittheloop=False
+		name_input = ''
+		while exittheloop==False:
+
+
+			messagepointer=0
+			if not hiscore_msg=="":
+				message_input_text = font.render(hiscore_msg, False, (255, 255, 255))
+				screen.blit(message_input_text, (0, messagepointer))
+				messagepointer+=incrementer
+			
+			message_input_text = font.render(score_desc, False, (255, 255, 255))
+			screen.blit(message_input_text, (0, messagepointer))
+			messagepointer+=2*incrementer
+
+			message_input_text = font.render("Your score for this game is " + str(score) + "...", False, (255, 255, 255))
+			screen.blit(message_input_text, (0, messagepointer))
+			messagepointer+=2*incrementer
+
+			name_prompt = "Enter your name:"
+			message_input_text = font.render("Enter your name >> " + name_input, False, (255, 255, 255))
+			screen.blit(message_input_text, (0, messagepointer))
+
+
+			for event in pygame.event.get():
+
+				if event.type == pygame.QUIT:
+					pygame.quit()
+					return
+				elif event.type == pygame.KEYDOWN:
+					if event.key == pygame.K_ESCAPE:
+						pygame.quit()
+					if event.key == pygame.K_RETURN:
+						name = name_input
+						hiscores["hiscoreT"].append([score, name])
+						#hiscores["hiscoreT"].sort(reverse=True)
+						hiscores["hiscoreT"] = hiscores["hiscoreT"][:10]
+						exittheloop=True
+						print("Exiting the loop")
+
+					elif event.key == pygame.K_BACKSPACE:
+						name_input = name_input[:-1]
+						#print("Removing backscape")
+						screen.fill((0,0,255)) # clear the screen
+					else:
+						name_input += event.unicode
+				screen.blit(screen, (0,0))
+				pygame.display.flip()
+				pygame.display.update()
+		hiscores["hiscoreT"].append((name_input, score))
+		hiscores["hiscoreP"].append((name_input, score))
+
+		'''for key in hiscores:
+			hiscores[key] = sorted(hiscores[key], key=lambda x: x[1], reverse=True)'''
+			
+		#print(hiscores)
+
+		f.write(json.dumps(hiscores))
+		
+		
+	else:
+		screen.fill((0,0,255)) # clear the screen
+
+		messagepointer=0
+		if not hiscore_msg=="":
+			message_input_text = font.render(hiscore_msg, False, (255, 255, 255))
+			screen.blit(message_input_text, (0, messagepointer))
+			messagepointer+=incrementer
+			
+		message_input_text = font.render(score_desc, False, (255, 255, 255))
+		screen.blit(message_input_text, (0, messagepointer))
+		messagepointer+=2*incrementer
+
+		message_input_text = font.render("Your score for this game is " + str(score) + "...", False, (255, 255, 255))
+		screen.blit(message_input_text, (0, messagepointer))
+		messagepointer+=2*incrementer
+		
+		message_input_text = font.render("Press any key to continue " + str(score) + "...", False, (255, 255, 255))
+		screen.blit(message_input_text, (0, messagepointer))
+		
+		exittheloop=False
+		pygame.display.flip()
+		pygame.display.update()
+
+		while exittheloop==False:		
+			for event in pygame.event.get():
+
+				if event.type == pygame.QUIT:
+					pygame.quit()
+					return
+				elif event.type == pygame.KEYDOWN:
+					exittheloop=True
+
+
+	for key in hiscores:
+		hiscores[key] = sorted(hiscores[key], key=lambda x: x[1], reverse=True)
+
+	messagepointer=10
+	screen.fill((0, 0, 255)) # clear the screen
+
+
+
+
+	# Render the "All-time Nightcrawlers" header
+	header_text = font.render("All-time Nightcrawlers", False, (255, 255, 255))
+	header_rect = header_text.get_rect(center=(screen.get_width() // 2, messagepointer))
+	screen.blit(header_text, header_rect)
+	messagepointer+=incrementer
+
+	# Define the dimensions of the table
+	table_x = screen.get_width() // 4
+	table_y = messagepointer 
+	table_width = screen.get_width() // 2
+	table_height = screen.get_height() // 2
+
+	# Draw a black background for the table
+	pygame.draw.rect(screen, (0, 0, 0), (table_x, table_y, table_width, table_height))
+
+
+	# Render the scores in the table
+	for x in range(10):
+		formatted_number = '{:2d}'.format(x)
+		formatted_score = '{:8d}'.format(hiscores["hiscoreP"][x][1])
+		username=hiscores["hiscoreP"][x][0]
+		message_input_text = font.render(formatted_number + "     " + formatted_score + "     " + username, False, (255, 255, 255))
+		
+		screen.blit(message_input_text, (table_x+10, messagepointer))
+		messagepointer+=incrementer
+
+	pygame.display.flip()
+	pygame.display.update()
+
+	exittheloop=False
+	
+	while exittheloop==False:		
+
+		
+		for event in pygame.event.get():
+
+			if event.type == pygame.QUIT:
+				pygame.quit()
+				return
+			elif event.type == pygame.KEYDOWN:
+				exittheloop=True
+
+	
+	
+	
+
 def deadscreen(screen, score):
 	screen.fill((0, 0, 255))
 	exit=False
@@ -82,7 +303,7 @@ def intro(screen):
 		# Render the text as a surface
 		text = "Willy the Worm"
 		#text = "01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789"
-		text_surface = fontdata.render(text, True, (255, 255, 255))
+		text_surface = fontdata.render(text, False, (255, 255, 255))
 		text_rect = text_surface.get_rect()
 		text_x = (screenwidth - text_rect.width) // 2
 		#text_y = (SCREEN_HEIGHT * CHAR_HEIGHT * SCALER) - font_size
@@ -91,7 +312,7 @@ def intro(screen):
 
 		text = "By Jason Hall (original version by Alan Farmer 1985)"
 		spaces=int((datasize-len(text))/2)
-		text_surface = fontdata.render(text, True, (255, 255, 255))
+		text_surface = fontdata.render(text, False, (255, 255, 255))
 		text_rect = text_surface.get_rect()
 		text_x = (screenwidth - text_rect.width) // 2
 		#text_y = (SCREEN_HEIGHT * CHAR_HEIGHT * SCALER) - font_size
@@ -100,7 +321,7 @@ def intro(screen):
 
 		text = "This code is Free Open Source Software (FOSS); please feel free to do with it whatever you wish."
 		spaces=int((datasize-len(text))/2)
-		text_surface = fontdata.render(text, True, (255, 255, 255))
+		text_surface = fontdata.render(text, False, (255, 255, 255))
 		text_rect = text_surface.get_rect()
 		text_x = (screenwidth - text_rect.width) // 2
 		#text_y = (SCREEN_HEIGHT * CHAR_HEIGHT * SCALER) - font_size
@@ -109,7 +330,7 @@ def intro(screen):
 
 		text = "If you do make changes though such as new levels; please share them with the world."
 		spaces=int((datasize-len(text))/2)
-		text_surface = fontdata.render(text, True, (255, 255, 255))
+		text_surface = fontdata.render(text, False, (255, 255, 255))
 		text_rect = text_surface.get_rect()
 		text_x = (screenwidth - text_rect.width) // 2
 		#text_y = (SCREEN_HEIGHT * CHAR_HEIGHT * SCALER) - font_size
@@ -118,7 +339,7 @@ def intro(screen):
 
 		text = "Press Enter to Continue"
 		spaces=int((datasize-len(text))/2)
-		text_surface = fontdata.render(text, True, (255, 255, 255))
+		text_surface = fontdata.render(text, False, (255, 255, 255))
 		text_rect = text_surface.get_rect()
 		text_x = (screenwidth - text_rect.width) // 2
 		#text_y = (SCREEN_HEIGHT * CHAR_HEIGHT * SCALER) - font_size
@@ -277,8 +498,8 @@ def main():
 		else:
 			currentlevel="level1"
 
-		score=game(screen, currentlevel, level, wasd)
-		deadscreen(screen, score)
+		#score=game(screen, currentlevel, level, wasd)
+		game_score(screen, 1000)
 		level=1
 
 
