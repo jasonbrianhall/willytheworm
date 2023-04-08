@@ -520,6 +520,11 @@ def game(screen, currentlevel, level, wasd=False):
 			willy_yvelocity=0
 			willy_xvelocity=0'''		
 
+		willy_list = list(willy_position)
+		if level_data[currentlevel][str(willy_list[0]+1)][str(willy_list[1])].startswith("LADDER") and level_data[currentlevel][str(willy_list[0])][str(willy_list[1])].startswith("EMPTY"):
+			willy_yvelocity=-1
+
+
 		if level_data[currentlevel][str(willy_position[0])][str(willy_position[1])].startswith("UPSPRING"):
 			willy_yvelocity=4
 			t = threading.Thread(target=play_audio, args=("audio/jump.mp3",))
