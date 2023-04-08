@@ -5,7 +5,6 @@ from PIL import Image
 import json
 import traceback
 import sys
-import copy
 import threading
 import random
 import time
@@ -361,13 +360,12 @@ def game(screen, currentlevel, level, wasd=False):
 	balls={}
 	counter=0
 	for ball in range(numberofballs):
-		balls[str(counter)]={}
-		balls[str(counter)]["Location"]=primaryballpit.copy()
-		balls[str(counter)]["Direction"]=None
-
-		counter+=1
+		balls[str(counter)] = {}
+		balls[str(counter)]["Location"] = [primaryballpit[0], primaryballpit[1]]
+		balls[str(counter)]["Direction"] = None
+		counter += 1
 	liveadder=0
-	
+
 	while running:
 		clock.tick(fps)	 # limit the frame rate to 30 fps
 		if int(score/NEWLIFEPOINTS)>liveadder:
@@ -558,12 +556,10 @@ def game(screen, currentlevel, level, wasd=False):
 			balls={}
 			counter=0
 			for ball in range(numberofballs):
-				balls[str(counter)]={}
-				balls[str(counter)]["Location"]=primaryballpit.copy()
-				balls[str(counter)]["Direction"]=None
-
-				counter+=1
-			
+				balls[str(counter)] = {}
+				balls[str(counter)]["Location"] = [primaryballpit[0], primaryballpit[1]]
+				balls[str(counter)]["Direction"] = None
+				counter += 1			
 
 
 		'''if level_data[currentlevel][str(willy_position[0])][str(willy_position[1])].startswith("LADDER") and ladder_direction==None:
@@ -615,39 +611,48 @@ def game(screen, currentlevel, level, wasd=False):
 		if willy_yvelocity>0:
 			# Convert tuple to list
 			willy_list = list(willy_position)
-			test_list=willy_list.copy()
+
+			# Create a new list with the same values as willy_list
+			test_list = [elem for elem in willy_list]
+
 			# Subtract 1 from the first element of the list
-			if test_list[0]>0:
+			if test_list[0] > 0:
 				test_list[0] -= 1
 
 			if not level_data[currentlevel][str(test_list[0])][str(test_list[1])].startswith("PIPE"):
-				willy_list=test_list.copy()
-				
+				willy_list = [elem for elem in test_list]
+
+			# Delete the test_list variable
 			del test_list
+
 			# Convert list back to tuple
 			willy_position = tuple(willy_list)
-			willy_yvelocity-=1
+			willy_yvelocity -= 1
 
 		if willy_yvelocity<0:
 			# Convert tuple to list
 			willy_list = list(willy_position)
-			test_list=willy_list.copy()
+
+			# Create a new list with the same values as willy_list
+			test_list = [elem for elem in willy_list]
 
 			# Subtract 1 from the first element of the list
-			if test_list[0]<(MAX_HEIGHT-1):
+			if test_list[0] < (MAX_HEIGHT - 1):
 				test_list[0] += 1
-				
-			if not level_data[currentlevel][str(test_list[0])][str(test_list[1])].startswith("PIPE"):
-				willy_list=test_list.copy()
 
+			if not level_data[currentlevel][str(test_list[0])][str(test_list[1])].startswith("PIPE"):
+				willy_list = test_list
+
+			# Delete the test_list variable
 			del test_list
+
 			# Convert list back to tuple
 			willy_position = tuple(willy_list)
 
 		if willy_xvelocity<0:
 			# Convert tuple to list
 			willy_list = list(willy_position)
-			test_list=willy_list.copy()
+			test_list = [elem for elem in willy_list]
 
 
 			# Subtract 1 from the first element of the list
@@ -655,7 +660,7 @@ def game(screen, currentlevel, level, wasd=False):
 				test_list[1] += 1
 
 			if not level_data[currentlevel][str(test_list[0])][str(test_list[1])].startswith("PIPE"):
-				willy_list=test_list.copy()
+				willy_list=test_list
 			del test_list
 	
 			# Convert list back to tuple
@@ -664,17 +669,18 @@ def game(screen, currentlevel, level, wasd=False):
 		if willy_xvelocity>0:
 			# Convert tuple to list
 			willy_list = list(willy_position)
-			test_list=willy_list.copy()
+			test_list = [elem for elem in willy_list]
 
 			# Subtract 1 from the first element of the list
 			if test_list[1]>0:
 				test_list[1] -= 1
 
 			if not level_data[currentlevel][str(test_list[0])][str(test_list[1])].startswith("PIPE"):
-				willy_list=test_list.copy()
+				willy_list=test_list
 
 
-			del test_list					
+			del test_list
+								
 			# Convert list back to tuple
 			willy_position = tuple(willy_list)
 
@@ -683,13 +689,13 @@ def game(screen, currentlevel, level, wasd=False):
 			#print("Going up Ladder")
 			# Convert tuple to list
 			willy_list = list(willy_position)
-			test_list=willy_list.copy()
+			test_list=[elem for elem in willy_list]
 			# Subtract 1 from the first element of the list
 			if test_list[0]>0:
 				test_list[0] -= 1
 
 			if level_data[currentlevel][str(test_list[0])][str(test_list[1])].startswith("LADDER"):
-				willy_list=test_list.copy()
+				willy_list=test_list
 				
 			del test_list
 
@@ -705,13 +711,13 @@ def game(screen, currentlevel, level, wasd=False):
 			# Convert tuple to list
 			willy_xvelocity=-1
 			willy_list = list(willy_position)
-			test_list=willy_list.copy()
+			test_list=[elem for elem in willy_list]
 			# Subtract 1 from the first element of the list
 			if test_list[0]<(MAX_HEIGHT-1):
 				test_list[0] += 1
 
 			if level_data[currentlevel][str(test_list[0])][str(test_list[1])].startswith("LADDER") or level_data[currentlevel][str(test_list[0])][str(test_list[1])].startswith("EMPTY"):
-				willy_list=test_list.copy()
+				willy_list=test_list
 			del test_list
 
 				
