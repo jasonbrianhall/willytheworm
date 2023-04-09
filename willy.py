@@ -378,10 +378,10 @@ def intro(screen):
 		["By Jason Hall"], 
 		["(original version by Alan Farmer 1985)"],
 		[""],
-		["This code is Free Open Source Software (FOSS)"],
+		["This code is Free Open Source Software (FOSS)"],s
 		["Please feel free to do with it whatever you wish."],
 		[""], 
-		["If you do make changes though such as new levels"],
+		["If you do make changes though such as new levels,"],
 		["please share them with the world."],
 		[""], 
 		[""],
