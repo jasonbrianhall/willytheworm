@@ -216,7 +216,14 @@ def game_score(screen, score):
 					pygame.quit()
 					return
 				elif event.type == pygame.KEYDOWN:
-					exittheloop=True
+					if event.key == pygame.K_F11:
+						pygame.display.toggle_fullscreen()
+						screen.fill((0, 0, 255))
+					elif event.key == pygame.K_ESCAPE:
+						print("Goodbye.  Thank you for playing Willy the Worm!!!")
+						sys.exit(0)
+					else:
+						exittheloop=True
 
 
 	for key in hiscores:
@@ -466,6 +473,13 @@ def intro(screen):
 			if event.type == pygame.KEYDOWN:
 				if event.key == pygame.K_RETURN:
 					exit=True
+				if event.key == pygame.K_F11:
+					pygame.display.toggle_fullscreen()
+					screen.fill((0, 0, 255))
+
+				if event.key == pygame.K_ESCAPE:
+					print("Goodbye.  Thank you for playing Willy the Worm!!!")
+					sys.exit(0)
 
 
 def play_audio(filename):
