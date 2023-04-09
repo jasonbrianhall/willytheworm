@@ -113,7 +113,6 @@ def game_score(screen, score):
 	for key in hiscores:
 		hiscores[key] = sorted(hiscores[key], key=lambda x: x[1], reverse=True)[:10]
 
-
 	if score > hiscores["hiscoreT"][9][1]:
 		#messagepointer+=incrementer
 
@@ -140,6 +139,8 @@ def game_score(screen, score):
 			name_prompt = "Enter your name:"
 			message_input_text = font.render("Enter your name >> " + name_input, False, (255, 255, 255))
 			screen.blit(message_input_text, (0, messagepointer))
+			pygame.display.flip()
+			pygame.display.update()
 
 
 			for event in pygame.event.get():
