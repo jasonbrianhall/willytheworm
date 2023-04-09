@@ -17,6 +17,120 @@ SCREEN_HEIGHT = 26
 MAX_HEIGHT = 25
 MAX_LEVELS = 32
 
+def intro():
+
+	pygame.init()
+	screen = pygame.display.set_mode((SCREEN_WIDTH * CHAR_WIDTH * SCALER, SCREEN_HEIGHT * CHAR_HEIGHT * SCALER), pygame.FULLSCREEN)
+	screen.fill((0, 0, 255))
+	exit=False
+	willyfont=loadFont()
+	while exit==False:
+		datasize=0
+		screenwidth=SCREEN_WIDTH * CHAR_WIDTH * SCALER
+		font_size = 32
+		fontdata = pygame.font.SysFont("Courier", font_size)
+		# Render the text as a surface
+
+		textdata=[["WILLY_LEFT", " Willy the Worm ", "WILLY_RIGHT"],
+		[""],
+		["By Jason Hall"], 
+		["(original version by Alan Farmer 1985)"],
+		[""],
+		["This code is Free Open Source Software (FOSS)"],
+		["Please feel free to do with it whatever you wish."],
+		[""], 
+		["If you do make changes though such as new levels,"],
+		["please share them with the world."],
+		[""], 
+		[""],
+		["Welcome to the Willy the Worm ", "WILLY_RIGHT", "WILLY_RIGHT", " Editor."],
+		["Left click places items, ", "PRESENT", " right click removes items"],
+		["Middle scroll button ", "LADDER", " scrolls between items."],
+		["F11 toggles full screen ", "BELL"],
+		["The 'S' Key saves the Level"],
+		["The 'L' Key Changes Level"],
+		["The 'Q' Key or ESC exits the editor (without saving)"],
+		["You can also specify the level at the command line you wish to edit"],
+		[""],
+		["The LAST BallPit ", "BALLPIT", " placed is where the balls come out."],
+		[""],
+		["Good luck and have fun building levels!!!"],
+		[""],
+		["Press Enter to Continue"]]
+
+		screenwidth=SCREEN_WIDTH * CHAR_WIDTH * SCALER
+		font_size = 8*SCALER
+		fontdata = pygame.font.SysFont("Courier", font_size)
+		# Render the text as a surface
+		counter=0
+		namer=0
+		for message in textdata:
+			max_width=0
+			currentpos=0
+			for message2 in message:
+				if not willyfont.get(message2)==None:
+					max_width+=8*SCALER
+				else:
+					text_surface = fontdata.render(message2, False, (255, 255, 255))
+					text_rect = text_surface.get_rect()
+					max_width+=text_rect.width
+
+			for message2 in message:
+				if not willyfont.get(message2)==None:
+					text_surface = willyfont[message2]
+					#text_rect = text_surface.get_rect()
+					if currentpos==0:
+						currentpos = (screenwidth - max_width) // 2
+					screen.blit(text_surface, (currentpos, font_size*counter+2))
+					currentpos+=8*SCALER
+				else:
+					text_surface = fontdata.render(message2, False, (255, 255, 255))
+					text_rect = text_surface.get_rect()
+					if currentpos==0:
+						currentpos = (screenwidth - max_width) // 2
+					screen.blit(text_surface, (currentpos, font_size*counter+2))
+					currentpos+=text_rect.width
+
+			counter+=1
+
+
+
+			'''
+			text_surface = fontdata.render(text.replace("\n", ""), True, (255, 255, 255))
+			text_rect = text_surface.get_rect()
+			text_x = (screenwidth - text_rect.width) // 2
+			text_y = (counter*font_size)+2
+			screen.blit(text_surface, (text_x, text_y))
+			namer+=1
+			if "\n" in text:
+				counter+=1'''
+			
+
+
+
+		#col = 0
+		#row = 0
+		#screen.blit(char_img, (int(col) * CHAR_WIDTH * SCALER, int(row) * CHAR_HEIGHT * SCALER))
+		#screen.blit(char_img, (int(col) * CHAR_WIDTH * SCALER, int(row) * CHAR_HEIGHT * SCALER))
+
+		# Calculate the number of characters that fit horizontally and vertically in the window
+
+
+		pygame.display.flip()
+		for event in pygame.event.get():
+			# Keyboard Events
+			if event.type == pygame.KEYDOWN:
+				if event.key == pygame.K_RETURN:
+					exit=True
+				if event.key == pygame.K_F11:
+					pygame.display.toggle_fullscreen()
+					screen.fill((0, 0, 255))
+
+				if event.key == pygame.K_ESCAPE:
+					print("Goodbye.  Thank you for playing Willy the Worm!!!")
+					sys.exit(0)
+
+
 def loadFont():
 
 	namedpart={}
@@ -124,6 +238,10 @@ def loadFont():
 	return char_array
 
 def main():
+	intro()
+	game()
+
+def game():
 
 	if len(sys.argv) != 2:
 		level=1
