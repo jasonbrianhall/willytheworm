@@ -365,57 +365,99 @@ def intro(screen):
 
 	screen.fill((0, 0, 255))
 	exit=False
+	willyfont=loadFont()
 	while exit==False:
 		datasize=0
 		screenwidth=SCREEN_WIDTH * CHAR_WIDTH * SCALER
-		font_size = 8*SCALER
-		fontdata = pygame.font.SysFont(None, font_size)
+		font_size = 32
+		fontdata = pygame.font.SysFont("Courier", font_size)
 		# Render the text as a surface
-		text = "Willy the Worm"
-		#text = "01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789"
-		text_surface = fontdata.render(text, False, (255, 255, 255))
-		text_rect = text_surface.get_rect()
-		text_x = (screenwidth - text_rect.width) // 2
-		#text_y = (SCREEN_HEIGHT * CHAR_HEIGHT * SCALER) - font_size
-		text_y = 0
-		screen.blit(text_surface, (text_x, text_y))
 
-		text = "By Jason Hall (original version by Alan Farmer 1985)"
-		spaces=int((datasize-len(text))/2)
-		text_surface = fontdata.render(text, False, (255, 255, 255))
-		text_rect = text_surface.get_rect()
-		text_x = (screenwidth - text_rect.width) // 2
-		#text_y = (SCREEN_HEIGHT * CHAR_HEIGHT * SCALER) - font_size
-		text_y = font_size+2
-		screen.blit(text_surface, (text_x, text_y))
+		textdata=[["Willy the Worm"],
+		[""],
+		["By Jason Hall"], 
+		["(original version by Alan Farmer 1985)"],
+		[""],
+		["This code is Free Open Source Software (FOSS)"],
+		["Please feel free to do with it whatever you wish."],
+		[""], 
+		["If you do make changes though such as new levels"],
+		["please share them with the world."],
+		[""], 
+		[""],
+		["Meet Willy the Worm ", "WILLY_RIGHT", ". Willy is a fun-"],
+		["loving invertebrate who likes to climb"],
+		["ladders ", "LADDER", " bounce on springs ", "UPSPRING", " ", "SIDESPRING"],
+		["and find his presents ", "PRESENT", ".  But more"],
+		["than anything, Willy loves to ring,"],
+		["bells! ", "BELL"],
+		[""],
+		["You can press the arrow keys ↤ ↥ ↦ ↧"],
+		["to make Willy run and climb, or the"],
+		["space bar to make him jump. Anything"],
+		["else will make Willy stop and wait"],
+		[""],
+		["Good luck, and don't let Willy step on"],
+		["a tack! ", "TACK"],
+		[""],
+		["Press Enter to Continue"]]
 
-		text = "This code is Free Open Source Software (FOSS); please feel free to do with it whatever you wish."
-		spaces=int((datasize-len(text))/2)
-		text_surface = fontdata.render(text, False, (255, 255, 255))
-		text_rect = text_surface.get_rect()
-		text_x = (screenwidth - text_rect.width) // 2
-		#text_y = (SCREEN_HEIGHT * CHAR_HEIGHT * SCALER) - font_size
-		text_y = 3*font_size+2
-		screen.blit(text_surface, (text_x, text_y))
+		screenwidth=SCREEN_WIDTH * CHAR_WIDTH * SCALER
+		font_size = 8*SCALER
+		fontdata = pygame.font.SysFont("Courier", font_size)
+		# Render the text as a surface
+		counter=0
+		namer=0
+		for message in textdata:
+			max_width=0
+			currentpos=0
+			for message2 in message:
+				if not willyfont.get(message2)==None:
+					max_width+=8*SCALER
+				else:
+					text_surface = fontdata.render(message2, False, (255, 255, 255))
+					text_rect = text_surface.get_rect()
+					max_width+=text_rect.width
 
-		text = "If you do make changes though such as new levels; please share them with the world."
-		spaces=int((datasize-len(text))/2)
-		text_surface = fontdata.render(text, False, (255, 255, 255))
-		text_rect = text_surface.get_rect()
-		text_x = (screenwidth - text_rect.width) // 2
-		#text_y = (SCREEN_HEIGHT * CHAR_HEIGHT * SCALER) - font_size
-		text_y = 4*font_size+2
-		screen.blit(text_surface, (text_x, text_y))
+			for message2 in message:
+				if not willyfont.get(message2)==None:
+					text_surface = willyfont[message2]
+					#text_rect = text_surface.get_rect()
+					if currentpos==0:
+						currentpos = (screenwidth - max_width) // 2
+					screen.blit(text_surface, (currentpos, font_size*counter+2))
+					currentpos+=8*SCALER
+				else:
+					text_surface = fontdata.render(message2, False, (255, 255, 255))
+					text_rect = text_surface.get_rect()
+					if currentpos==0:
+						currentpos = (screenwidth - max_width) // 2
+					screen.blit(text_surface, (currentpos, font_size*counter+2))
+					currentpos+=text_rect.width
 
-		text = "Press Enter to Continue"
-		spaces=int((datasize-len(text))/2)
-		text_surface = fontdata.render(text, False, (255, 255, 255))
-		text_rect = text_surface.get_rect()
-		text_x = (screenwidth - text_rect.width) // 2
-		#text_y = (SCREEN_HEIGHT * CHAR_HEIGHT * SCALER) - font_size
-		text_y = 6*font_size+2
-		screen.blit(text_surface, (text_x, text_y))
+			counter+=1
 
+
+
+			'''
+			text_surface = fontdata.render(text.replace("\n", ""), True, (255, 255, 255))
+			text_rect = text_surface.get_rect()
+			text_x = (screenwidth - text_rect.width) // 2
+			text_y = (counter*font_size)+2
+			screen.blit(text_surface, (text_x, text_y))
+			namer+=1
+			if "\n" in text:
+				counter+=1'''
+			
+
+
+
+		#col = 0
+		#row = 0
+		#screen.blit(char_img, (int(col) * CHAR_WIDTH * SCALER, int(row) * CHAR_HEIGHT * SCALER))
+		#screen.blit(char_img, (int(col) * CHAR_WIDTH * SCALER, int(row) * CHAR_HEIGHT * SCALER))
+
+		# Calculate the number of characters that fit horizontally and vertically in the window
 
 
 		pygame.display.flip()
@@ -598,8 +640,8 @@ def game(screen, currentlevel, level, wasd=False):
 		sys.exit()
 
 
-	iterator = iter(font.items())
-	currentitem=next(iterator)
+	#iterator = iter(font.items())
+	#currentitem=next(iterator)
 
 	# Game loop
 	running = True
