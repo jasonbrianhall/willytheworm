@@ -229,7 +229,7 @@ def main():
 					with open('levels.json', 'w') as writefile:
 						# Write the data to the file using the json.dump() function
 						json.dump(new_dict, writefile, indent=4)
-				elif event.key == pygame.K_q or pygame.K_ESCAPE:
+				elif event.key == pygame.K_q or event.key==pygame.K_ESCAPE:
 					running=False
 			# Right Button Deletes Object
 			elif event.type == pygame.MOUSEBUTTONDOWN  and event.button==3:
