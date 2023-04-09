@@ -50,6 +50,10 @@ def game_score(screen, score):
 		# Compare the modification date with today's date
 		if not mod_datetime.date() == today:
 			hiscores["hiscoreT"]=[]
+			for x in hiscores:
+				for y in range(10):
+					hiscores[x].append(("nobody", 0))
+
 			
 	except:
 		hiscores={}
@@ -108,6 +112,7 @@ def game_score(screen, score):
 	
 	for key in hiscores:
 		hiscores[key] = sorted(hiscores[key], key=lambda x: x[1], reverse=True)[:10]
+
 
 	if score > hiscores["hiscoreT"][9][1]:
 		#messagepointer+=incrementer
