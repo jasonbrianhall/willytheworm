@@ -590,8 +590,20 @@ def loadFont():
 	return char_array
 
 def main():
+	global SCALER
 	pygame.init()
-	screen = pygame.display.set_mode((SCREEN_WIDTH * CHAR_WIDTH * SCALER, SCREEN_HEIGHT * CHAR_HEIGHT * SCALER), pygame.FULLSCREEN)
+	display_info = pygame.display.Info()
+	screen_width = display_info.current_w
+	screen_height = display_info.current_h
+	# Keep current resolution but use the smallest scaler
+	SCALER1=int(screen_width/(SCREEN_WIDTH*CHAR_WIDTH))
+	SCALER2=int(screen_height/(SCREEN_HEIGHT*CHAR_HEIGHT))
+	if SCALER1<=SCALER2:
+		SCALER=SCALER1
+	else:
+		SCALER=SCALER2
+	#screen = pygame.display.set_mode((SCREEN_WIDTH * CHAR_WIDTH * SCALER, SCREEN_HEIGHT * CHAR_HEIGHT * SCALER), pygame.FULLSCREEN)
+	screen = pygame.display.set_mode((screen_width, screen_height), pygame.FULLSCREEN)
 	wasd=False
 	level=1
 	i = 1
