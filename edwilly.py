@@ -260,6 +260,9 @@ def game():
 	pygame.init()
 	screen = pygame.display.set_mode((SCREEN_WIDTH * CHAR_WIDTH * SCALER, SCREEN_HEIGHT * CHAR_HEIGHT * SCALER), pygame.FULLSCREEN)
 
+	font_size=32
+	fontdata = pygame.font.SysFont("Courier", font_size)
+
 	# Load the font
 	font = loadFont()
 
@@ -467,6 +470,15 @@ def game():
 				except:
 					pass
 				#print(char_img)	
+
+		# Render the text as a surface
+		text = "Level: " + str(level)
+		text_surface = fontdata.render(text, True, (255, 255, 255))
+
+		text_x = 6*25*SCALER
+		text_y = (SCREEN_HEIGHT * CHAR_HEIGHT * SCALER) - font_size
+		screen.blit(text_surface, (text_x, text_y))
+
 
 		# Update the screen
 		pygame.display.flip()
