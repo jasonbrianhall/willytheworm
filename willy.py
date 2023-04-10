@@ -639,7 +639,7 @@ def game(screen, currentlevel, level, wasd=False):
 			level_data = json.load(file)
 	except:
 		traceback.print_exc()
-		print("Can't load levels.json; starting over")
+		print("Can't load levels.json; exiting")
 		sys.exit()
 
 	# Game loop
