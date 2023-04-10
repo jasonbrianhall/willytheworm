@@ -260,8 +260,8 @@ def game_score(screen, score):
 
 	# Render the scores in the table
 	for x in range(10):
-		formatted_number = '{:2d}'.format(x)
-		formatted_score = '{:8d}'.format(hiscores["hiscoreP"][x][1])
+		formatted_number = '{:2d}'.format(x+1)
+		formatted_score = '{:5d}'.format(hiscores["hiscoreP"][x][1])
 		username=hiscores["hiscoreP"][x][0]
 		message_input_text = font.render(formatted_number + "     " + formatted_score + "     " + username, False, (255, 255, 0))
 		
@@ -290,8 +290,8 @@ def game_score(screen, score):
 
 	# Render the scores in the table
 	for x in range(10):
-		formatted_number = '{:2d}'.format(x)
-		formatted_score = '{:8d}'.format(hiscores["hiscoreT"][x][1])
+		formatted_number = '{:2d}'.format(x+1)
+		formatted_score = '{:5d}'.format(hiscores["hiscoreT"][x][1])
 		username=hiscores["hiscoreT"][x][0]
 		message_input_text = font.render(formatted_number + "     " + formatted_score + "     " + username, False, (0, 255, 255))
 		
