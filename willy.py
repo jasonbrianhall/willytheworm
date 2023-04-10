@@ -452,25 +452,6 @@ def intro(screen):
 			counter+=1
 
 
-
-			'''
-			text_surface = fontdata.render(text.replace("\n", ""), True, (255, 255, 255))
-			text_rect = text_surface.get_rect()
-			text_x = (screenwidth - text_rect.width) // 2
-			text_y = (counter*font_size)+2
-			screen.blit(text_surface, (text_x, text_y))
-			namer+=1
-			if "\n" in text:
-				counter+=1'''
-			
-
-
-
-		#col = 0
-		#row = 0
-		#screen.blit(char_img, (int(col) * CHAR_WIDTH * SCALER, int(row) * CHAR_HEIGHT * SCALER))
-		#screen.blit(char_img, (int(col) * CHAR_WIDTH * SCALER, int(row) * CHAR_HEIGHT * SCALER))
-
 		# Calculate the number of characters that fit horizontally and vertically in the window
 
 		pygame.display.flip()
@@ -489,9 +470,6 @@ def intro(screen):
 
 
 def play_audio(mixerdict, filename):
-	'''pygame.mixer.init()
-	pygame.mixer.music.load(filename)
-	pygame.mixer.music.play()'''
 	if mixerdict==None:
 		mixerdict={}
 	if mixerdict.get(filename)==None:
@@ -644,16 +622,10 @@ def main():
 def game(screen, currentlevel, level, wasd=False):
 
 	mixerdict={}
-	# Initialize Pygame
-	# Load the font
+
+	# Load Willy Font
 	font = loadFont()
 
-
-	# Create a 2D array to store the level data
-	#level_data = [[None] * SCREEN_WIDTH for i in range(SCREEN_HEIGHT)]
-	# Create a 2D array to store the level data
-	#level_data = {}
-	#level_data[currentlevel]={}
 
 
 	try:
@@ -664,10 +636,6 @@ def game(screen, currentlevel, level, wasd=False):
 		traceback.print_exc()
 		print("Can't load levels.json; starting over")
 		sys.exit()
-
-
-	#iterator = iter(font.items())
-	#currentitem=next(iterator)
 
 	# Game loop
 	running = True
@@ -1142,17 +1110,6 @@ def game(screen, currentlevel, level, wasd=False):
 					else:
 						balls[ball]["Direction"]="LEFT"
 					
-					'''	if (col+1)<MAX_WIDTH and not level_data[currentlevel][str(row)][str(col+1)].startswith("PIPE"):
-							balls[ball]["Location"][1]+=1
-							balls[ball]["Direction"]="RIGHT"
-						else:
-							balls[ball]["Direction"]="LEFT"
-					else:
-						if (col-1)>=0 and not level_data[currentlevel][str(row)][str(col-1)].startswith("PIPE"):
-							balls[ball]["Location"][1]-=1
-							balls[ball]["Direction"]="LEFT"
-						else:
-							balls[ball]["Direction"]="RIGHT"'''
 				if balls[ball]["Direction"]=="RIGHT":
 					if (balls[ball]["Location"][1]+1)<(MAX_WIDTH) and (col+1)<MAX_WIDTH and not level_data[currentlevel][str(row)][str(col+1)].startswith("PIPE"):
 						balls[ball]["Location"][1]+=1
