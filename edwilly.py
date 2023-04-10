@@ -316,7 +316,7 @@ def game():
 					pygame.display.toggle_fullscreen()
 				elif event.key == pygame.K_l:
 					level+=1
-					level=level%MAX_LEVELS
+					level=level%(MAX_LEVELS+1)
 					if level==0:
 						level=1
 					currentlevel="level" + str(level)
