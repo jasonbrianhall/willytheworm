@@ -488,10 +488,16 @@ def intro(screen):
 					sys.exit(0)
 
 
-def play_audio(filename):
-	pygame.mixer.init()
+def play_audio(mixerdict, filename):
+	'''pygame.mixer.init()
 	pygame.mixer.music.load(filename)
-	pygame.mixer.music.play()
+	pygame.mixer.music.play()'''
+	if mixerdict==None:
+		mixerdict={}
+	if mixerdict.get(filename)==None:
+		mixerdict[filename] = pygame.mixer.Sound(filename)
+	mixerdict[filename].play()
+	
 	
 def loadFont():
 
@@ -637,7 +643,7 @@ def main():
 
 def game(screen, currentlevel, level, wasd=False):
 
-
+	mixerdict={}
 	# Initialize Pygame
 	# Load the font
 	font = loadFont()
@@ -756,7 +762,7 @@ def game(screen, currentlevel, level, wasd=False):
 					if (willy_yvelocity==0 and level_data[currentlevel][str(y + 1)][str(x)].startswith("PIPE")) or y==(MAX_HEIGHT-1):
 						willy_yvelocity=4
 						#print("Spacebar Pressed")
-						t = threading.Thread(target=play_audio, args=("audio/jump.mp3",))
+						t = threading.Thread(target=play_audio, args=(mixerdict, "audio/jump.mp3",))
 						t.start()
 				elif (event.key == pygame.K_LEFT and wasd==False) or (event.key == pygame.K_a and wasd==True):
 					willy_xvelocity=1
@@ -819,7 +825,7 @@ def game(screen, currentlevel, level, wasd=False):
 					level_data = json.load(file)
 
 
-				t = threading.Thread(target=play_audio, args=("audio/tack.mp3",))
+				t = threading.Thread(target=play_audio, args=(mixerdict, "audio/tack.mp3",))
 				t.start()
 				numberoflives-=1
 				color1 = (255, 255, 255)
@@ -850,7 +856,7 @@ def game(screen, currentlevel, level, wasd=False):
 				with open('levels.json', 'r') as file:
 					# Load the data from the file using the json.load() function
 					level_data = json.load(file)
-				t = threading.Thread(target=play_audio, args=("audio/bell.mp3",))
+				t = threading.Thread(target=play_audio, args=(mixerdict, "audio/bell.mp3",))
 				t.start()
 				level+=1
 				score+=bonus
@@ -926,12 +932,12 @@ def game(screen, currentlevel, level, wasd=False):
 
 		if level_data[currentlevel][str(willy_position[0])][str(willy_position[1])].startswith("UPSPRING"):
 			willy_yvelocity=4
-			t = threading.Thread(target=play_audio, args=("audio/jump.mp3",))
+			t = threading.Thread(target=play_audio, args=(mixerdict, "audio/jump.mp3",))
 			t.start()
 
 		if level_data[currentlevel][str(willy_position[0])][str(willy_position[1])].startswith("SIDESPRING"):
 			willy_xvelocity*=-1
-			t = threading.Thread(target=play_audio, args=("audio/jump.mp3",))
+			t = threading.Thread(target=play_audio, args=(mixerdict, "audio/jump.mp3",))
 			t.start()
 			if willy_direction=="LEFT":
 				willy_direction="RIGHT"
@@ -941,7 +947,7 @@ def game(screen, currentlevel, level, wasd=False):
 
 		if level_data[currentlevel][str(willy_position[0])][str(willy_position[1])].startswith("PRESENT"):
 			score+=100
-			t = threading.Thread(target=play_audio, args=("audio/present.mp3",))
+			t = threading.Thread(target=play_audio, args=(mixerdict, "audio/present.mp3",))
 			t.start()
 			level_data[currentlevel][str(willy_position[0])][str(willy_position[1])]="EMPTY"
 
@@ -1056,7 +1062,7 @@ def game(screen, currentlevel, level, wasd=False):
 			willy_position = tuple(willy_list)
 			willy_xvelocity=0
 			willy_yvelocity=0
-			t = threading.Thread(target=play_audio, args=("audio/ladder.mp3",))
+			t = threading.Thread(target=play_audio, args=(mixerdict, "audio/ladder.mp3",))
 			t.start()
 
 		willy_list = list(willy_position)
@@ -1078,7 +1084,7 @@ def game(screen, currentlevel, level, wasd=False):
 			willy_position = tuple(willy_list)
 			willy_xvelocity=0
 			willy_yvelocity=0
-			t = threading.Thread(target=play_audio, args=("audio/ladder.mp3",))
+			t = threading.Thread(target=play_audio, args=(mixerdict, "audio/ladder.mp3",))
 			t.start()
 
 		for ball in balls:
@@ -1173,7 +1179,7 @@ def game(screen, currentlevel, level, wasd=False):
 				if str(y + i) in level_data[currentlevel] and str(x) in level_data[currentlevel][str(y + i)] and (y+i)==row and x==col and willy_yvelocity>0:
 					# Add 20 points to Willy's score here
 					score+=20
-					t = threading.Thread(target=play_audio, args=("audio/boop.mp3",))
+					t = threading.Thread(target=play_audio, args=(mixerdict, "audio/boop.mp3",))
 					t.start()
 					break
 		
