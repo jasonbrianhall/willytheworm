@@ -607,6 +607,7 @@ def main():
 	wasd=False
 	level=1
 	i = 1
+	flash=True
 	while i < len(sys.argv):
 		arg = sys.argv[i]
 		if arg == "-l" and i + 1 < len(sys.argv):
@@ -618,6 +619,9 @@ def main():
 			i += 1
 		elif arg == "-w":
 			wasd = True
+		elif arg == "-f":
+			flash = False
+
 		else:
 			print("Unknown argument:", arg)
 			sys.exit(1)
@@ -631,12 +635,12 @@ def main():
 		else:
 			currentlevel="level1"
 
-		score=game(screen, currentlevel, level, wasd)
+		score=game(screen, currentlevel, level, wasd, flash)
 		game_score(screen, score)
 		level=1
 
 
-def game(screen, currentlevel, level, wasd=False):
+def game(screen, currentlevel, level, wasd=False, flash=True):
 
 	mixerdict={}
 
@@ -788,11 +792,9 @@ def game(screen, currentlevel, level, wasd=False):
 				#elif event.key == pygame.K_UP or event.key == pygame.K_w or (event.type == pygame.MOUSEBUTTONDOWN and event.button==3):
 				elif (event.key == pygame.K_UP and wasd==False) or (event.key == pygame.K_w and wasd==True):
 					#print("Up Key Pressed")
-					print("UP")
 					ladder_direction="UP"
 				elif (event.key == pygame.K_DOWN and wasd==False) or (event.key == pygame.K_s and wasd==True):
 					#print("Down Key Pressed")
-					print("DOWN")
 					ladder_direction="DOWN"
 				else:
 					#print("Any Key Pressed")
@@ -847,20 +849,21 @@ def game(screen, currentlevel, level, wasd=False):
 
 				# Calculate the number of times to switch between colors
 				num_flashes = int(duration * 60) # assuming a 60 FPS refresh rate
+				if flash==True:
 
-				# Start the flashing
-				for i in range(num_flashes):
-					# Alternate between the two colors
-					if i % 2 == 0:
-						screen.fill(color1)
-					else:
-						screen.fill(color2)
-					
-					# Update the display
-					pygame.display.update()
-					
-					# Wait for a short amount of time before the next frame
-					time.sleep(1/60)
+					# Start the flashing
+					for i in range(num_flashes):
+						# Alternate between the two colors
+						if i % 2 == 0:
+							screen.fill(color1)
+						else:
+							screen.fill(color2)
+						
+						# Update the display
+						pygame.display.update()
+						
+						# Wait for a short amount of time before the next frame
+						time.sleep(1/60)
 
 
 			else:
