@@ -474,9 +474,10 @@ def play_audio(mixerdict, filename):
 	if mixerdict==None:
 		mixerdict={}
 	if mixerdict.get(filename)==None:
-		#Worse case scenario,the same audio file gets loaded twice.
+		#Worse case scenario,the same audio file gets loaded twice (which is why we check a second time to see if it is still none).
 		lock.acquire()
-		mixerdict[filename] = pygame.mixer.Sound(filename)
+		if mixerdict.get(filename)==None:
+			mixerdict[filename] = pygame.mixer.Sound(filename)
 		lock.release()
 	mixerdict[filename].play()
 	
