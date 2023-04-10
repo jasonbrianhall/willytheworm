@@ -47,7 +47,7 @@ def game_score(screen, score):
 		# Get today's date
 		today = date.today()
 
-		# Compare the modification date with today's date
+		# Compare the modification date with today's date (and if it wasn't modified today, it's a new day)
 		if not mod_datetime.date() == today:
 			hiscores["hiscoreT"]=[]
 			for x in hiscores:
@@ -242,7 +242,7 @@ def game_score(screen, score):
 
 
 	# Render the "All-time Nightcrawlers" header
-	header_text = font.render("All-time Nightcrawlers", False, (255, 255, 0))
+	header_text = font.render("All-time Nightcrawlers", True, (255, 255, 0))
 	header_rect = header_text.get_rect(center=(screen.get_width() // 2, messagepointer))
 	screen.blit(header_text, header_rect)
 	messagepointer+=incrementer
@@ -270,8 +270,8 @@ def game_score(screen, score):
 	messagepointer+=2*incrementer
 
 
-	# Render the "All-time Nightcrawlers" header
-	header_text = font.render("Today's Best Pinworms", False, (0, 255, 255))
+	# Render the "Today's Best Pinworms"
+	header_text = font.render("Today's Best Pinworms", True, (0, 255, 255))
 	header_rect = header_text.get_rect(center=(screen.get_width() // 2, messagepointer))
 	screen.blit(header_text, header_rect)
 
