@@ -11,5 +11,6 @@ Here are a list of known issues that may or may not get fixed:
 9)  Daily scores are based on when the file got last accessed so if someone wanted to cheat and get yesterdays scores today, they could run the command "touch willy.scr" before they played the game (but who really cares)
 10)  I had a double free issue with the sound but that's been fixed (I was loading each sound everytime I used it, now I load them into a dictionary on first access and use locks to keep two threads from loading the same sound)
 11)  Level data gets reloaded when the player dies.  Not a big deal but if someone edited the level while they played the game and they died, they could get whole new levels.
-
+12)  Fixed the resolution bug that killed multiple screens.
+13)  I'm interested in implementing mouse controls
 
