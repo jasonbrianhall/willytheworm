@@ -643,6 +643,11 @@ def game(screen, currentlevel, level, wasd=False):
 	# Load Willy Font
 	font = loadFont()
 
+	# Hide the mouse cursor
+	pygame.mouse.set_visible(False)
+
+	# Capture the mouse input
+	pygame.event.set_grab(True)
 
 
 	try:
@@ -715,25 +720,44 @@ def game(screen, currentlevel, level, wasd=False):
 		if int(score/NEWLIFEPOINTS)>liveadder:
 			numberoflives+=1
 			liveadder+=1
-		'''
+		
 		# Handle events
 		mouse_movement = pygame.mouse.get_rel()
 		
-		print("Mouse Movement", mouse_movement)
-		if mouse_movement[0] < 0:
+		if mouse_movement[0] < -50:
 			willy_xvelocity=1
 			#print("Left Key Pressed")
 			willy_direction="LEFT"
 			ladder_direction="LEFT"
-		elif mouse_movement[0] > 0:
+		elif mouse_movement[0] > 50:
 			willy_xvelocity=-1
 			#print("RIGHT Key Pressed")
 			willy_direction="RIGHT"
-			ladder_direction="RIGHT"'''		
+			ladder_direction="RIGHT"
+		if mouse_movement[1] < -50:
+			ladder_direction="UP"
+		elif mouse_movement[1] > 50:
+			ladder_direction="DOWN"
+
 		for event in pygame.event.get():
 			# Close Event
 			if event.type == pygame.QUIT:
 				running = False
+			# Mouse Events
+			if event.type == pygame.MOUSEBUTTONDOWN:
+				if not event.button==1:
+					#print("Any Key Pressed")
+					willy_xvelocity=0
+					ladder_direction=None
+
+				else:
+					y,x = willy_position
+					if (willy_yvelocity==0 and level_data[currentlevel][str(y + 1)][str(x)].startswith("PIPE")) or y==(MAX_HEIGHT-1):
+						willy_yvelocity=4
+						#print("Spacebar Pressed")
+						t = threading.Thread(target=play_audio, args=(mixerdict, "audio/jump.mp3",))
+						t.start()
+
 			# Keyboard Events
 			elif event.type == pygame.KEYDOWN:
 				if event.key == pygame.K_ESCAPE:
@@ -741,8 +765,9 @@ def game(screen, currentlevel, level, wasd=False):
 					sys.exit(0)
 				if event.key == pygame.K_F11:
 					pygame.display.toggle_fullscreen()
-				#if event.key == pygame.K_SPACE or (event.type == pygame.MOUSEBUTTONDOWN and event.button==1):
-				if event.key == pygame.K_SPACE:
+					
+				if event.key == pygame.K_SPACE or (event.type == pygame.MOUSEBUTTONDOWN and event.button==1):
+				#if event.key == pygame.K_SPACE:
 					y,x = willy_position
 					if (willy_yvelocity==0 and level_data[currentlevel][str(y + 1)][str(x)].startswith("PIPE")) or y==(MAX_HEIGHT-1):
 						willy_yvelocity=4
@@ -763,10 +788,11 @@ def game(screen, currentlevel, level, wasd=False):
 				#elif event.key == pygame.K_UP or event.key == pygame.K_w or (event.type == pygame.MOUSEBUTTONDOWN and event.button==3):
 				elif (event.key == pygame.K_UP and wasd==False) or (event.key == pygame.K_w and wasd==True):
 					#print("Up Key Pressed")
+					print("UP")
 					ladder_direction="UP"
-				#elif event.key == pygame.K_DOWN or event.key == pygame.K_s or (event.type == pygame.MOUSEBUTTONDOWN and event.button==2):
 				elif (event.key == pygame.K_DOWN and wasd==False) or (event.key == pygame.K_s and wasd==True):
 					#print("Down Key Pressed")
+					print("DOWN")
 					ladder_direction="DOWN"
 				else:
 					#print("Any Key Pressed")
