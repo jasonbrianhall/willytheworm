@@ -421,6 +421,7 @@ def intro(screen):
 		# Render the text as a surface
 		counter=0
 		namer=0
+		screen.fill((0, 0, 255))
 		for message in textdata:
 			max_width=0
 			currentpos=0
@@ -471,7 +472,6 @@ def intro(screen):
 		#screen.blit(char_img, (int(col) * CHAR_WIDTH * SCALER, int(row) * CHAR_HEIGHT * SCALER))
 
 		# Calculate the number of characters that fit horizontally and vertically in the window
-
 
 		pygame.display.flip()
 		for event in pygame.event.get():
