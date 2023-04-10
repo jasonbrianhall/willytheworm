@@ -21,6 +21,7 @@ SCREEN_HEIGHT = 26
 MAX_HEIGHT = 25
 MAX_LEVELS = 32
 NEWLIFEPOINTS = 2000
+lock = threading.Lock()
 
 # The higher the number, the faster the game goes
 fps=10
@@ -473,7 +474,10 @@ def play_audio(mixerdict, filename):
 	if mixerdict==None:
 		mixerdict={}
 	if mixerdict.get(filename)==None:
+		#Worse case scenario,the same audio file gets loaded twice.
+		lock.acquire()
 		mixerdict[filename] = pygame.mixer.Sound(filename)
+		lock.release()
 	mixerdict[filename].play()
 	
 	
