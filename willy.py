@@ -680,12 +680,12 @@ def main():
 		else:
 			currentlevel="level1"
 
-		score=game(screen, currentlevel, level, SCALER, wasd, flash, numberofballs, mousesupport, fps)
+		score=game(screen, currentlevel, level, SCALER, wasd, flash, numberofballs, mousesupport, fps, numberoflives=5)
 		game_score(screen, score)
 		level=1
 
 
-def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofballs=6, mousesupport=False, fps=10):
+def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofballs=6, mousesupport=False, fps=10, numberoflives=5):
 
 	mixerdict={}
 	# Load Willy Font
@@ -732,7 +732,7 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 	ladder_direction = None
 	score=0
 	bonus=1000
-	numberoflives=5
+	#numberoflives=5
 	#numberofballs=6
 	ballkilledwilly=False
 

@@ -47,6 +47,8 @@ def intro(screen):
 		["The 'S' Key saves the Level"],
 		["The 'L' Key Changes Level"],
 		["The 'Q' Key or ESC exits the editor (without saving)"],
+		["The 'P' Key Tests the Level"],
+
 		["You can also specify the level at the command line you wish to edit"],
 		[""],
 		["The LAST BallPit ", "BALLPIT", " placed is where the balls come out."],
@@ -370,7 +372,7 @@ def game(screen, SCALER):
 				elif event.key == pygame.K_q or event.key==pygame.K_ESCAPE:
 					running=False
 				elif event.key == pygame.K_p:
-					willymaingame(screen, currentlevel, level, SCALER)
+					willymaingame(screen, currentlevel, level, SCALER, numberoflives=1)
 					# Stop Hiding the mouse cursor if it's hidden
 					pygame.mouse.set_visible(True)
 
