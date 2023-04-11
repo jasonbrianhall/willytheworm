@@ -373,8 +373,6 @@ def deadscreen(screen, score):
 				if event.key == pygame.K_RETURN:
 					exit=True
 
-
-
 def intro(screen):
 
 	screen.fill((0, 0, 255))
@@ -609,6 +607,8 @@ def main():
 	i = 1
 	flash=True
 	numberofballs=6
+	mousesupport=True
+	helpmessage="./willy.py -l level -b numberofballs -w useWASDkeyboard -f (Disables Flash) -m (Enables Mouse Support) -h (HELP) --help (help)"
 	while i < len(sys.argv):
 		arg = sys.argv[i]
 		if arg == "-l" and i + 1 < len(sys.argv):
@@ -629,8 +629,14 @@ def main():
 			wasd = True
 		elif arg == "-f":
 			flash = False
+		elif arg == "-m":
+			mousesupport = True
+		elif arg == "-h" or arg == "--help":
+			print(helpmessage)
+			sys.exit(1)
 		else:
 			print("Unknown argument:", arg)
+			print(helpmessage)
 			sys.exit(1)
 		i += 1
 		
@@ -646,7 +652,7 @@ def main():
 		level=1
 
 
-def game(screen, currentlevel, level, wasd=False, flash=True, numberofballs=6):
+def game(screen, currentlevel, level, wasd=False, flash=True, numberofballs=6, mousesupport=False):
 
 	mixerdict={}
 	# Load Willy Font
@@ -732,28 +738,28 @@ def game(screen, currentlevel, level, wasd=False, flash=True, numberofballs=6):
 		
 		# Handle events
 		mouse_movement = pygame.mouse.get_rel()
-		
-		if mouse_movement[0] < -50:
-			willy_xvelocity=1
-			#print("Left Key Pressed")
-			willy_direction="LEFT"
-			ladder_direction="LEFT"
-		elif mouse_movement[0] > 50:
-			willy_xvelocity=-1
-			#print("RIGHT Key Pressed")
-			willy_direction="RIGHT"
-			ladder_direction="RIGHT"
-		if mouse_movement[1] < -50:
-			ladder_direction="UP"
-		elif mouse_movement[1] > 50:
-			ladder_direction="DOWN"
+		if mousesupport==True:
+			if mouse_movement[0] < -50:
+				willy_xvelocity=1
+				#print("Left Key Pressed")
+				willy_direction="LEFT"
+				ladder_direction="LEFT"
+			elif mouse_movement[0] > 50:
+				willy_xvelocity=-1
+				#print("RIGHT Key Pressed")
+				willy_direction="RIGHT"
+				ladder_direction="RIGHT"
+			if mouse_movement[1] < -50:
+				ladder_direction="UP"
+			elif mouse_movement[1] > 50:
+				ladder_direction="DOWN"
 
 		for event in pygame.event.get():
 			# Close Event
 			if event.type == pygame.QUIT:
 				running = False
 			# Mouse Events
-			if event.type == pygame.MOUSEBUTTONDOWN:
+			if event.type == pygame.MOUSEBUTTONDOWN and mousesupport==True:
 				if not event.button==1:
 					#print("Any Key Pressed")
 					willy_xvelocity=0
