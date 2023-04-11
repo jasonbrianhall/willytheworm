@@ -608,6 +608,7 @@ def main():
 	level=1
 	i = 1
 	flash=True
+	numberofballs=6
 	while i < len(sys.argv):
 		arg = sys.argv[i]
 		if arg == "-l" and i + 1 < len(sys.argv):
@@ -617,17 +618,22 @@ def main():
 				print("Invalid argument for -l")
 				sys.exit(1)
 			i += 1
+		elif arg == "-b" and i + 1 < len(sys.argv):
+			try:
+				numberofballs = int(sys.argv[i + 1])
+			except ValueError:
+				print("Invalid argument for -b")
+				sys.exit(1)
+			i += 1
 		elif arg == "-w":
 			wasd = True
 		elif arg == "-f":
 			flash = False
-
 		else:
 			print("Unknown argument:", arg)
 			sys.exit(1)
 		i += 1
 		
-
 	intro(screen)
 	while True:
 		if level>0 and level <= MAX_LEVELS:
@@ -635,15 +641,14 @@ def main():
 		else:
 			currentlevel="level1"
 
-		score=game(screen, currentlevel, level, wasd, flash)
+		score=game(screen, currentlevel, level, wasd, flash, numberofballs)
 		game_score(screen, score)
 		level=1
 
 
-def game(screen, currentlevel, level, wasd=False, flash=True):
+def game(screen, currentlevel, level, wasd=False, flash=True, numberofballs=6):
 
 	mixerdict={}
-
 	# Load Willy Font
 	font = loadFont()
 
@@ -688,7 +693,7 @@ def game(screen, currentlevel, level, wasd=False, flash=True):
 	score=0
 	bonus=1000
 	numberoflives=5
-	numberofballs=6
+	#numberofballs=6
 	ballkilledwilly=False
 
 	for y, x_data in level_data[currentlevel].items():
