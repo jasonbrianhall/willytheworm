@@ -19,4 +19,6 @@ Here are a list of known issues that may or may not get fixed:
     a)  Fixed
 13)  I'm interested in implementing mouse controls
     a)  Experimental controls but must be enabled by command line option (mouse sensitivity is set to 50 so you must move 50 pixels before it interprets the data)
+14)  Flashing could cause seizures
+    a)  Added commmand line to disable it
 
