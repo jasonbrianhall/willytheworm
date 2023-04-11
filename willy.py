@@ -691,11 +691,12 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 	# Load Willy Font
 	font = loadFont(SCALER)
 
-	# Hide the mouse cursor
-	pygame.mouse.set_visible(False)
+	if mousesupport==True:
+		# Hide the mouse cursor
+		pygame.mouse.set_visible(False)
 
-	# Capture the mouse input
-	pygame.event.set_grab(True)
+		# Capture the mouse input
+		pygame.event.set_grab(True)
 
 
 	try:

@@ -6,9 +6,10 @@ import json
 import traceback
 import sys
 import copy
+from willy import game as willymaingame
 
 # Constants
-SCALER = 4
+#SCALER = 4
 CHAR_WIDTH = 8
 CHAR_HEIGHT = 8
 SCREEN_WIDTH = 42
@@ -17,29 +18,14 @@ SCREEN_HEIGHT = 26
 MAX_HEIGHT = 25
 MAX_LEVELS = 32
 
-def intro():
+def intro(screen):
 
-	pygame.init()
-	display_info = pygame.display.Info()
-	screen_width = display_info.current_w
-	screen_height = display_info.current_h
-	# Keep current resolution but use the smallest scaler
-	SCALER1=int(screen_width/(SCREEN_WIDTH*CHAR_WIDTH))
-	SCALER2=int(screen_height/(SCREEN_HEIGHT*CHAR_HEIGHT))
-	if SCALER1<=SCALER2:
-		SCALER=SCALER1
-	else:
-		SCALER=SCALER2
-	#screen = pygame.display.set_mode((SCREEN_WIDTH * CHAR_WIDTH * SCALER, SCREEN_HEIGHT * CHAR_HEIGHT * SCALER), pygame.FULLSCREEN)
-	screen = pygame.display.set_mode((screen_width, screen_height), pygame.FULLSCREEN)
 	screen.fill((0, 0, 255))
 	exit=False
-	willyfont=loadFont()
 	while exit==False:
 		datasize=0
-		screenwidth=SCREEN_WIDTH * CHAR_WIDTH * SCALER
-		font_size = 32
-		fontdata = pygame.font.SysFont("Courier", font_size)
+		#font_size = 32
+		#fontdata = pygame.font.SysFont("Courier", font_size)
 		# Render the text as a surface
 
 		textdata=[["WILLY_LEFT", " Willy the Worm ", "WILLY_RIGHT"],
@@ -68,13 +54,40 @@ def intro():
 		["Good luck and have fun building levels!!!"],
 		[""],
 		["Press Enter to Continue"]]
+		#screenwidth=SCREEN_WIDTH * CHAR_WIDTH * SCALER
 
-		screenwidth=SCREEN_WIDTH * CHAR_WIDTH * SCALER
-		font_size = 8*SCALER
+		display_info = pygame.display.Info()
+		screen_width = display_info.current_w
+		screen_height = display_info.current_h
+		font_size=int(screen_height/len(textdata))
+		#font_size=font_size-font_size%8
+		SCALER=int(font_size/8)
+		willyfont=loadFont(SCALER)
+
+		'''display_info = pygame.display.Info()
+		screen_width = display_info.current_w
+		screen_height = display_info.current_h
+		# Keep current resolution but use the smallest scaler
+		SCALER1=int(screen_width/(SCREEN_WIDTH*CHAR_WIDTH))
+		SCALER2=int(screen_height/(SCREEN_HEIGHT*CHAR_HEIGHT))
+		if SCALER1<=SCALER2:
+			SCALER=SCALER1
+		else:
+			SCALER=SCALER2
+		font_size=8*SCALER
+		willyfont=loadFont(SCALER)'''
+	#screen = pygame.display.set_mode((SCREEN_WIDTH * CHAR_WIDTH * SCALER, SCREEN_HEIGHT * CHAR_HEIGHT * SCALER), pygame.FULLSCREEN)
+
+
+
+		screenwidth=screen_width
+
+		#font_size = 8*SCALER
 		fontdata = pygame.font.SysFont("Courier", font_size)
 		# Render the text as a surface
 		counter=0
 		namer=0
+		screen.fill((0, 0, 255))
 		for message in textdata:
 			max_width=0
 			currentpos=0
@@ -105,27 +118,7 @@ def intro():
 			counter+=1
 
 
-
-			'''
-			text_surface = fontdata.render(text.replace("\n", ""), True, (255, 255, 255))
-			text_rect = text_surface.get_rect()
-			text_x = (screenwidth - text_rect.width) // 2
-			text_y = (counter*font_size)+2
-			screen.blit(text_surface, (text_x, text_y))
-			namer+=1
-			if "\n" in text:
-				counter+=1'''
-			
-
-
-
-		#col = 0
-		#row = 0
-		#screen.blit(char_img, (int(col) * CHAR_WIDTH * SCALER, int(row) * CHAR_HEIGHT * SCALER))
-		#screen.blit(char_img, (int(col) * CHAR_WIDTH * SCALER, int(row) * CHAR_HEIGHT * SCALER))
-
 		# Calculate the number of characters that fit horizontally and vertically in the window
-
 
 		pygame.display.flip()
 		for event in pygame.event.get():
@@ -142,7 +135,7 @@ def intro():
 					sys.exit(0)
 
 
-def loadFont():
+def loadFont(SCALER):
 
 	namedpart={}
 	namedpart["0"]="WILLY_RIGHT"
@@ -249,26 +242,6 @@ def loadFont():
 	return char_array
 
 def main():
-	intro()
-	game()
-
-def game():
-
-	global SCALER
-	if len(sys.argv) != 2:
-		level=1
-	else:
-		try:
-			level = int(sys.argv[1])
-		except:
-			level = 1
-    
-	if level>0 and level <= MAX_LEVELS:
-		currentlevel="level" + str(level)
-	else:
-		currentlevel="level1"
-
-	# Initialize Pygame
 	pygame.init()
 	display_info = pygame.display.Info()
 	screen_width = display_info.current_w
@@ -283,11 +256,32 @@ def game():
 	#screen = pygame.display.set_mode((SCREEN_WIDTH * CHAR_WIDTH * SCALER, SCREEN_HEIGHT * CHAR_HEIGHT * SCALER), pygame.FULLSCREEN)
 	screen = pygame.display.set_mode((screen_width, screen_height), pygame.FULLSCREEN)
 
+	intro(screen)
+	game(screen, SCALER)
+
+def game(screen, SCALER):
+
+	#global SCALER
+	if len(sys.argv) != 2:
+		level=1
+	else:
+		try:
+			level = int(sys.argv[1])
+		except:
+			level = 1
+    
+	if level>0 and level <= MAX_LEVELS:
+		currentlevel="level" + str(level)
+	else:
+		currentlevel="level1"
+
+	# Initialize Pygame
+
 	font_size=32
 	fontdata = pygame.font.SysFont("Courier", font_size)
 
 	# Load the font
-	font = loadFont()
+	font = loadFont(SCALER)
 
 
 	# Create a 2D array to store the level data
@@ -375,6 +369,14 @@ def game():
 						json.dump(new_dict, writefile, indent=4)
 				elif event.key == pygame.K_q or event.key==pygame.K_ESCAPE:
 					running=False
+				elif event.key == pygame.K_p:
+					willymaingame(screen, currentlevel, level, SCALER)
+					# Stop Hiding the mouse cursor if it's hidden
+					pygame.mouse.set_visible(True)
+
+					# Stop capturing the mouse input
+					pygame.event.set_grab(False)
+
 			# Right Button Deletes Object
 			elif event.type == pygame.MOUSEBUTTONDOWN  and event.button==3:
 				# Get the mouse position
