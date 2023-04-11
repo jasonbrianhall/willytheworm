@@ -10,6 +10,7 @@ import random
 import time
 import os
 from datetime import datetime, date
+import copy
 
 # Constants
 #SCALER = 4
@@ -703,6 +704,7 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 		with open('levels.json', 'r') as file:
 			# Load the data from the file using the json.load() function
 			level_data = json.load(file)
+			original_level=copy.deepcopy(level_data)
 	except:
 		traceback.print_exc()
 		print("Can't load levels.json; exiting")
@@ -874,10 +876,11 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 		if level_data[currentlevel][str(willy_position[0])][str(willy_position[1])].startswith("TACK") or bonus<=0 or ballkilledwilly==True or level_data[currentlevel][str(willy_position[0])][str(willy_position[1])].startswith("BELL"):
 			ballkilledwilly=False
 			if not level_data[currentlevel][str(willy_position[0])][str(willy_position[1])].startswith("BELL"):
-				with open('levels.json', 'r') as file:
+				'''with open('levels.json', 'r') as file:
 					# Load the data from the file using the json.load() function
-					level_data = json.load(file)
+					level_data = json.load(file)'''
 
+				level_data=copy.deepcopy(original_level)
 
 				t = threading.Thread(target=play_audio, args=(mixerdict, "audio/tack.mp3",))
 				t.start()
@@ -908,9 +911,11 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 
 
 			else:
-				with open('levels.json', 'r') as file:
+				'''with open('levels.json', 'r') as file:
 					# Load the data from the file using the json.load() function
-					level_data = json.load(file)
+					level_data = json.load(file)'''
+				level_data=copy.deepcopy(original_level)
+
 				t = threading.Thread(target=play_audio, args=(mixerdict, "audio/bell.mp3",))
 				t.start()
 				level+=1
