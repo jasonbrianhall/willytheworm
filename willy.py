@@ -413,10 +413,17 @@ def intro(screen):
 		display_info = pygame.display.Info()
 		screen_width = display_info.current_w
 		screen_height = display_info.current_h
-		font_size=int(screen_width/(len(textdata)*1.7))
-		font_size=font_size-font_size%8
-		SCALER=int(font_size/8)
+		# Keep current resolution but use the smallest scaler
+		SCALER1=int(screen_width/(SCREEN_WIDTH*CHAR_WIDTH))
+		SCALER2=int(screen_height/(SCREEN_HEIGHT*CHAR_HEIGHT))
+		if SCALER1<=SCALER2:
+			SCALER=SCALER1
+		else:
+			SCALER=SCALER2
+		font_size=8*SCALER
 		willyfont=loadFont(SCALER)
+	#screen = pygame.display.set_mode((SCREEN_WIDTH * CHAR_WIDTH * SCALER, SCREEN_HEIGHT * CHAR_HEIGHT * SCALER), pygame.FULLSCREEN)
+
 
 
 		screenwidth=screen_width
