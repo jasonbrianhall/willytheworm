@@ -404,13 +404,21 @@ def intro(screen):
 		["else will make Willy stop and wait"],
 		[""],
 		["Good luck, and don't let Willy step on"],
-		["a tack ", "TACK", " or ball! ", "BALL"],
+		["a tack ", "TACK", " or get ran over by a ball! ", "BALL"],
 		[""],
 		["Press Enter to Continue"]]
 
 		#screenwidth=SCREEN_WIDTH * CHAR_WIDTH * SCALER
 
 		display_info = pygame.display.Info()
+		screen_width = display_info.current_w
+		screen_height = display_info.current_h
+		font_size=int(screen_height/len(textdata))
+		#font_size=font_size-font_size%8
+		SCALER=int(font_size/8)
+		willyfont=loadFont(SCALER)
+
+		'''display_info = pygame.display.Info()
 		screen_width = display_info.current_w
 		screen_height = display_info.current_h
 		# Keep current resolution but use the smallest scaler
@@ -421,7 +429,7 @@ def intro(screen):
 		else:
 			SCALER=SCALER2
 		font_size=8*SCALER
-		willyfont=loadFont(SCALER)
+		willyfont=loadFont(SCALER)'''
 	#screen = pygame.display.set_mode((SCREEN_WIDTH * CHAR_WIDTH * SCALER, SCREEN_HEIGHT * CHAR_HEIGHT * SCALER), pygame.FULLSCREEN)
 
 
