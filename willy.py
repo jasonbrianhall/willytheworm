@@ -611,7 +611,6 @@ def main():
 	helpmessage=sys.argv[0] + " -l level -b numberofballs -w useWASDkeyboard -f (Disables Flash) -F framespersecond (Higher the number, the faster the game) -m (Enables Mouse Support) -h (HELP) --help (help)"
 	while i < len(sys.argv):
 		arg = sys.argv[i]
-		print(arg)
 		if arg == "-l" and i + 1 < len(sys.argv):
 			try:
 				level = int(sys.argv[i + 1])
