@@ -41,6 +41,7 @@ def intro(screen):
 		[""], 
 		[""],
 		["Welcome to the Willy the Worm ", "WILLY_RIGHT", "WILLY_RIGHT", " Editor."],
+		[""],
 		["Left click places items, ", "PRESENT", " right click removes items"],
 		["Middle scroll button ", "LADDER", " scrolls between items."],
 		["F11 toggles full screen ", "BELL"],
@@ -48,7 +49,7 @@ def intro(screen):
 		["The 'L' Key Changes Level"],
 		["The 'Q' Key or ESC exits the editor (without saving)"],
 		["The 'P' Key Tests the Level"],
-
+		[""],
 		["You can also specify the level at the command line you wish to edit"],
 		[""],
 		["The LAST BallPit ", "BALLPIT", " placed is where the balls come out."],
