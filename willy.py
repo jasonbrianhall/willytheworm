@@ -12,7 +12,7 @@ import os
 from datetime import datetime, date
 
 # Constants
-SCALER = 4
+#SCALER = 4
 CHAR_WIDTH = 8
 CHAR_HEIGHT = 8
 SCREEN_WIDTH = 40
@@ -373,12 +373,10 @@ def intro(screen):
 
 	screen.fill((0, 0, 255))
 	exit=False
-	willyfont=loadFont()
 	while exit==False:
 		datasize=0
-		screenwidth=SCREEN_WIDTH * CHAR_WIDTH * SCALER
-		font_size = 32
-		fontdata = pygame.font.SysFont("Courier", font_size)
+		#font_size = 32
+		#fontdata = pygame.font.SysFont("Courier", font_size)
 		# Render the text as a surface
 
 		textdata=[["Willy the Worm"],
@@ -406,12 +404,24 @@ def intro(screen):
 		["else will make Willy stop and wait"],
 		[""],
 		["Good luck, and don't let Willy step on"],
-		["a tack! ", "TACK"],
+		["a tack ", "TACK", " or ball! ", "BALL"],
 		[""],
 		["Press Enter to Continue"]]
 
-		screenwidth=SCREEN_WIDTH * CHAR_WIDTH * SCALER
-		font_size = 8*SCALER
+		#screenwidth=SCREEN_WIDTH * CHAR_WIDTH * SCALER
+
+		display_info = pygame.display.Info()
+		screen_width = display_info.current_w
+		screen_height = display_info.current_h
+		font_size=int(screen_width/(len(textdata)*1.7))
+		font_size=font_size-font_size%8
+		SCALER=int(font_size/8)
+		willyfont=loadFont(SCALER)
+
+
+		screenwidth=screen_width
+
+		#font_size = 8*SCALER
 		fontdata = pygame.font.SysFont("Courier", font_size)
 		# Render the text as a surface
 		counter=0
@@ -476,7 +486,7 @@ def play_audio(mixerdict, filename):
 	mixerdict[filename].play()
 	
 	
-def loadFont():
+def loadFont(SCALER):
 
 	namedpart={}
 	namedpart["0"]="WILLY_RIGHT"
@@ -655,16 +665,16 @@ def main():
 		else:
 			currentlevel="level1"
 
-		score=game(screen, currentlevel, level, wasd, flash, numberofballs, mousesupport, fps)
+		score=game(screen, currentlevel, level, SCALER, wasd, flash, numberofballs, mousesupport, fps)
 		game_score(screen, score)
 		level=1
 
 
-def game(screen, currentlevel, level, wasd=False, flash=True, numberofballs=6, mousesupport=False, fps=10):
+def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofballs=6, mousesupport=False, fps=10):
 
 	mixerdict={}
 	# Load Willy Font
-	font = loadFont()
+	font = loadFont(SCALER)
 
 	# Hide the mouse cursor
 	pygame.mouse.set_visible(False)
