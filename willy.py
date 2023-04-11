@@ -23,10 +23,6 @@ MAX_LEVELS = 32
 NEWLIFEPOINTS = 2000
 lock = threading.Lock()
 
-# The higher the number, the faster the game goes
-fps=10
-
-
 def game_score(screen, score):
 	pygame.display.set_caption('Willy the Worm Game Score')
 
@@ -590,6 +586,10 @@ def loadFont():
 def main():
 	global SCALER
 	pygame.init()
+	# The higher the number, the faster the game goes
+	fps=10
+
+
 	display_info = pygame.display.Info()
 	screen_width = display_info.current_w
 	screen_height = display_info.current_h
@@ -607,10 +607,11 @@ def main():
 	i = 1
 	flash=True
 	numberofballs=6
-	mousesupport=True
-	helpmessage="./willy.py -l level -b numberofballs -w useWASDkeyboard -f (Disables Flash) -m (Enables Mouse Support) -h (HELP) --help (help)"
+	mousesupport=False
+	helpmessage=sys.argv[0] + " -l level -b numberofballs -w useWASDkeyboard -f (Disables Flash) -F framespersecond (Higher the number, the faster the game) -m (Enables Mouse Support) -h (HELP) --help (help)"
 	while i < len(sys.argv):
 		arg = sys.argv[i]
+		print(arg)
 		if arg == "-l" and i + 1 < len(sys.argv):
 			try:
 				level = int(sys.argv[i + 1])
@@ -625,6 +626,14 @@ def main():
 				print("Invalid argument for -b")
 				sys.exit(1)
 			i += 1
+		elif arg == "-F" and i + 1 < len(sys.argv):
+			try:
+				fps = int(sys.argv[i + 1])
+			except ValueError:
+				print("Invalid argument for -b")
+				sys.exit(1)
+			i += 1
+
 		elif arg == "-w":
 			wasd = True
 		elif arg == "-f":
@@ -647,12 +656,12 @@ def main():
 		else:
 			currentlevel="level1"
 
-		score=game(screen, currentlevel, level, wasd, flash, numberofballs)
+		score=game(screen, currentlevel, level, wasd, flash, numberofballs, mousesupport, fps)
 		game_score(screen, score)
 		level=1
 
 
-def game(screen, currentlevel, level, wasd=False, flash=True, numberofballs=6, mousesupport=False):
+def game(screen, currentlevel, level, wasd=False, flash=True, numberofballs=6, mousesupport=False, fps=10):
 
 	mixerdict={}
 	# Load Willy Font
@@ -811,10 +820,6 @@ def game(screen, currentlevel, level, wasd=False, flash=True, numberofballs=6, m
 					#print("Any Key Pressed")
 					willy_xvelocity=0
 					ladder_direction=None
-
-
-			# Right Button Deletes Object
-			
 
 
 		# Clear the screen
