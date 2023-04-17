@@ -5934,29 +5934,25 @@
             "1": "PRESENT",
             "4": "PRESENT",
             "8": "PRESENT",
-            "11": "PRESENT"
+            "11": "PRESENT",
+            "9": "BALLPIT"
         },
-        "1": {
+        "1": {},
+        "2": {
+            "9": "PIPE27",
+            "13": "PIPE27",
+            "14": "PIPE27",
+            "15": "PIPE9",
             "0": "PIPE27",
             "1": "PIPE27",
             "2": "PIPE27",
-            "3": "PIPE27",
             "4": "PIPE27",
             "5": "PIPE27",
             "6": "PIPE27",
             "7": "PIPE27",
             "8": "PIPE27",
-            "9": "PIPE27",
             "10": "PIPE27",
-            "11": "PIPE27",
-            "12": "PIPE27",
-            "13": "PIPE9"
-        },
-        "2": {
-            "9": "BALLPIT",
-            "13": "PIPE22",
-            "14": "PIPE27",
-            "15": "PIPE9"
+            "12": "PIPE27"
         },
         "3": {
             "15": "PIPE22",
@@ -6106,7 +6102,6 @@
             "1": "LADDER",
             "5": "PRESENT",
             "11": "SIDESPRING",
-            "0": "BALLPIT",
             "38": "LADDER"
         },
         "18": {
@@ -6230,7 +6225,7 @@
     },
     "level2PIT": {
         "PRIMARYBALLPIT": [
-            2,
+            0,
             9
         ]
     },
