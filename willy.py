@@ -804,7 +804,7 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 				else:
 					y,x = willy_position
 					if (willy_yvelocity==0 and level_data[currentlevel][str(y + 1)][str(x)].startswith("PIPE")) or y==(MAX_HEIGHT-1):
-						willy_yvelocity=4
+						willy_yvelocity=3
 						#print("Spacebar Pressed")
 						t = threading.Thread(target=play_audio, args=(mixerdict, "audio/jump.mp3",))
 						t.start()
@@ -1225,7 +1225,7 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 				ballkilledwilly=True
 			y, x = willy_position
 			for i in range(1, 5):
-				if str(y + i) in level_data[currentlevel] and str(x) in level_data[currentlevel][str(y + i)] and (y+i)==row and x==col and willy_yvelocity>0:
+				if str(y + i) in level_data[currentlevel] and str(x) in level_data[currentlevel][str(y + i)] and (y+i)==row and x==col and willy_yvelocity!=0:
 					# Add 20 points to Willy's score here
 					score+=20
 					t = threading.Thread(target=play_audio, args=(mixerdict, "audio/boop.mp3",))
