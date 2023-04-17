@@ -732,6 +732,7 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 	willy_xvelocity = 0
 	willy_direction = None
 	ladder_direction = None
+	flipped=0
 	score=0
 	bonus=1000
 	#numberoflives=5
@@ -996,13 +997,18 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 			t.start()
 
 		if level_data[currentlevel][str(willy_position[0])][str(willy_position[1])].startswith("SIDESPRING"):
-			willy_xvelocity*=-1
-			t = threading.Thread(target=play_audio, args=(mixerdict, "audio/jump.mp3",))
-			t.start()
-			if willy_direction=="LEFT":
-				willy_direction="RIGHT"
-			else:
-				willy_direction="LEFT"
+			if flipped==0:	
+				flipped=1
+				willy_xvelocity*=-1
+				if willy_xvelocity!=0:
+					t = threading.Thread(target=play_audio, args=(mixerdict, "audio/jump.mp3",))
+					t.start()
+				if willy_direction=="LEFT" and willy_xvelocity!=0:
+					willy_direction="RIGHT"
+				elif willy_direction=="RIGHT" and willy_xvelocity!=0:
+					willy_direction="LEFT"
+		else:
+			flipped=0
 
 
 		if level_data[currentlevel][str(willy_position[0])][str(willy_position[1])].startswith("PRESENT"):
