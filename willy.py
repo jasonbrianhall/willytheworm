@@ -222,7 +222,7 @@ def game_score(screen, score):
 				elif event.type == pygame.KEYDOWN:
 					if event.key == pygame.K_F11:
 						pygame.display.toggle_fullscreen()
-						screen.fill((0, 0, 255))
+						screen.fill((screenfillred,screenfillgreen,screenfillblue)) # clear the screen
 					elif event.key == pygame.K_ESCAPE:
 						print("Goodbye.  Thank you for playing Willy the Worm!!!")
 						sys.exit(0)
@@ -234,7 +234,7 @@ def game_score(screen, score):
 		hiscores[key] = sorted(hiscores[key], key=lambda x: x[1], reverse=True)
 
 	messagepointer=15
-	screen.fill((0, 0, 255)) # clear the screen
+	screen.fill((0,0,255)) # clear the screen # clear the screen
 
 
 
@@ -502,7 +502,7 @@ def play_audio(mixerdict, filename):
 	mixerdict[filename].play()
 	
 	
-def loadFont(SCALER):
+def loadFont(SCALER, screenfillred=0, screenfillgreen=0, screenfillblue=255):
 
 	namedpart={}
 	namedpart["0"]="WILLY_RIGHT"
@@ -560,7 +560,7 @@ def loadFont(SCALER):
 	
 
 	# Define the colors (in RGB format)
-	BACKGROUND = (0, 0, 255)
+	BACKGROUND = (screenfillred, screenfillgreen, screenfillblue)
 	WHITE = (255, 255, 255)
 
 	# Define the size of the output image (in pixels)
@@ -692,6 +692,12 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 
 	mixerdict={}
 
+	screenfillgreen=0
+	screenfillred=0
+	screenfillblue=255
+	
+	
+
 	# Load Willy Font
 	font = loadFont(SCALER)
 
@@ -821,6 +827,19 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 					sys.exit(0)
 				if event.key == pygame.K_F11:
 					pygame.display.toggle_fullscreen()
+				if event.key == pygame.K_F5:
+					screenfillred+=64
+					screenfillred=screenfillred%256
+					font = loadFont(SCALER, screenfillred, screenfillgreen, screenfillblue)
+				if event.key == pygame.K_F6:
+					screenfillgreen+=64
+					screenfillgreen=screenfillgreen%256
+					font = loadFont(SCALER, screenfillred, screenfillgreen, screenfillblue)
+				if event.key == pygame.K_F7:
+					screenfillblue+=64
+					screenfillblue=screenfillblue%256
+					font = loadFont(SCALER, screenfillred, screenfillgreen, screenfillblue)
+
 					
 				if event.key == pygame.K_SPACE or (event.type == pygame.MOUSEBUTTONDOWN and event.button==1):
 				#if event.key == pygame.K_SPACE:
@@ -855,7 +874,7 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 
 
 		# Clear the screen
-		#screen.fill((0, 0, 0))
+		screen.fill((screenfillred, screenfillgreen, screenfillblue))
 
 		# Check if there's a PIPE object at Willy's position (below him)
 		if willy_position is not None:
@@ -1166,7 +1185,7 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 				ballkilledwilly=True
 
 
-		screen.fill((0, 0, 255))
+		screen.fill((screenfillred, screenfillgreen, screenfillblue))
 
 		for row in level_data[currentlevel]:
 			for col in level_data[currentlevel][row]:
