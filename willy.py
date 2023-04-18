@@ -1194,10 +1194,11 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 			row=balls[ball]["Location"][0]
 			
 			if level_data[currentlevel][str(row)][str(col)].startswith("BALLPIT"):
+				balls[ball]["Direction"]=None
 				if not (balls[ball]["Location"][1]==primaryballpit[1] and balls[ball]["Location"][0]==primaryballpit[0]):
 					balls[ball]["Location"][1]=primaryballpit[1]
 					balls[ball]["Location"][0]=primaryballpit[0]
-					balls[ball]["Direction"]==None
+					balls[ball]["Direction"]=None
 					col=balls[ball]["Location"][1]
 					row=balls[ball]["Location"][0]
 			if not level_data[currentlevel][str(row+1)][str(col)].startswith("PIPE") and row<(MAX_HEIGHT-1):
@@ -1229,6 +1230,7 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 			char_img = font["BALL"]
 			if not level_data[currentlevel][str(row)][str(col)].startswith("BALLPIT"):
 				screen.blit(char_img, (int(col) * CHAR_WIDTH * SCALER, int(row) * CHAR_HEIGHT * SCALER))
+			
 		
 		for ball in balls:
 			#print(balls[ball])
