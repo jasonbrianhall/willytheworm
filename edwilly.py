@@ -475,7 +475,7 @@ def game(screen, SCALER):
 
 
 		# Clear the screen
-		screen.fill((0, 0, 0))
+		#screen.fill((0, 0, 0))
 
 		# Draw the level data
 		'''for row in range(SCREEN_HEIGHT):
@@ -489,6 +489,8 @@ def game(screen, SCALER):
 				if char_img is not None:
 					# Draw the character image
 					screen.blit(char_img, (col * CHAR_WIDTH * SCALER, row * CHAR_HEIGHT * SCALER))'''
+		screen.fill((0, 0, 255))
+
 		for row in level_data[currentlevel]:
 			for col in level_data[currentlevel][row]:
 				# This will error on primary ball pit
