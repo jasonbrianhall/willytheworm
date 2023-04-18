@@ -1198,7 +1198,6 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 				if not (balls[ball]["Location"][1]==primaryballpit[1] and balls[ball]["Location"][0]==primaryballpit[0]):
 					balls[ball]["Location"][1]=primaryballpit[1]
 					balls[ball]["Location"][0]=primaryballpit[0]
-					balls[ball]["Direction"]=None
 					col=balls[ball]["Location"][1]
 					row=balls[ball]["Location"][0]
 			if not level_data[currentlevel][str(row+1)][str(col)].startswith("PIPE") and row<(MAX_HEIGHT-1):
