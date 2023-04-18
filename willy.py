@@ -997,8 +997,8 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 			t.start()
 
 		if level_data[currentlevel][str(willy_position[0])][str(willy_position[1])].startswith("SIDESPRING"):
-			if flipped==0:	
-				flipped=1
+			if flipped==0 or not flipped==list(willy_position):	
+				flipped=list(willy_position)
 				willy_xvelocity*=-1
 				if willy_xvelocity!=0:
 					t = threading.Thread(target=play_audio, args=(mixerdict, "audio/jump.mp3",))
