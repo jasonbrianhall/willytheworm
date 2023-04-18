@@ -778,14 +778,14 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 	liveadder=0
 
 	while running:
-		clock.tick(fps)	 # limit the frame rate to 30 fps
+		clock.tick(fps)	 # limit the frame rate so Willy won't travel as fast (Willy travels at the frame rate)
 		if int(score/NEWLIFEPOINTS)>liveadder:
 			numberoflives+=1
 			liveadder+=1
 		
-		# Handle events
-		mouse_movement = pygame.mouse.get_rel()
 		if mousesupport==True:
+			# Handle events
+			mouse_movement = pygame.mouse.get_rel()
 			if mouse_movement[0] < -50:
 				willy_xvelocity=1
 				#print("Left Key Pressed")
@@ -807,7 +807,7 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 				running = False
 				print("Goodbye.  Thank you for playing Willy the Worm!!!")
 			# Mouse Events
-			if event.type == pygame.MOUSEBUTTONDOWN and mousesupport==True:
+			if mousesupport==True and event.type == pygame.MOUSEBUTTONDOWN:
 				if not event.button==1:
 					#print("Any Key Pressed")
 					willy_xvelocity=0
@@ -817,7 +817,6 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 					y,x = willy_position
 					if (willy_yvelocity==0 and level_data[currentlevel][str(y + 1)][str(x)].startswith("PIPE")) or y==(MAX_HEIGHT-1):
 						willy_yvelocity=3
-						#print("Spacebar Pressed")
 						t = threading.Thread(target=play_audio, args=(mixerdict, "audio/jump.mp3",))
 						t.start()
 
