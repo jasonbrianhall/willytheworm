@@ -855,7 +855,7 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 
 
 		# Clear the screen
-		screen.fill((0, 0, 0))
+		#screen.fill((0, 0, 0))
 
 		# Check if there's a PIPE object at Willy's position (below him)
 		if willy_position is not None:
