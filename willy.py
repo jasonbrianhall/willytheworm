@@ -688,7 +688,10 @@ def main():
 
 def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofballs=6, mousesupport=False, fps=10, numberoflives=5):
 
+	display_info = pygame.display.Info()
+
 	mixerdict={}
+
 	# Load Willy Font
 	font = loadFont(SCALER)
 
@@ -722,6 +725,7 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 	for row in range(SCREEN_HEIGHT):
 		if level_data.get(currentlevel).get(str(row))==None:
 			level_data[currentlevel][str(row)]={}
+		# It's easier to check for empty then to check for None
 		for col in range(SCREEN_WIDTH):
 			if level_data[currentlevel].get(str(row)).get(str(col))==None:
 				level_data[currentlevel][str(row)][str(col)]="EMPTY"
@@ -1162,11 +1166,15 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 				ballkilledwilly=True
 
 
+		screen.fill((0, 0, 255))
+
 		for row in level_data[currentlevel]:
 			for col in level_data[currentlevel][row]:
 				char_img = font[level_data[currentlevel][row][col]]
-				screen.blit(char_img, (int(col) * CHAR_WIDTH * SCALER, int(row) * CHAR_HEIGHT * SCALER))
-				#print(char_img)	
+				if not level_data[currentlevel][row][col]=="EMPTY":
+					screen.blit(char_img, (int(col) * CHAR_WIDTH * SCALER, int(row) * CHAR_HEIGHT * SCALER))
+				#print(char_img)
+				
 		
 		#print(willy_direction)
 		if willy_direction=="LEFT":
