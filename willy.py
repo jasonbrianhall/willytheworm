@@ -805,6 +805,7 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 			# Close Event
 			if event.type == pygame.QUIT:
 				running = False
+				print("Goodbye.  Thank you for playing Willy the Worm!!!")
 			# Mouse Events
 			if event.type == pygame.MOUSEBUTTONDOWN and mousesupport==True:
 				if not event.button==1:
@@ -825,23 +826,23 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 				if event.key == pygame.K_ESCAPE:
 					print("Goodbye.  Thank you for playing Willy the Worm!!!")
 					sys.exit(0)
-				if event.key == pygame.K_F11:
+				elif event.key == pygame.K_F11:
 					pygame.display.toggle_fullscreen()
-				if event.key == pygame.K_F5:
+				elif event.key == pygame.K_F5:
 					screenfillred+=64
 					screenfillred=screenfillred%256
 					font = loadFont(SCALER, screenfillred, screenfillgreen, screenfillblue)
-				if event.key == pygame.K_F6:
+				elif event.key == pygame.K_F6:
 					screenfillgreen+=64
 					screenfillgreen=screenfillgreen%256
 					font = loadFont(SCALER, screenfillred, screenfillgreen, screenfillblue)
-				if event.key == pygame.K_F7:
+				elif event.key == pygame.K_F7:
 					screenfillblue+=64
 					screenfillblue=screenfillblue%256
 					font = loadFont(SCALER, screenfillred, screenfillgreen, screenfillblue)
 
 					
-				if event.key == pygame.K_SPACE or (event.type == pygame.MOUSEBUTTONDOWN and event.button==1):
+				elif event.key == pygame.K_SPACE or (event.type == pygame.MOUSEBUTTONDOWN and event.button==1):
 				#if event.key == pygame.K_SPACE:
 					y,x = willy_position
 					if (willy_yvelocity==0 and level_data[currentlevel][str(y + 1)][str(x)].startswith("PIPE")) or y==(MAX_HEIGHT-1):
