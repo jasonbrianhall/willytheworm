@@ -806,6 +806,7 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 			if event.type == pygame.QUIT:
 				running = False
 				print("Goodbye.  Thank you for playing Willy the Worm!!!")
+				sys.exit(0)
 			# Mouse Events
 			if mousesupport==True and event.type == pygame.MOUSEBUTTONDOWN:
 				if not event.button==1:
@@ -828,16 +829,28 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 				elif event.key == pygame.K_F11:
 					pygame.display.toggle_fullscreen()
 				elif event.key == pygame.K_F5:
-					screenfillred+=64
-					screenfillred=screenfillred%256
+					if screenfillred==255:
+						screenfillred=0
+					elif screenfillred>=0 and screenfillred<192:
+						screenfillred+=64
+					else:
+						screenfillred=255
 					font = loadFont(SCALER, screenfillred, screenfillgreen, screenfillblue)
 				elif event.key == pygame.K_F6:
-					screenfillgreen+=64
-					screenfillgreen=screenfillgreen%256
+					if screenfillgreen==255:
+						screenfillgreen=0
+					elif screenfillgreen>=0 and screenfillgreen<192:
+						screenfillgreen+=64
+					else:
+						screenfillgreen=255
 					font = loadFont(SCALER, screenfillred, screenfillgreen, screenfillblue)
 				elif event.key == pygame.K_F7:
-					screenfillblue+=64
-					screenfillblue=screenfillblue%256
+					if screenfillblue==255:
+						screenfillblue=0
+					elif screenfillblue>=0 and screenfillblue<192:
+						screenfillblue+=64
+					else:
+						screenfillblue=255
 					font = loadFont(SCALER, screenfillred, screenfillgreen, screenfillblue)
 
 					
