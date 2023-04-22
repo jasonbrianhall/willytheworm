@@ -686,7 +686,7 @@ def main():
 		level=1
 
 
-def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofballs=6, mousesupport=False, fps=10, numberoflives=5, jumpheight=4):
+def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofballs=6, mousesupport=False, fps=10, numberoflives=5, jumpheight=3.5):
 
 	display_info = pygame.display.Info()
 
