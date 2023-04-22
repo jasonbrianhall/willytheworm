@@ -745,6 +745,7 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 	flipped=0
 	score=0
 	bonus=1000
+	fullscreen=0
 	#numberoflives=5
 	#numberofballs=6
 	ballkilledwilly=False
@@ -827,7 +828,36 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 					print("Goodbye.  Thank you for playing Willy the Worm!!!")
 					sys.exit(0)
 				elif event.key == pygame.K_F11:
-					pygame.display.toggle_fullscreen()
+					if fullscreen==1:
+						display_info = pygame.display.Info()
+						screen_width = display_info.current_w
+						screen_height = display_info.current_h
+						SCALER1=int(screen_width/(SCREEN_WIDTH*CHAR_WIDTH))
+						SCALER2=int(screen_height/(SCREEN_HEIGHT*CHAR_HEIGHT))
+						if SCALER1<=SCALER2:
+							SCALER=SCALER1
+						else:
+							SCALER=SCALER2
+						#screen = pygame.display.set_mode((SCREEN_WIDTH * CHAR_WIDTH * SCALER, SCREEN_HEIGHT * CHAR_HEIGHT * SCALER), pygame.FULLSCREEN)
+						screen = pygame.display.set_mode((screen_width, screen_height), pygame.FULLSCREEN)
+
+						#pygame.display.toggle_fullscreen()
+						fullscreen=0
+					else:
+						display_info = pygame.display.Info()
+						screen_width = display_info.current_w
+						screen_height = display_info.current_h
+						SCALER1=int(screen_width/(SCREEN_WIDTH*CHAR_WIDTH))
+						SCALER2=int(screen_height/(SCREEN_HEIGHT*CHAR_HEIGHT))
+						if SCALER1<=SCALER2:
+							SCALER=SCALER1
+						else:
+							SCALER=SCALER2
+						sw=SCREEN_WIDTH*CHAR_WIDTH*SCALER
+						sh=SCREEN_HEIGHT*CHAR_HEIGHT*SCALER
+						screen = pygame.display.set_mode((sw, sh))
+						fullscreen=1
+						
 				elif event.key == pygame.K_F5:
 					if screenfillred==255:
 						screenfillred=0
