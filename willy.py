@@ -1110,9 +1110,9 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 				willy_xvelocity=0
 
 
-		if willy_yvelocity>0:
+		'''if willy_yvelocity>0:
 			if str(y - 1) in level_data[currentlevel] and str(x) in level_data[currentlevel][str(y - 1)] and level_data[currentlevel][str(y - 1)][str(x)].startswith("PIPE"):
-				willy_yvelocity=0
+				willy_yvelocity=0'''
 		
 		
 		if willy_yvelocity>0:
