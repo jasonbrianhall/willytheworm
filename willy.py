@@ -823,11 +823,24 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 						t.start()
 
 			# Keyboard Events
-			elif event.type == pygame.KEYDOWN:
+			if event.type == pygame.VIDEORESIZE and fullscreen==1:
+				#display_info = pygame.display.Info()
+				screen_width = event.w
+				screen_height = event.h
+				SCALER1=int(screen_width/(SCREEN_WIDTH*CHAR_WIDTH))
+				SCALER2=int(screen_height/(SCREEN_HEIGHT*CHAR_HEIGHT))
+				if SCALER1<=SCALER2:
+					SCALER=SCALER1
+				else:
+					SCALER=SCALER2
+				font = loadFont(SCALER, screenfillred, screenfillgreen, screenfillblue)
+
+
+			if event.type == pygame.KEYDOWN:
 				if event.key == pygame.K_ESCAPE:
 					print("Goodbye.  Thank you for playing Willy the Worm!!!")
 					sys.exit(0)
-				elif event.key == pygame.K_F11:
+				if event.key == pygame.K_F11:
 					if fullscreen==1:
 						display_info = pygame.display.Info()
 						screen_width = display_info.current_w
@@ -855,10 +868,11 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 							SCALER=SCALER2
 						sw=SCREEN_WIDTH*CHAR_WIDTH*SCALER
 						sh=SCREEN_HEIGHT*CHAR_HEIGHT*SCALER
-						screen = pygame.display.set_mode((sw, sh))
+						screen = pygame.display.set_mode((sw, sh), pygame.RESIZABLE)
 						fullscreen=1
-						
-				elif event.key == pygame.K_F5:
+						font = loadFont(SCALER, screenfillred, screenfillgreen, screenfillblue)
+
+				if event.key == pygame.K_F5:
 					if screenfillred==255:
 						screenfillred=0
 					elif screenfillred>=0 and screenfillred<192:
@@ -866,7 +880,7 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 					else:
 						screenfillred=255
 					font = loadFont(SCALER, screenfillred, screenfillgreen, screenfillblue)
-				elif event.key == pygame.K_F6:
+				if event.key == pygame.K_F6:
 					if screenfillgreen==255:
 						screenfillgreen=0
 					elif screenfillgreen>=0 and screenfillgreen<192:
@@ -874,7 +888,7 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 					else:
 						screenfillgreen=255
 					font = loadFont(SCALER, screenfillred, screenfillgreen, screenfillblue)
-				elif event.key == pygame.K_F7:
+				if event.key == pygame.K_F7:
 					if screenfillblue==255:
 						screenfillblue=0
 					elif screenfillblue>=0 and screenfillblue<192:
@@ -884,7 +898,7 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 					font = loadFont(SCALER, screenfillred, screenfillgreen, screenfillblue)
 
 					
-				elif event.key == pygame.K_SPACE or (event.type == pygame.MOUSEBUTTONDOWN and event.button==1):
+				if event.key == pygame.K_SPACE or (event.type == pygame.MOUSEBUTTONDOWN and event.button==1):
 				#if event.key == pygame.K_SPACE:
 					y,x = willy_position
 					if (willy_yvelocity==0 and level_data[currentlevel][str(y + 1)][str(x)].startswith("PIPE")) or y==(MAX_HEIGHT-1):
