@@ -1114,6 +1114,9 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 			if str(y - 1) in level_data[currentlevel] and str(x) in level_data[currentlevel][str(y - 1)] and level_data[currentlevel][str(y - 1)][str(x)].startswith("PIPE"):
 				willy_yvelocity=0'''
 		
+		if willy_yvelocity<0:
+			if str(y) in level_data[currentlevel] and str(x) in level_data[currentlevel][str(y)] and level_data[currentlevel][str(y)][str(x)].startswith("LADDER"):
+				willy_yvelocity=0
 		
 		if willy_yvelocity>0:
 			# Convert tuple to list
