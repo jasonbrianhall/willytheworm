@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import json
 
 # Map the hex codes to named parts
