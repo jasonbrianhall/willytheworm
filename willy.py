@@ -632,7 +632,7 @@ def main():
 	level=1
 	i = 1
 	flash=True
-	numberofballs=6
+	numberofballs=9
 	mousesupport=False
 	helpmessage=sys.argv[0] + " -l level -b numberofballs -w useWASDkeyboard -f (Disables Flash) -F framespersecond (Higher the number, the faster the game) -m (Enables Mouse Support) -h (HELP) --help (help)"
 	while i < len(sys.argv):
