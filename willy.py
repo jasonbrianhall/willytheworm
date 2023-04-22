@@ -833,6 +833,8 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 					SCALER=SCALER1
 				else:
 					SCALER=SCALER2
+				if SCALER<1:
+					SCALER=1
 				font = loadFont(SCALER, screenfillred, screenfillgreen, screenfillblue)
 
 
