@@ -686,7 +686,7 @@ def main():
 		level=1
 
 
-def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofballs=6, mousesupport=False, fps=10, numberoflives=5):
+def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofballs=6, mousesupport=False, fps=10, numberoflives=5, jumpheight=4):
 
 	display_info = pygame.display.Info()
 
@@ -817,7 +817,7 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 				else:
 					y,x = willy_position
 					if (willy_yvelocity==0 and level_data[currentlevel][str(y + 1)][str(x)].startswith("PIPE")) or y==(MAX_HEIGHT-1):
-						willy_yvelocity=3
+						willy_yvelocity=jumpheight
 						t = threading.Thread(target=play_audio, args=(mixerdict, "audio/jump.mp3",))
 						t.start()
 
@@ -858,7 +858,7 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 				#if event.key == pygame.K_SPACE:
 					y,x = willy_position
 					if (willy_yvelocity==0 and level_data[currentlevel][str(y + 1)][str(x)].startswith("PIPE")) or y==(MAX_HEIGHT-1):
-						willy_yvelocity=4
+						willy_yvelocity=jumpheight
 						#print("Spacebar Pressed")
 						t = threading.Thread(target=play_audio, args=(mixerdict, "audio/jump.mp3",))
 						t.start()
@@ -1028,7 +1028,7 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 
 
 		if level_data[currentlevel][str(willy_position[0])][str(willy_position[1])].startswith("UPSPRING"):
-			willy_yvelocity=4
+			willy_yvelocity=jumpheight
 			t = threading.Thread(target=play_audio, args=(mixerdict, "audio/jump.mp3",))
 			t.start()
 
