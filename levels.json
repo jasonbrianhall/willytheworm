@@ -7294,31 +7294,20 @@
         "19": {
             "4": "WILLY_RIGHT"
         },
-        "20": {
-            "8": "TACK",
-            "24": "TACK"
-        },
+        "20": {},
         "21": {
             "7": "TACK",
-            "8": "TACK",
-            "9": "TACK",
-            "23": "TACK",
-            "24": "TACK",
-            "25": "TACK"
+            "23": "TACK"
         },
         "22": {
             "39": "UPSPRING",
             "6": "TACK",
             "7": "TACK",
             "8": "TACK",
-            "9": "TACK",
-            "10": "TACK",
             "15": "PRESENT",
             "22": "TACK",
             "23": "TACK",
             "24": "TACK",
-            "25": "TACK",
-            "26": "TACK",
             "33": "PRESENT"
         },
         "23": {
@@ -7328,8 +7317,6 @@
             "7": "TACK",
             "8": "TACK",
             "9": "TACK",
-            "10": "TACK",
-            "11": "TACK",
             "14": "PRESENT",
             "15": "PRESENT",
             "16": "PRESENT",
@@ -7338,8 +7325,6 @@
             "23": "TACK",
             "24": "TACK",
             "25": "TACK",
-            "26": "TACK",
-            "27": "TACK",
             "32": "PRESENT",
             "33": "PRESENT",
             "34": "PRESENT"
