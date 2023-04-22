@@ -80,5 +80,5 @@ pip install pyinstaller
 pyinstaller --onefile willy.py
 pyinstaller --onefile edwilly.py
 
-This will create a directory named dist with willy.exe or edwilly.exe.  The directory "audio", file "willy.chr", and "levels.json" have to be in the same directory so zipping those up in that structure would allow you to distribute the code.  The score file willy.scr is optional and will be created if it doesn't exist.  
+This will create a directory named dist with willy.exe or edwilly.exe (or just willy or edwilly for UNIX like operating systems).  The directory "audio", file "willy.chr", and "levels.json" have to be in the same directory so zipping those up in that structure would allow you to distribute the code.  The score file willy.scr is optional and will be created if it doesn't exist.  
 
