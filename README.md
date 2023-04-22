@@ -52,7 +52,6 @@ A successful level must have a willy, two ball pits (the last one placed is wher
 
 
 A few differences from the original Willy the worm.
-	Willy jumps higher in this game.  I could set gravity to 3 but it would break some of the levels.  Not sure if anybody cares.
 	No sound when falling.  In the original game, their was a small falling sound.  I don't have any sound.
 	Audio is different.  Obviously using different sounds then the original.  All the sounds are replacable.  
 	Flash is different.  I have a simple white flash.  I had the same flash as the original game but my wife has seizures so I thought a simple flash would be better.  She didn't like that so I added an option to disable the flash.
