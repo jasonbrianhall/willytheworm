@@ -1,0 +1,1 @@
+Little program to convert the original levels to my JSON Format; you have to add bells, starting location, and create master ball pit; copy WILLY.DAT to this directory and run the command to create levels.json

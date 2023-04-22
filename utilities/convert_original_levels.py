@@ -74,7 +74,6 @@ for i in range(8):
                 code=127
             else:
                 code-=128
-            print(code)
             column[str(j)] = named_parts.get(str(code), 'UNKNOWN' + "-" + str(code))
         if column:
             level[str(k)] = column
