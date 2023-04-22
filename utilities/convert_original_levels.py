@@ -11,6 +11,8 @@ named_parts = {
     "4": "TACK",
     "5": "UPSPRING",
     "6": "SIDESPRING",
+    "7": "BALL",
+    "8": "BELL",
     "51": "PIPE1",
     "52": "PIPE2",
     "53": "PIPE3",
