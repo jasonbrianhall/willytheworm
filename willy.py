@@ -11,6 +11,7 @@ import time
 import os
 from datetime import datetime, date
 import copy
+import os
 
 # Constants
 #SCALER = 4
@@ -30,14 +31,27 @@ def game_score(screen, score):
 	font = pygame.font.SysFont("Courier", 32)
 	hiscore_msg = ''
 	name = ''
+
+	# Get the user's home directory
+	home_dir = os.path.expanduser("~")
+
+	# Create the hidden directory
+	willy_dir = os.path.join(home_dir, ".willytheworm")
+	if not os.path.exists(willy_dir):
+	    os.mkdir(willy_dir)
+
+	# Create the file in the hidden directory
+	hiscore_file = os.path.join(willy_dir, "willy.scr")
+
 	try:
-		f=open('willy.scr', 'r+')
+
+		f=open(hiscore_file, 'r+')
 		data = f.read()
 		hiscores = json.loads(data) 
 		#hiscores["hiscoreT"]=[]
 		f.close()
 		# Get the modification time of the file
-		mod_time = os.path.getmtime('willy.scr')
+		mod_time = os.path.getmtime(hiscore_file)
 
 		# Convert the modification time to a datetime object
 		mod_datetime = datetime.fromtimestamp(mod_time)
@@ -54,6 +68,7 @@ def game_score(screen, score):
 
 			
 	except:
+		traceback.print_exc()
 		hiscores={}
 		hiscores["hiscoreT"]=[]
 		hiscores["hiscoreP"]=[]
@@ -184,7 +199,7 @@ def game_score(screen, score):
 			hiscores[key] = sorted(hiscores[key], key=lambda x: x[1], reverse=True)[:10]
 
 		# Write the updated data back to the file
-		with open('willy.scr', 'w') as f:
+		with open(hiscore_file, 'w') as f:
 			json.dump(hiscores, f)
 		
 		
