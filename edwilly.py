@@ -203,7 +203,11 @@ def loadFont(SCALER):
 	IMAGE_HEIGHT = 256
 
 	# Open the willy.chr file
-	with open('willy.chr', 'rb') as f:
+	bundle_dir = getattr(sys, '_MEIPASS', os.path.abspath(os.path.dirname(__file__)))
+
+	path_to_chr = os.path.abspath(os.path.join(bundle_dir,'willy.chr'))
+
+	with open(path_to_chr, 'rb') as f:
 		# Read the file contents into a bytearray
 		data = bytearray(f.read())
 

@@ -491,13 +491,17 @@ def intro(screen):
 
 
 def play_audio(mixerdict, filename):
+	bundle_dir = getattr(sys, '_MEIPASS', os.path.abspath(os.path.dirname(__file__)))
+	print(bundle_dir)
+	new_filename = os.path.abspath(os.path.join(bundle_dir,filename))
+
 	if mixerdict==None:
 		mixerdict={}
 	if mixerdict.get(filename)==None:
 		#Worse case scenario,the same audio file gets loaded twice (which is why we check a second time to see if it is still none).
 		lock.acquire()
 		if mixerdict.get(filename)==None:
-			mixerdict[filename] = pygame.mixer.Sound(filename)
+			mixerdict[filename] = pygame.mixer.Sound(new_filename)
 		lock.release()
 	mixerdict[filename].play()
 	
@@ -568,7 +572,11 @@ def loadFont(SCALER, screenfillred=0, screenfillgreen=0, screenfillblue=255):
 	IMAGE_HEIGHT = 256
 
 	# Open the willy.chr file
-	with open('willy.chr', 'rb') as f:
+	bundle_dir = getattr(sys, '_MEIPASS', os.path.abspath(os.path.dirname(__file__)))
+
+	path_to_chr = os.path.abspath(os.path.join(bundle_dir,'willy.chr'))
+
+	with open(path_to_chr, 'rb') as f:
 		# Read the file contents into a bytearray
 		data = bytearray(f.read())
 
@@ -710,7 +718,11 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 
 
 	try:
-		with open('levels.json', 'r') as file:
+		bundle_dir = getattr(sys, '_MEIPASS', os.path.abspath(os.path.dirname(__file__)))
+
+		path_to_levels = os.path.abspath(os.path.join(bundle_dir,'levels.json'))
+
+		with open(path_to_levels, 'r') as file:
 			# Load the data from the file using the json.load() function
 			level_data = json.load(file)
 			original_level=copy.deepcopy(level_data)
