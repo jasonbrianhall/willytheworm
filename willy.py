@@ -738,12 +738,15 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 
 		path_to_levels = os.path.abspath(os.path.join(bundle_dir,'levels.json'))
 
+		if not os.path.isfile(path_to_levels):
+			path_to_levels="levels.json"
+			
 		with open(path_to_levels, 'r') as file:
 			# Load the data from the file using the json.load() function
 			level_data = json.load(file)
 			original_level=copy.deepcopy(level_data)
 	except:
-		traceback.print_exc()
+		#traceback.print_exc()
 		print("Can't load levels.json; exiting")
 		sys.exit()
 
