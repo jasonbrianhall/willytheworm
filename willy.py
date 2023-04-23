@@ -705,11 +705,14 @@ def main():
 		score=game(screen, currentlevel, level, SCALER, wasd, flash, numberofballs, mousesupport, fps, numberoflives=5)
 		game_score(screen, score)
 		level=1
+		pygame.display.set_caption('Willy the Worm Game Score')
+
 
 
 def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofballs=6, mousesupport=False, fps=10, numberoflives=5, jumpheight=3.5):
 
 	display_info = pygame.display.Info()
+	pygame.display.set_caption('Willy the Worm')
 
 	mixerdict={}
 

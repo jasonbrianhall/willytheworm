@@ -262,6 +262,7 @@ def main():
 		SCALER=SCALER2
 	#screen = pygame.display.set_mode((SCREEN_WIDTH * CHAR_WIDTH * SCALER, SCREEN_HEIGHT * CHAR_HEIGHT * SCALER), pygame.FULLSCREEN)
 	screen = pygame.display.set_mode((screen_width, screen_height), pygame.FULLSCREEN)
+	pygame.display.set_caption('Willy the Worm Editor')
 
 	intro(screen)
 	game(screen, SCALER)
