@@ -7,6 +7,7 @@ import traceback
 import sys
 import copy
 from willy import game as willymaingame
+import os
 
 # Constants
 #SCALER = 4
