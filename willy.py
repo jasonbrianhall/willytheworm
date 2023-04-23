@@ -155,7 +155,6 @@ def game_score(screen, score):
 						#hiscores["hiscoreT"].sort(reverse=True)
 						hiscores["hiscoreT"] = hiscores["hiscoreT"][:10]
 						exittheloop=True
-						print("Exiting the loop")
 
 					elif event.key == pygame.K_BACKSPACE:
 						name_input = name_input[:-1]
@@ -492,7 +491,6 @@ def intro(screen):
 
 def play_audio(mixerdict, filename):
 	bundle_dir = getattr(sys, '_MEIPASS', os.path.abspath(os.path.dirname(__file__)))
-	print(bundle_dir)
 	new_filename = os.path.abspath(os.path.join(bundle_dir,filename))
 
 	if mixerdict==None:
