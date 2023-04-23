@@ -77,10 +77,16 @@ Making distributable version.
 
 pip install pyinstaller
 
+
+# Willy keeps scores in the local directory because a temporary directory makes zero sense
+
 Linux:
     pyinstaller -F --add-binary "willy.chr:." --add-data "levels.json:." --add-binary "audio/*.mp3:audio/" willy.py
 Windows:
     pyinstaller -F --add-binary "willy.chr;." --add-data "levels.json;." --add-binary "audio/*.mp3;audio/" willy.py
+
+
+# EDWILLY Assumes you actually want to save the file levels.json and that must exist in the local directory
 
 Linux:
     pyinstaller -F --add-binary "willy.chr:." --add-binary "audio/*.mp3:audio/" edwilly.py
