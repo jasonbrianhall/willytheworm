@@ -12,6 +12,7 @@ import os
 from datetime import datetime, date
 import copy
 import os
+import math
 
 # Constants
 #SCALER = 4
@@ -617,7 +618,7 @@ def loadFont(SCALER, screenfillred=0, screenfillgreen=0, screenfillblue=255):
 				if bits[index] == 1:
 					char_img.putpixel((x, y), WHITE)
 
-		new_size = (char_img.size[0] * SCALER, char_img.size[1] * SCALER)
+		new_size = (int(char_img.size[0] * SCALER), int(char_img.size[1] * SCALER))
 		char_img = char_img.resize(new_size)
 		pygame_image = pygame.image.fromstring(char_img.tobytes(), char_img.size, char_img.mode).convert()
 		try:
@@ -641,12 +642,16 @@ def main():
 	screen_width = display_info.current_w
 	screen_height = display_info.current_h
 	# Keep current resolution but use the smallest scaler
-	SCALER1=int(screen_width/(SCREEN_WIDTH*CHAR_WIDTH))
-	SCALER2=int(screen_height/(SCREEN_HEIGHT*CHAR_HEIGHT))
+	SCALER1=(screen_width/(SCREEN_WIDTH*CHAR_WIDTH))
+	SCALER2=(screen_height/(SCREEN_HEIGHT*CHAR_HEIGHT))
 	if SCALER1<=SCALER2:
 		SCALER=SCALER1
 	else:
 		SCALER=SCALER2
+	#font = loadFont(SCALER, 0, screenfillgreen, screenfillblue)
+
+	#SCALER=math.floor(SCALER * 2) / 2
+	SCALER=math.floor(SCALER * 4) / 4
 	#screen = pygame.display.set_mode((SCREEN_WIDTH * CHAR_WIDTH * SCALER, SCREEN_HEIGHT * CHAR_HEIGHT * SCALER), pygame.FULLSCREEN)
 	screen = pygame.display.set_mode((screen_width, screen_height), pygame.FULLSCREEN)
 	wasd=False
@@ -720,7 +725,9 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 	screenfillred=0
 	screenfillblue=255
 	
-	
+	display_info = pygame.display.Info()
+	screen_width = display_info.current_w
+	screen_height = display_info.current_h
 
 	# Load Willy Font
 	font = loadFont(SCALER)
@@ -858,14 +865,16 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 				#display_info = pygame.display.Info()
 				screen_width = event.w
 				screen_height = event.h
-				SCALER1=int(screen_width/(SCREEN_WIDTH*CHAR_WIDTH))
-				SCALER2=int(screen_height/(SCREEN_HEIGHT*CHAR_HEIGHT))
+				SCALER1=(screen_width/(SCREEN_WIDTH*CHAR_WIDTH))
+				SCALER2=(screen_height/(SCREEN_HEIGHT*CHAR_HEIGHT))
 				if SCALER1<=SCALER2:
 					SCALER=SCALER1
 				else:
 					SCALER=SCALER2
-				if SCALER<1:
+				if SCALER<0.25:
 					SCALER=1
+				SCALER=math.floor(SCALER * 4) / 4
+
 				font = loadFont(SCALER, screenfillred, screenfillgreen, screenfillblue)
 
 
@@ -875,35 +884,39 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 					sys.exit(0)
 				if event.key == pygame.K_F11:
 					if fullscreen==1:
+						screen = pygame.display.set_mode((screen_width, screen_height), pygame.FULLSCREEN)
 						display_info = pygame.display.Info()
 						screen_width = display_info.current_w
 						screen_height = display_info.current_h
-						SCALER1=int(screen_width/(SCREEN_WIDTH*CHAR_WIDTH))
-						SCALER2=int(screen_height/(SCREEN_HEIGHT*CHAR_HEIGHT))
+						SCALER1=(screen_width/(SCREEN_WIDTH*CHAR_WIDTH))
+						SCALER2=screen_height/(SCREEN_HEIGHT*CHAR_HEIGHT)
 						if SCALER1<=SCALER2:
 							SCALER=SCALER1
 						else:
 							SCALER=SCALER2
+						SCALER=math.floor(SCALER * 4) / 4
+
 						#screen = pygame.display.set_mode((SCREEN_WIDTH * CHAR_WIDTH * SCALER, SCREEN_HEIGHT * CHAR_HEIGHT * SCALER), pygame.FULLSCREEN)
-						screen = pygame.display.set_mode((screen_width, screen_height), pygame.FULLSCREEN)
 
 						#pygame.display.toggle_fullscreen()
 						fullscreen=0
+						font = loadFont(SCALER, screenfillred, screenfillgreen, screenfillblue)
+
 					else:
 						display_info = pygame.display.Info()
 						screen_width = display_info.current_w
 						screen_height = display_info.current_h
-						SCALER1=int(screen_width/(SCREEN_WIDTH*CHAR_WIDTH))
-						SCALER2=int(screen_height/(SCREEN_HEIGHT*CHAR_HEIGHT))
+						SCALER1=screen_width/(SCREEN_WIDTH*CHAR_WIDTH)
+						SCALER2=screen_height/(SCREEN_HEIGHT*CHAR_HEIGHT)
 						if SCALER1<=SCALER2:
 							SCALER=SCALER1
 						else:
 							SCALER=SCALER2
+						SCALER=math.floor(SCALER * 4) / 4
 						sw=SCREEN_WIDTH*CHAR_WIDTH*SCALER
 						sh=SCREEN_HEIGHT*CHAR_HEIGHT*SCALER
 						screen = pygame.display.set_mode((sw, sh), pygame.RESIZABLE)
 						fullscreen=1
-						font = loadFont(SCALER, screenfillred, screenfillgreen, screenfillblue)
 
 				if event.key == pygame.K_F5:
 					if screenfillred==255:
@@ -1297,7 +1310,7 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 		screen.blit(char_img, (int(col) * CHAR_WIDTH * SCALER, int(row) * CHAR_HEIGHT * SCALER))
 
 		font_size = 8*SCALER
-		fontdata = pygame.font.SysFont(None, font_size)
+		fontdata = pygame.font.SysFont(None, int(font_size))
 
 
 		for ball in balls:
