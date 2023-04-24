@@ -728,7 +728,8 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 	display_info = pygame.display.Info()
 	screen_width = display_info.current_w
 	screen_height = display_info.current_h
-
+	orig_width  = screen_width
+	orig_height = screen_height
 	# Load Willy Font
 	font = loadFont(SCALER)
 
@@ -884,12 +885,12 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 					sys.exit(0)
 				if event.key == pygame.K_F11:
 					if fullscreen==1:
-						screen = pygame.display.set_mode((screen_width, screen_height), pygame.FULLSCREEN)
+						screen = pygame.display.set_mode((orig_width, orig_height), pygame.FULLSCREEN)
 						display_info = pygame.display.Info()
-						screen_width = display_info.current_w
-						screen_height = display_info.current_h
-						SCALER1=(screen_width/(SCREEN_WIDTH*CHAR_WIDTH))
-						SCALER2=screen_height/(SCREEN_HEIGHT*CHAR_HEIGHT)
+						#screen_width = display_info.current_w
+						#screen_height = display_info.current_h
+						SCALER1=orig_width/(SCREEN_WIDTH*CHAR_WIDTH)
+						SCALER2=orig_height/(SCREEN_HEIGHT*CHAR_HEIGHT)
 						if SCALER1<=SCALER2:
 							SCALER=SCALER1
 						else:
