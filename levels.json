@@ -5360,9 +5360,7 @@
             "6": "TACK",
             "7": "TACK",
             "8": "TACK",
-            "2": "UPSPRING",
             "10": "PRESENT",
-            "11": "UPSPRING",
             "13": "TACK",
             "14": "TACK",
             "15": "TACK",
@@ -5378,7 +5376,10 @@
             "31": "PRESENT",
             "32": "PRESENT",
             "33": "PRESENT",
-            "37": "LADDER"
+            "37": "LADDER",
+            "3": "UPSPRING",
+            "12": "UPSPRING",
+            "20": "UPSPRING"
         },
         "24": {
             "0": "PIPE27",
