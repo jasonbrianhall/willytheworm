@@ -6399,7 +6399,8 @@
             "36": "UPSPRING",
             "37": "UPSPRING",
             "38": "UPSPRING",
-            "0": "TACK"
+            "0": "TACK",
+            "39": "UPSPRING"
         },
         "9": {
             "0": "PIPE27",
@@ -6440,12 +6441,12 @@
             "35": "PIPE27",
             "36": "PIPE27",
             "37": "PIPE27",
-            "38": "PIPE27",
-            "39": "UPSPRING"
+            "38": "PIPE27"
         },
         "10": {
             "15": "TACK",
-            "35": "TACK"
+            "35": "TACK",
+            "39": "UPSPRING"
         },
         "11": {},
         "12": {
@@ -6572,8 +6573,6 @@
             "25": "UPSPRING",
             "26": "UPSPRING",
             "27": "UPSPRING",
-            "28": "UPSPRING",
-            "29": "UPSPRING",
             "30": "UPSPRING",
             "31": "UPSPRING",
             "32": "UPSPRING",
@@ -6631,12 +6630,15 @@
         },
         "20": {
             "11": "PRESENT",
-            "22": "TACK"
+            "22": "TACK",
+            "28": "UPSPRING",
+            "29": "UPSPRING"
         },
         "21": {
             "10": "PRESENT",
             "11": "PRESENT",
-            "12": "PRESENT"
+            "12": "PRESENT",
+            "39": "UPSPRING"
         },
         "22": {
             "0": "WILLY_RIGHT"
