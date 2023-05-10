@@ -944,34 +944,41 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 						screenfillblue=255
 					font = loadFont(SCALER, screenfillred, screenfillgreen, screenfillblue)
 
-					
+				keypressed=False	
 				if event.key == pygame.K_SPACE or (event.type == pygame.MOUSEBUTTONDOWN and event.button==1):
 				#if event.key == pygame.K_SPACE:
+					keypressed=True
 					y,x = willy_position
 					if (willy_yvelocity==0 and level_data[currentlevel][str(y + 1)][str(x)].startswith("PIPE")) or y==(MAX_HEIGHT-1):
 						willy_yvelocity=jumpheight
 						#print("Spacebar Pressed")
 						t = threading.Thread(target=play_audio, args=(mixerdict, "audio/jump.mp3",))
 						t.start()
-				elif (event.key == pygame.K_LEFT and wasd==False) or (event.key == pygame.K_a and wasd==True):
+				if (event.key == pygame.K_LEFT and wasd==False) or (event.key == pygame.K_a and wasd==True):
+					keypressed=True
 					willy_xvelocity=1
 					#print("Left Key Pressed")
 					willy_direction="LEFT"
 					ladder_direction="LEFT"
 
 				elif (event.key == pygame.K_RIGHT and wasd==False) or (event.key == pygame.K_d and wasd==True):
+					keypressed=True
 					willy_xvelocity=-1
 					#print("RIGHT Key Pressed")
 					willy_direction="RIGHT"
 					ladder_direction="RIGHT"
 				#elif event.key == pygame.K_UP or event.key == pygame.K_w or (event.type == pygame.MOUSEBUTTONDOWN and event.button==3):
-				elif (event.key == pygame.K_UP and wasd==False) or (event.key == pygame.K_w and wasd==True):
+				if (event.key == pygame.K_UP and wasd==False) or (event.key == pygame.K_w and wasd==True):
 					#print("Up Key Pressed")
 					ladder_direction="UP"
+					keypressed=True
+
 				elif (event.key == pygame.K_DOWN and wasd==False) or (event.key == pygame.K_s and wasd==True):
 					#print("Down Key Pressed")
 					ladder_direction="DOWN"
-				else:
+					keypressed=True
+
+				if keypressed==False:
 					#print("Any Key Pressed")
 					willy_xvelocity=0
 					ladder_direction=None
