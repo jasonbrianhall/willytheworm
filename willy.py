@@ -1120,9 +1120,10 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 			willy_yvelocity=0
 			willy_xvelocity=0'''		
 
-		willy_list = list(willy_position)
+		'''willy_list = list(willy_position)
 		if level_data[currentlevel][str(willy_list[0]+1)][str(willy_list[1])].startswith("LADDER") and level_data[currentlevel][str(willy_list[0])][str(willy_list[1])].startswith("EMPTY"):
 			willy_yvelocity=-1
+			print("Is this ever called")'''
 
 
 		if level_data[currentlevel][str(willy_position[0])][str(willy_position[1])].startswith("UPSPRING"):
@@ -1153,13 +1154,13 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 
 
 		# If willy is Jumping, check if theres a pipe beside him.
-		if willy_xvelocity>0:
+		'''if willy_xvelocity>0:
 			if str(y) in level_data[currentlevel] and str(x - 1) in level_data[currentlevel][str(y)] and level_data[currentlevel][str(y)][str(x - 1)].startswith("PIPE"):
 				willy_xvelocity=0
 
 		if willy_xvelocity<0:
 			if str(y) in level_data[currentlevel] and str(x + 1) in level_data[currentlevel][str(y)] and level_data[currentlevel][str(y)][str(x + 1)].startswith("PIPE"):
-				willy_xvelocity=0
+				willy_xvelocity=0'''
 
 
 		'''if willy_yvelocity>0:
