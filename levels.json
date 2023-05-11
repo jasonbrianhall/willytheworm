@@ -2462,8 +2462,7 @@
             "11": "SIDESPRING",
             "19": "LADDER",
             "21": "TACK",
-            "22": "TACK",
-            "0": "BALLPIT"
+            "22": "TACK"
         },
         "18": {
             "0": "PIPE27",
