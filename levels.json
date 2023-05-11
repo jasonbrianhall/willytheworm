@@ -2357,7 +2357,8 @@
     "level10": {
         "0": {
             "0": "BELL",
-            "3": "LADDER"
+            "3": "LADDER",
+            "9": "BALLPIT"
         },
         "1": {
             "0": "PIPE27",
@@ -2366,26 +2367,53 @@
             "3": "LADDER"
         },
         "2": {
-            "3": "LADDER",
-            "0": "BALLPIT"
+            "3": "LADDER"
         },
         "3": {
             "3": "LADDER"
         },
         "4": {
-            "3": "LADDER"
+            "3": "LADDER",
+            "15": "UPSPRING",
+            "23": "TACK",
+            "24": "PIPE8",
+            "28": "PIPE8",
+            "29": "TACK",
+            "31": "PIPE8",
+            "32": "TACK",
+            "34": "PIPE8"
         },
         "5": {
             "5": "TACK",
-            "3": "LADDER"
+            "3": "LADDER",
+            "15": "PIPE27",
+            "16": "PIPE27",
+            "17": "PIPE27",
+            "18": "PIPE27",
+            "19": "PIPE27",
+            "20": "PIPE27",
+            "21": "PIPE27",
+            "22": "PIPE27",
+            "23": "PIPE27",
+            "24": "PIPE10",
+            "26": "PIPE27",
+            "28": "PIPE22",
+            "29": "PIPE27",
+            "31": "PIPE22",
+            "32": "PIPE27",
+            "34": "PIPE22",
+            "35": "PIPE27",
+            "36": "PIPE27",
+            "37": "PIPE27",
+            "38": "PIPE27"
         },
         "6": {
             "2": "SIDESPRING",
             "4": "TACK",
             "5": "TACK",
             "6": "TACK",
-            "7": "LADDER",
-            "3": "LADDER"
+            "3": "LADDER",
+            "39": "UPSPRING"
         },
         "7": {
             "0": "PIPE27",
@@ -2395,38 +2423,44 @@
             "4": "PIPE27",
             "5": "PIPE27",
             "6": "PIPE27",
-            "7": "LADDER",
             "8": "PIPE27",
             "9": "PIPE27",
             "10": "PIPE27"
         },
         "8": {
-            "7": "LADDER"
+            "39": "UPSPRING"
         },
-        "9": {
-            "7": "LADDER"
-        },
-        "10": {
-            "7": "LADDER"
-        },
+        "9": {},
+        "10": {},
         "11": {
             "4": "TACK",
-            "7": "LADDER",
             "10": "TACK",
             "13": "PRESENT",
-            "14": "PRESENT"
+            "14": "PRESENT",
+            "20": "TACK",
+            "39": "UPSPRING"
         },
         "12": {
             "1": "LADDER",
             "3": "TACK",
             "4": "TACK",
             "5": "TACK",
-            "7": "LADDER",
             "9": "TACK",
             "10": "TACK",
             "11": "TACK",
             "13": "PRESENT",
-            "14": "PRESENT"
+            "14": "PRESENT",
+            "16": "PIPE8",
+            "19": "TACK",
+            "20": "TACK",
+            "21": "TACK",
+            "24": "PIPE8",
+            "28": "PIPE8",
+            "29": "TACK",
+            "31": "PIPE8",
+            "32": "TACK",
+            "34": "PIPE8",
+            "35": "TACK"
         },
         "13": {
             "0": "PIPE27",
@@ -2443,7 +2477,27 @@
             "11": "PIPE27",
             "12": "PIPE27",
             "13": "PIPE27",
-            "14": "PIPE27"
+            "14": "PIPE27",
+            "16": "PIPE22",
+            "17": "PIPE27",
+            "18": "PIPE27",
+            "19": "PIPE27",
+            "20": "PIPE27",
+            "21": "PIPE27",
+            "22": "PIPE27",
+            "23": "PIPE27",
+            "24": "PIPE10",
+            "26": "PIPE27",
+            "28": "PIPE22",
+            "29": "PIPE27",
+            "31": "PIPE22",
+            "32": "PIPE27",
+            "34": "PIPE22",
+            "35": "PIPE27",
+            "36": "PIPE27",
+            "37": "PIPE27",
+            "38": "PIPE27",
+            "39": "PIPE27"
         },
         "14": {
             "1": "LADDER"
@@ -7904,8 +7958,8 @@
     },
     "level10PIT": {
         "PRIMARYBALLPIT": [
-            2,
-            0
+            0,
+            9
         ]
     },
     "level11PIT": {
