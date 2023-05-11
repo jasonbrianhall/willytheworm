@@ -42,12 +42,12 @@
             "38": "PIPE27",
             "39": "PIPE27"
         },
-        "0": {},
-        "1": {
-            "1": "BALLPIT"
+        "0": {
+            "0": "BELL",
+            "30": "BALLPIT"
         },
+        "1": {},
         "2": {
-            "4": "BELL",
             "8": "TACK",
             "12": "PRESENT",
             "16": "TACK",
@@ -99,16 +99,38 @@
             "39": "PIPE27"
         },
         "4": {
-            "38": "LADDER"
+            "38": "LADDER",
+            "24": "PRESENT",
+            "25": "PRESENT",
+            "26": "PRESENT",
+            "10": "PRESENT",
+            "11": "PRESENT",
+            "12": "PRESENT",
+            "37": "UPSPRING"
         },
         "5": {
-            "38": "LADDER"
+            "38": "LADDER",
+            "24": "PIPE23",
+            "25": "PIPE27",
+            "26": "PIPE9",
+            "10": "PIPE23",
+            "11": "PIPE27",
+            "12": "PIPE9"
         },
         "6": {
-            "38": "LADDER"
+            "38": "LADDER",
+            "23": "UPSPRING",
+            "24": "PIPE22",
+            "25": "PIPE27",
+            "26": "PIPE10",
+            "9": "UPSPRING",
+            "10": "PIPE22",
+            "11": "PIPE27",
+            "12": "PIPE10"
         },
         "7": {
-            "38": "LADDER"
+            "38": "LADDER",
+            "37": "UPSPRING"
         },
         "8": {
             "0": "LADDER",
@@ -119,20 +141,43 @@
             "38": "LADDER"
         },
         "10": {
-            "0": "LADDER"
+            "0": "LADDER",
+            "1": "UPSPRING"
         },
         "11": {
-            "0": "LADDER"
+            "0": "LADDER",
+            "25": "PRESENT",
+            "26": "PRESENT",
+            "27": "PRESENT",
+            "10": "PRESENT",
+            "11": "PRESENT",
+            "12": "PRESENT"
         },
         "12": {
-            "0": "LADDER"
+            "0": "LADDER",
+            "25": "PIPE23",
+            "26": "PIPE27",
+            "27": "PIPE9",
+            "10": "PIPE23",
+            "11": "PIPE27",
+            "12": "PIPE9",
+            "1": "UPSPRING"
         },
         "13": {
-            "0": "LADDER"
+            "0": "LADDER",
+            "25": "PIPE22",
+            "26": "PIPE27",
+            "27": "PIPE10",
+            "28": "UPSPRING",
+            "10": "PIPE22",
+            "11": "PIPE27",
+            "12": "PIPE10",
+            "13": "UPSPRING"
         },
         "14": {
             "0": "LADDER",
-            "26": "PRESENT"
+            "26": "PRESENT",
+            "1": "UPSPRING"
         },
         "15": {
             "0": "LADDER",
@@ -184,16 +229,29 @@
             "38": "PIPE27"
         },
         "17": {
-            "37": "LADDER"
+            "37": "LADDER",
+            "21": "PRESENT",
+            "36": "UPSPRING"
         },
         "18": {
-            "37": "LADDER"
+            "37": "LADDER",
+            "20": "PRESENT",
+            "21": "PRESENT",
+            "22": "PRESENT"
         },
         "19": {
-            "37": "LADDER"
+            "37": "LADDER",
+            "20": "PIPE23",
+            "21": "PIPE27",
+            "22": "PIPE9",
+            "36": "UPSPRING"
         },
         "20": {
-            "37": "LADDER"
+            "37": "LADDER",
+            "20": "PIPE22",
+            "21": "PIPE27",
+            "22": "PIPE10",
+            "23": "UPSPRING"
         },
         "21": {
             "37": "LADDER"
@@ -203,7 +261,8 @@
             "11": "PRESENT",
             "16": "TACK",
             "27": "TACK",
-            "37": "LADDER"
+            "37": "LADDER",
+            "36": "UPSPRING"
         },
         "23": {
             "0": "WILLY_RIGHT",
@@ -7820,8 +7879,8 @@
     },
     "level8PIT": {
         "PRIMARYBALLPIT": [
-            1,
-            1
+            0,
+            30
         ]
     },
     "level10PIT": {
