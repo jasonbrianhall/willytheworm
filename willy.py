@@ -832,11 +832,13 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 				#print("Left Key Pressed")
 				willy_direction="LEFT"
 				ladder_direction="LEFT"
+				willy_movement="LEFT"
 			elif mouse_movement[0] > 50:
 				willy_xvelocity=-1
 				#print("RIGHT Key Pressed")
 				willy_direction="RIGHT"
 				ladder_direction="RIGHT"
+				willy_movement="RIGHT"
 			if mouse_movement[1] < -50:
 				ladder_direction="UP"
 			elif mouse_movement[1] > 50:
@@ -854,6 +856,7 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 					#print("Any Key Pressed")
 					willy_xvelocity=0
 					ladder_direction=None
+					willy_movement=None
 
 				else:
 					y,x = willy_position
