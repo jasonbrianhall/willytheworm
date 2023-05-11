@@ -13,7 +13,6 @@
             "8": "PIPE27",
             "9": "PIPE27",
             "10": "PIPE27",
-            "11": "PIPE27",
             "12": "PIPE27",
             "13": "PIPE27",
             "14": "PIPE27",
@@ -40,7 +39,8 @@
             "36": "PIPE27",
             "37": "PIPE27",
             "38": "PIPE27",
-            "39": "PIPE27"
+            "39": "PIPE27",
+            "11": "TACK"
         },
         "0": {
             "0": "BELL",
@@ -61,7 +61,6 @@
             "1": "PIPE27",
             "2": "PIPE27",
             "3": "PIPE27",
-            "4": "PIPE27",
             "5": "PIPE27",
             "6": "PIPE27",
             "7": "PIPE27",
@@ -96,7 +95,8 @@
             "36": "PIPE27",
             "37": "PIPE27",
             "38": "LADDER",
-            "39": "PIPE27"
+            "39": "PIPE27",
+            "4": "TACK"
         },
         "4": {
             "38": "LADDER",
@@ -106,7 +106,10 @@
             "10": "PRESENT",
             "11": "PRESENT",
             "12": "PRESENT",
-            "37": "UPSPRING"
+            "37": "UPSPRING",
+            "3": "PRESENT",
+            "4": "PRESENT",
+            "5": "PRESENT"
         },
         "5": {
             "38": "LADDER",
@@ -115,7 +118,10 @@
             "26": "PIPE9",
             "10": "PIPE23",
             "11": "PIPE27",
-            "12": "PIPE9"
+            "12": "PIPE9",
+            "3": "PIPE35",
+            "4": "PIPE25",
+            "5": "PIPE6"
         },
         "6": {
             "38": "LADDER",
@@ -126,7 +132,11 @@
             "9": "UPSPRING",
             "10": "PIPE22",
             "11": "PIPE27",
-            "12": "PIPE10"
+            "12": "PIPE10",
+            "3": "PIPE34",
+            "4": "PIPE24",
+            "5": "PIPE12",
+            "6": "UPSPRING"
         },
         "7": {
             "38": "LADDER",
@@ -219,39 +229,49 @@
             "28": "PIPE27",
             "29": "PIPE27",
             "30": "PIPE27",
-            "31": "PIPE27",
             "32": "PIPE27",
             "33": "PIPE27",
             "34": "PIPE27",
             "35": "PIPE27",
             "36": "PIPE27",
             "37": "LADDER",
-            "38": "PIPE27"
+            "38": "PIPE27",
+            "31": "TACK"
         },
         "17": {
             "37": "LADDER",
             "21": "PRESENT",
-            "36": "UPSPRING"
+            "36": "UPSPRING",
+            "31": "PRESENT"
         },
         "18": {
             "37": "LADDER",
             "20": "PRESENT",
             "21": "PRESENT",
-            "22": "PRESENT"
+            "22": "PRESENT",
+            "30": "PRESENT",
+            "31": "PRESENT",
+            "32": "PRESENT"
         },
         "19": {
             "37": "LADDER",
             "20": "PIPE23",
             "21": "PIPE27",
             "22": "PIPE9",
-            "36": "UPSPRING"
+            "36": "UPSPRING",
+            "30": "PIPE23",
+            "31": "PIPE25",
+            "32": "PIPE9"
         },
         "20": {
             "37": "LADDER",
             "20": "PIPE22",
             "21": "PIPE27",
             "22": "PIPE10",
-            "23": "UPSPRING"
+            "23": "UPSPRING",
+            "30": "PIPE22",
+            "31": "PIPE24",
+            "32": "PIPE10"
         },
         "21": {
             "37": "LADDER"
