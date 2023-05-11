@@ -993,6 +993,7 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 			if not (str(y + 1) in level_data[currentlevel] and str(x) in level_data[currentlevel][str(y + 1)] and level_data[currentlevel][str(y + 1)][str(x)].startswith("PIPE")):
 				if willy_yvelocity==0 and not (level_data[currentlevel][str(y)][str(x)].startswith("LADDER") or level_data[currentlevel][str(y+1)][str(x)].startswith("LADDER")):
 					willy_yvelocity = -1
+					willy_xvelocity = 0
 			else:
 				if willy_yvelocity<=0:
 					willy_yvelocity=0
