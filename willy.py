@@ -785,6 +785,7 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 	score=0
 	bonus=1000
 	fullscreen=0
+	willy_movement=None
 	#numberoflives=5
 	#numberofballs=6
 	ballkilledwilly=False
@@ -960,13 +961,14 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 					#print("Left Key Pressed")
 					willy_direction="LEFT"
 					ladder_direction="LEFT"
-
+					willy_movement="LEFT"
 				elif (event.key == pygame.K_RIGHT and wasd==False) or (event.key == pygame.K_d and wasd==True):
 					keypressed=True
 					willy_xvelocity=-1
 					#print("RIGHT Key Pressed")
 					willy_direction="RIGHT"
 					ladder_direction="RIGHT"
+					willy_movement="RIGHT"
 				#elif event.key == pygame.K_UP or event.key == pygame.K_w or (event.type == pygame.MOUSEBUTTONDOWN and event.button==3):
 				if (event.key == pygame.K_UP and wasd==False) or (event.key == pygame.K_w and wasd==True):
 					#print("Up Key Pressed")
@@ -982,6 +984,7 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 					#print("Any Key Pressed")
 					willy_xvelocity=0
 					ladder_direction=None
+					willy_movement="None"
 
 
 		# Clear the screen
@@ -997,6 +1000,10 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 			else:
 				if willy_yvelocity<=0:
 					willy_yvelocity=0
+					if willy_movement=="LEFT":
+						willy_xvelocity=1
+					elif willy_movement=="RIGHT":
+						willy_xvelocity=-1
 
 		for ball in balls:
 			#print(balls[ball])
