@@ -1000,6 +1000,7 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 				if willy_yvelocity==0 and not (level_data[currentlevel][str(y)][str(x)].startswith("LADDER") or level_data[currentlevel][str(y+1)][str(x)].startswith("LADDER")):
 					willy_yvelocity = -1
 					willy_xvelocity = 0
+					willy_movement=None
 			else:
 				if willy_yvelocity<=0:
 					willy_yvelocity=0
@@ -1021,6 +1022,8 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 		
 		if level_data[currentlevel][str(willy_position[0])][str(willy_position[1])].startswith("TACK") or bonus<=0 or ballkilledwilly==True or level_data[currentlevel][str(willy_position[0])][str(willy_position[1])].startswith("BELL"):
 			ballkilledwilly=False
+			willy_yvelocity = 0
+			willy_xvelocity = 0
 			if not level_data[currentlevel][str(willy_position[0])][str(willy_position[1])].startswith("BELL"):
 				'''with open('levels.json', 'r') as file:
 					# Load the data from the file using the json.load() function
