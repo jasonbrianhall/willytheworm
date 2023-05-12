@@ -1155,8 +1155,10 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 					t.start()
 				if willy_direction=="LEFT" and willy_xvelocity!=0:
 					willy_direction="RIGHT"
+					willy_movement="RIGHT"
 				elif willy_direction=="RIGHT" and willy_xvelocity!=0:
 					willy_direction="LEFT"
+					willy_movement="RIGHT"
 		else:
 			flipped=0
 
