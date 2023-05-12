@@ -953,7 +953,7 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 				#if event.key == pygame.K_SPACE:
 					keypressed=True
 					y,x = willy_position
-					if (willy_yvelocity==0 and level_data[currentlevel][str(y + 1)][str(x)].startswith("PIPE")) or y==(MAX_HEIGHT-1):
+					if (willy_yvelocity<=0 and level_data[currentlevel][str(y + 1)][str(x)].startswith("PIPE")) or y==(MAX_HEIGHT-1):
 						willy_yvelocity=jumpheight
 						#print("Spacebar Pressed")
 						t = threading.Thread(target=play_audio, args=(mixerdict, "audio/jump.mp3",))
@@ -1002,12 +1002,12 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 					willy_xvelocity = 0
 					#willy_movement=None
 			else:
-				if willy_yvelocity<=0:
-					willy_yvelocity=0
-					if willy_movement=="LEFT":
-						willy_xvelocity=1
-					elif willy_movement=="RIGHT":
-						willy_xvelocity=-1
+				'''if willy_yvelocity<=0:
+					willy_yvelocity=0'''
+				if willy_movement=="LEFT":
+					willy_xvelocity=1
+				elif willy_movement=="RIGHT":
+					willy_xvelocity=-1
 
 		for ball in balls:
 			#print(balls[ball])
@@ -1024,6 +1024,7 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 			ballkilledwilly=False
 			willy_yvelocity = 0
 			willy_xvelocity = 0
+			willy_movement = None
 			if not level_data[currentlevel][str(willy_position[0])][str(willy_position[1])].startswith("BELL"):
 				'''with open('levels.json', 'r') as file:
 					# Load the data from the file using the json.load() function
