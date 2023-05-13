@@ -922,8 +922,9 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 						sh=SCREEN_HEIGHT*CHAR_HEIGHT*SCALER
 						screen = pygame.display.set_mode((sw, sh), pygame.RESIZABLE)
 						fullscreen=1
-
+				keypressed=False	
 				if event.key == pygame.K_F5:
+					keypressed=True
 					if screenfillred==255:
 						screenfillred=0
 					elif screenfillred>=0 and screenfillred<192:
@@ -932,6 +933,7 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 						screenfillred=255
 					font = loadFont(SCALER, screenfillred, screenfillgreen, screenfillblue)
 				if event.key == pygame.K_F6:
+					keypressed=True
 					if screenfillgreen==255:
 						screenfillgreen=0
 					elif screenfillgreen>=0 and screenfillgreen<192:
@@ -940,6 +942,7 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 						screenfillgreen=255
 					font = loadFont(SCALER, screenfillred, screenfillgreen, screenfillblue)
 				if event.key == pygame.K_F7:
+					keypressed=True					
 					if screenfillblue==255:
 						screenfillblue=0
 					elif screenfillblue>=0 and screenfillblue<192:
@@ -948,7 +951,6 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 						screenfillblue=255
 					font = loadFont(SCALER, screenfillred, screenfillgreen, screenfillblue)
 
-				keypressed=False	
 				if event.key == pygame.K_SPACE or (event.type == pygame.MOUSEBUTTONDOWN and event.button==1):
 				#if event.key == pygame.K_SPACE:
 					keypressed=True
