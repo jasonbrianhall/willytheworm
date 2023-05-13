@@ -886,6 +886,7 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 			if event.type == pygame.KEYDOWN:
 				if event.key == pygame.K_ESCAPE:
 					print("Goodbye.  Thank you for playing Willy the Worm!!!")
+					pygame.quit()
 					sys.exit(0)
 				if event.key == pygame.K_F11:
 					if fullscreen==1:
