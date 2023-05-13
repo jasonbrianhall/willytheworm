@@ -1000,7 +1000,8 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 		if willy_position is not None:
 			y, x = willy_position
 			if not (str(y + 1) in level_data[currentlevel] and str(x) in level_data[currentlevel][str(y + 1)] and level_data[currentlevel][str(y + 1)][str(x)].startswith("PIPE")):
-				if willy_yvelocity==0 and not (level_data[currentlevel][str(y)][str(x)].startswith("LADDER") or level_data[currentlevel][str(y+1)][str(x)].startswith("LADDER")):
+				'''if willy_yvelocity==0 and not (level_data[currentlevel][str(y)][str(x)].startswith("LADDER") or level_data[currentlevel][str(y+1)][str(x)].startswith("LADDER")):'''
+				if willy_yvelocity==0 and not (level_data[currentlevel][str(y)][str(x)].startswith("LADDER")):
 					willy_yvelocity = -1
 					willy_xvelocity = 0
 					#willy_movement=None
