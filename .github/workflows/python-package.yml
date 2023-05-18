@@ -37,4 +37,4 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
         # check if I can build the .exe file
         pyinstaller -F --add-binary "willy.chr:." --add-data "levels.json:." --add-binary "audio/*.mp3:audio/" willy.py
-        pyinstaller -F --add-binary "willy.chr;." --add-binary "audio/*.mp3;audio/" edwilly.py
+        pyinstaller -F --add-binary "willy.chr:." --add-binary "audio/*.mp3:audio/" edwilly.py
