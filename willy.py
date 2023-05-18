@@ -1488,6 +1488,9 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 
 	# Clean up
 	pygame.quit()
+
+def test_placeholder():
+	pass
 	
 if __name__ == '__main__':
 	main()
