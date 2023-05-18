@@ -27,6 +27,10 @@ NEWLIFEPOINTS = 2000
 lock = threading.Lock()
 
 def game_score(screen, score):
+	screenfillred=0
+	screenfillgreen=0
+	screenfillblue=255
+
 	pygame.display.set_caption('Willy the Worm Game Score')
 
 	font = pygame.font.SysFont("Courier", 32)
