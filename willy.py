@@ -821,7 +821,7 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 		balls[str(counter)]["Direction"] = None
 		counter += 1
 	liveadder=0
-
+	newlevel=False
 	while running:
 		clock.tick(fps)	 # limit the frame rate so Willy won't travel as fast (Willy travels at the frame rate)
 		if int(score/NEWLIFEPOINTS)>liveadder:
@@ -989,7 +989,8 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 					#print("Down Key Pressed")
 					ladder_direction="DOWN"
 					keypressed=True
-
+				elif (event.key == pygame.K_l and (pygame.K_LCTRL or pygame.K_RCTRL)):
+					newlevel=True
 				if keypressed==False:
 					#print("Any Key Pressed")
 					willy_xvelocity=0
@@ -1028,12 +1029,22 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 		if level_data[currentlevel][str(willy_position[0]+1)][str(willy_position[1])].startswith("PIPE18"):
 			level_data[currentlevel][str(willy_position[0]+1)][str(willy_position[1])]="EMPTY"
 		
-		if level_data[currentlevel][str(willy_position[0])][str(willy_position[1])].startswith("TACK") or bonus<=0 or ballkilledwilly==True or level_data[currentlevel][str(willy_position[0])][str(willy_position[1])].startswith("BELL"):
+		if newlevel==True or level_data[currentlevel][str(willy_position[0])][str(willy_position[1])].startswith("TACK") or bonus<=0 or ballkilledwilly==True or level_data[currentlevel][str(willy_position[0])][str(willy_position[1])].startswith("BELL"):
 			ballkilledwilly=False
 			willy_yvelocity = 0
 			willy_xvelocity = 0
 			willy_movement = None
-			if not level_data[currentlevel][str(willy_position[0])][str(willy_position[1])].startswith("BELL"):
+			if newlevel==True:
+				newlevel=False
+				level_data=copy.deepcopy(original_level)
+				level+=1
+				if level>MAX_LEVELS:
+					level=1
+				currentlevel="level" + str(level)
+				if level_data.get(currentlevel)==None:
+					#level_data[curentlevel]={}
+					level_data[currentlevel]={}
+			elif not level_data[currentlevel][str(willy_position[0])][str(willy_position[1])].startswith("BELL"):
 				'''with open('levels.json', 'r') as file:
 					# Load the data from the file using the json.load() function
 					level_data = json.load(file)'''
