@@ -279,7 +279,7 @@ def game_score(screen, score):
 		formatted_number = '{:2d}'.format(x+1)
 		formatted_score = '{:5d}'.format(hiscores["hiscoreP"][x][1])
 		username=hiscores["hiscoreP"][x][0]
-		message_input_text = font.render(formatted_number + "	  " + formatted_score + "	  " + username, False, (255, 255, 0))
+		message_input_text = font.render(formatted_number + " "*5 + formatted_score + " "*5 + username, False, (255, 255, 0))
 		
 		screen.blit(message_input_text, (table_x+10, messagepointer))
 		messagepointer+=incrementer
@@ -309,7 +309,7 @@ def game_score(screen, score):
 		formatted_number = '{:2d}'.format(x+1)
 		formatted_score = '{:5d}'.format(hiscores["hiscoreT"][x][1])
 		username=hiscores["hiscoreT"][x][0]
-		message_input_text = font.render(formatted_number + "	  " + formatted_score + "	  " + username, False, (0, 255, 255))
+		message_input_text = font.render(formatted_number + " "*5 + formatted_score + ""*5 + username, False, (0, 255, 255))
 		
 		screen.blit(message_input_text, (table_x+10, messagepointer))
 		messagepointer+=incrementer
