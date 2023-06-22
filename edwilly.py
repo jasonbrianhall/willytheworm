@@ -470,10 +470,10 @@ def game(screen, SCALER):
 				exittheloop=False
 				while exittheloop==False:
 					if currentitem==temp:
-						 exittheloop=True
+						exittheloop=True
 					else:
-						 previous=currentitem
-						 currentitem=next(iterator)
+						previous=currentitem
+						currentitem=next(iterator)
 				currentitem=previous
 				try:
 					level_data[currentlevel][str(row)][str(col)] = currentitem[0]
