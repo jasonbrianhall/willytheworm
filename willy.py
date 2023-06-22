@@ -43,7 +43,7 @@ def game_score(screen, score):
 	# Create the hidden directory
 	willy_dir = os.path.join(home_dir, ".willytheworm")
 	if not os.path.exists(willy_dir):
-	    os.mkdir(willy_dir)
+		os.mkdir(willy_dir)
 
 	# Create the file in the hidden directory
 	hiscore_file = os.path.join(willy_dir, "willy.scr")
@@ -243,7 +243,7 @@ def game_score(screen, score):
 						pygame.display.toggle_fullscreen()
 						screen.fill((screenfillred,screenfillgreen,screenfillblue)) # clear the screen
 					elif event.key == pygame.K_ESCAPE:
-						print("Goodbye.  Thank you for playing Willy the Worm!!!")
+						print("Goodbye.	 Thank you for playing Willy the Worm!!!")
 						sys.exit(0)
 					else:
 						exittheloop=True
@@ -279,7 +279,7 @@ def game_score(screen, score):
 		formatted_number = '{:2d}'.format(x+1)
 		formatted_score = '{:5d}'.format(hiscores["hiscoreP"][x][1])
 		username=hiscores["hiscoreP"][x][0]
-		message_input_text = font.render(formatted_number + "     " + formatted_score + "     " + username, False, (255, 255, 0))
+		message_input_text = font.render(formatted_number + "	  " + formatted_score + "	  " + username, False, (255, 255, 0))
 		
 		screen.blit(message_input_text, (table_x+10, messagepointer))
 		messagepointer+=incrementer
@@ -309,7 +309,7 @@ def game_score(screen, score):
 		formatted_number = '{:2d}'.format(x+1)
 		formatted_score = '{:5d}'.format(hiscores["hiscoreT"][x][1])
 		username=hiscores["hiscoreT"][x][0]
-		message_input_text = font.render(formatted_number + "     " + formatted_score + "     " + username, False, (0, 255, 255))
+		message_input_text = font.render(formatted_number + "	  " + formatted_score + "	  " + username, False, (0, 255, 255))
 		
 		screen.blit(message_input_text, (table_x+10, messagepointer))
 		messagepointer+=incrementer
@@ -505,7 +505,7 @@ def intro(screen):
 					screen.fill((0, 0, 255))
 
 				if event.key == pygame.K_ESCAPE:
-					print("Goodbye.  Thank you for playing Willy the Worm!!!")
+					print("Goodbye.	 Thank you for playing Willy the Worm!!!")
 					sys.exit(0)
 
 
@@ -732,7 +732,7 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 	display_info = pygame.display.Info()
 	screen_width = display_info.current_w
 	screen_height = display_info.current_h
-	orig_width  = screen_width
+	orig_width	= screen_width
 	orig_height = screen_height
 	# Load Willy Font
 	font = loadFont(SCALER)
@@ -852,7 +852,7 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 			# Close Event
 			if event.type == pygame.QUIT:
 				running = False
-				print("Goodbye.  Thank you for playing Willy the Worm!!!")
+				print("Goodbye.	 Thank you for playing Willy the Worm!!!")
 				sys.exit(0)
 			# Mouse Events
 			if mousesupport==True and event.type == pygame.MOUSEBUTTONDOWN:
@@ -889,7 +889,7 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 
 			if event.type == pygame.KEYDOWN:
 				if event.key == pygame.K_ESCAPE:
-					print("Goodbye.  Thank you for playing Willy the Worm!!!")
+					print("Goodbye.	 Thank you for playing Willy the Worm!!!")
 					pygame.quit()
 					sys.exit(0)
 				if event.key == pygame.K_F11:
