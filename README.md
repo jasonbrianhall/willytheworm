@@ -105,14 +105,18 @@ This will create a directory named dist with willy.exe or edwilly.exe (or just w
 Compiling with nutika
 
 pip install nuitka
-nuitka3 willy.py 
 nuitka3 --follow-imports willy.py
 # Creates willy.bin
 
 pip install nuitka
-nuitka3 edwilly.py 
 nuitka3 --follow-imports edwilly.py
 # Creates edwilly.bin
+
+Compiling as standalone
+sudo yum install patchelf
+nuitka3 --follow-imports --standalone willy.py
+nuitka3 --follow-imports --standalone edwilly.py
+
 
 
 Compiling with Cython (not recommended since it doesn't compile dependencies)
