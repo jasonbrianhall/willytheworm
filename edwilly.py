@@ -135,7 +135,7 @@ def intro(screen):
 					screen.fill((0, 0, 255))
 
 				if event.key == pygame.K_ESCAPE:
-					print("Goodbye.  Thank you for playing Willy the Worm!!!")
+					print("Goodbye.	 Thank you for playing Willy the Worm!!!")
 					sys.exit(0)
 
 
@@ -204,6 +204,10 @@ def loadFont(SCALER):
 	IMAGE_HEIGHT = 256
 
 	# Open the willy.chr file
+	if getattr(sys, 'frozen', False):
+		__file__ = os.path.dirname(sys.executable)
+	else:
+		__file__ = "."
 	bundle_dir = getattr(sys, '_MEIPASS', os.path.abspath(os.path.dirname(__file__)))
 
 	path_to_chr = os.path.abspath(os.path.join(bundle_dir,'willy.chr'))
@@ -278,7 +282,7 @@ def game(screen, SCALER):
 			level = int(sys.argv[1])
 		except:
 			level = 1
-    
+	
 	if level>0 and level <= MAX_LEVELS:
 		currentlevel="level" + str(level)
 	else:
@@ -523,5 +527,5 @@ def game(screen, SCALER):
 	pygame.quit()
 	
 if __name__ == '__main__':
-    main()
+	main()
 
