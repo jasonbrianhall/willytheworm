@@ -114,8 +114,8 @@ nuitka3 --follow-imports edwilly.py
 
 Compiling as standalone
 sudo yum install patchelf
-nuitka3 --follow-imports --standalone willy.py
-nuitka3 --follow-imports --standalone edwilly.py
+nuitka3 --follow-imports --standalone --enable-plugin=pyqt5 willy.py
+nuitka3 --follow-imports --standalone --enable-plugin=pyqt5 edwilly.py
 
 
 
