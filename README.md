@@ -114,3 +114,12 @@ nuitka3 edwilly.py
 nuitka3 --follow-imports edwilly.py
 # Creates edwilly.bin
 
+
+Compiling with Cython (not recommended since it doesn't compile dependencies)
+
+pip install cython
+cython --embed -o willy.c willy.py
+gcc -Os -I /usr/include/python3.11 -o willy willy.c -lpython3.11 -lpthread -lm -lutil -ldl
+
+cython --embed -o edwilly.c edwilly.py
+gcc -Os -I /usr/include/python3.11 -o edwilly edwilly.c -lpython3.11 -lpthread -lm -lutil -ldl
