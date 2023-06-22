@@ -510,6 +510,10 @@ def intro(screen):
 
 
 def play_audio(mixerdict, filename):
+	if getattr(sys, 'frozen', False):
+		__file__ = os.path.dirname(sys.executable)
+	else:
+		__file__ = "."
 	bundle_dir = getattr(sys, '_MEIPASS', os.path.abspath(os.path.dirname(__file__)))
 	new_filename = os.path.abspath(os.path.join(bundle_dir,filename))
 
@@ -590,6 +594,10 @@ def loadFont(SCALER, screenfillred=0, screenfillgreen=0, screenfillblue=255):
 	IMAGE_HEIGHT = 256
 
 	# Open the willy.chr file
+	if getattr(sys, 'frozen', False):
+		__file__ = os.path.dirname(sys.executable)
+	else:
+		__file__ = "."
 	bundle_dir = getattr(sys, '_MEIPASS', os.path.abspath(os.path.dirname(__file__)))
 
 	path_to_chr = os.path.abspath(os.path.join(bundle_dir,'willy.chr'))
@@ -746,6 +754,10 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 
 
 	try:
+		if getattr(sys, 'frozen', False):
+			__file__ = os.path.dirname(sys.executable)
+		else:
+			__file__ = "."
 		bundle_dir = getattr(sys, '_MEIPASS', os.path.abspath(os.path.dirname(__file__)))
 
 		path_to_levels = os.path.abspath(os.path.join(bundle_dir,'levels.json'))
