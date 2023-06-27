@@ -282,7 +282,7 @@ def main():
 	pygame.display.set_caption('Willy the Worm Editor')
 
 	levelFile="levels.json"
-	helpmessage=sys.argv[0] + "-L levelsFile -h (HELP) --help (help)"
+	helpmessage=sys.argv[0] + " -L levelsFile -h (HELP) --help (help)"
 
 	i=1
 	while i < len(sys.argv):
