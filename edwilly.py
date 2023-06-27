@@ -435,7 +435,7 @@ def game(screen, SCALER, levelFile="levels.json"):
 				elif event.key == pygame.K_q or event.key==pygame.K_ESCAPE:
 					running=False
 				elif event.key == pygame.K_p:
-					willymaingame(screen, currentlevel, level, SCALER, numberoflives=1)
+					willymaingame(screen, currentlevel, level, SCALER, numberoflives=1, levelFile=levelFile)
 					# Stop Hiding the mouse cursor if it's hidden
 					pygame.mouse.set_visible(True)
 
