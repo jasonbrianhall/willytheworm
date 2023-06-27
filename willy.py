@@ -672,7 +672,7 @@ def main():
 	flash=True
 	numberofballs=9
 	mousesupport=False
-	helpmessage=sys.argv[0] + " -l level -b numberofballs -w useWASDkeyboard -f (Disables Flash) -F framespersecond (Higher the number, the faster the game) -m (Enables Mouse Support) -h (HELP) --help (help)"
+	helpmessage=sys.argv[0] + " -l level -L levelsFile -b numberofballs -w useWASDkeyboard -f (Disables Flash) -F framespersecond (Higher the number, the faster the game) -m (Enables Mouse Support) -h (HELP) --help (help)"
 
 	levelFile="levels.json"
 	
