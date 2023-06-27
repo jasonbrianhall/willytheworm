@@ -281,8 +281,31 @@ def main():
 	screen = pygame.display.set_mode((screen_width, screen_height), pygame.FULLSCREEN)
 	pygame.display.set_caption('Willy the Worm Editor')
 
+	levelFile="levels.json"
+	helpmessage=sys.argv[0] + "-L levelsFile -h (HELP) --help (help)"
+
+	i=1
+	while i < len(sys.argv):
+		arg = sys.argv[i]
+		if arg == "-L" and i + 1 < len(sys.argv):
+			try:
+				levelFile = sys.argv[i + 1]
+			except ValueError:
+				print("Invalid argument for -L")
+				sys.exit(1)
+			i += 1
+		elif arg == "-h" or arg == "--help":
+			print(helpmessage)
+			sys.exit(1)
+		else:
+			print("Unknown argument:", arg)
+			print(helpmessage)
+			sys.exit(1)
+		i += 1
+
+
 	intro(screen)
-	game(screen, SCALER)
+	game(screen, SCALER, levelFile=levelFile)
 
 def game(screen, SCALER, levelFile="levels.json"):
 
