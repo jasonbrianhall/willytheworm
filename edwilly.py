@@ -284,7 +284,7 @@ def main():
 	intro(screen)
 	game(screen, SCALER)
 
-def game(screen, SCALER):
+def game(screen, SCALER, levelFile="levels.json"):
 
 	#global SCALER
 	if len(sys.argv) != 2:
@@ -301,10 +301,10 @@ def game(screen, SCALER):
 		__file__ = "."
 	bundle_dir = getattr(sys, '_MEIPASS', os.path.abspath(os.path.dirname(__file__)))
 
-	path_to_levels = os.path.abspath(os.path.join(bundle_dir,'levels.json'))
+	path_to_levels = os.path.abspath(os.path.join(bundle_dir,levelFile))
 
 	if not os.path.isfile(path_to_levels):
-		path_to_levels="levels.json"
+		path_to_levels=levelFile
 
 	MAX_LEVELS=getMaxLevels(path_to_levels)
 
@@ -332,12 +332,12 @@ def game(screen, SCALER):
 
 
 	try:
-		with open('levels.json', 'r') as file:
+		with open(levelFile, 'r') as file:
 			# Load the data from the file using the json.load() function
 			level_data = json.load(file)
 	except:
 		traceback.print_exc()
-		print("Can't load levels.json; starting over")
+		print("Can't load", levelFile, "; starting over")
 		level_data = {}
 		level_data[currentlevel]={}
 
@@ -406,7 +406,7 @@ def game(screen, SCALER):
 					
 								except:
 									pass
-					with open('levels.json', 'w') as writefile:
+					with open(levelFile, 'w') as writefile:
 						# Write the data to the file using the json.dump() function
 						json.dump(new_dict, writefile, indent=4)
 				elif event.key == pygame.K_q or event.key==pygame.K_ESCAPE:
