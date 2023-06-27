@@ -673,9 +673,20 @@ def main():
 	numberofballs=9
 	mousesupport=False
 	helpmessage=sys.argv[0] + " -l level -b numberofballs -w useWASDkeyboard -f (Disables Flash) -F framespersecond (Higher the number, the faster the game) -m (Enables Mouse Support) -h (HELP) --help (help)"
+
+	levelFile="levels.json"
+	
 	while i < len(sys.argv):
 		arg = sys.argv[i]
-		if arg == "-l" and i + 1 < len(sys.argv):
+		if arg == "-L" and i + 1 < len(sys.argv):
+			try:
+				levelFile = sys.argv[i + 1]
+			except ValueError:
+				print("Invalid argument for -L")
+				sys.exit(1)
+			i += 1
+
+		elif arg == "-l" and i + 1 < len(sys.argv):
 			try:
 				level = int(sys.argv[i + 1])
 			except ValueError:
@@ -720,9 +731,15 @@ def main():
 		__file__ = "."
 	bundle_dir = getattr(sys, '_MEIPASS', os.path.abspath(os.path.dirname(__file__)))
 
-	pathtolevels = os.path.abspath(os.path.join(bundle_dir,'levels.json'))
+	pathtolevels = os.path.abspath(os.path.join(bundle_dir, levelFile))
+
+	if not os.path.isfile(pathtolevels):
+		pathtolevels=levelFile
+
 
 	MAX_LEVELS=getMaxLevels(pathtolevels)
+	if level>MAX_LEVELS:
+		level=1
 
 	while True:
 		if level>0 and level <= MAX_LEVELS:
@@ -748,7 +765,7 @@ def getMaxLevels(pathtolevels):
 	return MAX_LEVELS
 
 
-def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofballs=6, mousesupport=False, fps=10, numberoflives=5, jumpheight=3.5):
+def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofballs=6, mousesupport=False, fps=10, numberoflives=5, jumpheight=3.5, levelFile="levels.json"):
 
 	display_info = pygame.display.Info()
 	pygame.display.set_caption('Willy the Worm')
@@ -782,10 +799,10 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 			__file__ = "."
 		bundle_dir = getattr(sys, '_MEIPASS', os.path.abspath(os.path.dirname(__file__)))
 
-		path_to_levels = os.path.abspath(os.path.join(bundle_dir,'levels.json'))
+		path_to_levels = os.path.abspath(os.path.join(bundle_dir,levelFile))
 
 		if not os.path.isfile(path_to_levels):
-			path_to_levels="levels.json"
+			path_to_levels=levelFile
 
 			
 		with open(path_to_levels, 'r') as file:
@@ -795,7 +812,7 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 			#print("Length", len(original_level))
 	except:
 		#traceback.print_exc()
-		print("Can't load levels.json; exiting")
+		print("Can't load ", levelFile, "; exiting")
 		sys.exit()
 
 	MAX_LEVELS=getMaxLevels(path_to_levels)
