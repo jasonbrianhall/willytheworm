@@ -17,7 +17,19 @@ SCREEN_WIDTH = 42
 MAX_WIDTH = 40
 SCREEN_HEIGHT = 26
 MAX_HEIGHT = 25
-MAX_LEVELS = 32
+#MAX_LEVELS = 32
+
+def getMaxLevels(pathtolevels):
+	with open(pathtolevels, 'r') as file:
+		# Load the data from the file using the json.load() function
+		level_data = json.load(file)
+		original_level=copy.deepcopy(level_data)
+		#print("Length", len(original_level))
+		MAX_LEVELS=0
+		for x in original_level:
+			if not "PIT" in x and "level" in x:
+				MAX_LEVELS+=1
+	return MAX_LEVELS
 
 def intro(screen):
 
@@ -282,6 +294,21 @@ def game(screen, SCALER):
 			level = int(sys.argv[1])
 		except:
 			level = 1
+
+	if getattr(sys, 'frozen', False):
+		__file__ = os.path.dirname(sys.executable)
+	else:
+		__file__ = "."
+	bundle_dir = getattr(sys, '_MEIPASS', os.path.abspath(os.path.dirname(__file__)))
+
+	path_to_levels = os.path.abspath(os.path.join(bundle_dir,'levels.json'))
+
+	if not os.path.isfile(path_to_levels):
+		path_to_levels="levels.json"
+
+	MAX_LEVELS=getMaxLevels(path_to_levels)
+
+
 	
 	if level>0 and level <= MAX_LEVELS:
 		currentlevel="level" + str(level)

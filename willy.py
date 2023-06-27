@@ -720,9 +720,9 @@ def main():
 		__file__ = "."
 	bundle_dir = getattr(sys, '_MEIPASS', os.path.abspath(os.path.dirname(__file__)))
 
-	path_to_levels = os.path.abspath(os.path.join(bundle_dir,'levels.json'))
+	pathtolevels = os.path.abspath(os.path.join(bundle_dir,'levels.json'))
 
-	MAX_LEVELS=getMaxLevels(path_to_levels)
+	MAX_LEVELS=getMaxLevels(pathtolevels)
 
 	while True:
 		if level>0 and level <= MAX_LEVELS:
