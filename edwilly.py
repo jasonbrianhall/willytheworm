@@ -59,7 +59,7 @@ def intro(screen):
 		["Middle scroll button ", "LADDER", " scrolls between items."],
 		["F11 toggles full screen ", "BELL"],
 		["The 'S' Key saves the Level"],
-		["The 'L' Key Changes Level"],
+		["The 'L' Key Changes Level; The 'N' Key creates a new empty level"],
 		["The 'Q' Key or ESC exits the editor (without saving)"],
 		["The 'P' Key Tests the Level"],
 		[""],
@@ -371,6 +371,8 @@ def game(screen, SCALER):
 			elif event.type == pygame.KEYDOWN:
 				if event.key == pygame.K_F11:
 					pygame.display.toggle_fullscreen()
+				elif event.key == pygame.K_n:
+					MAX_LEVELS+=1
 				elif event.key == pygame.K_l:
 					level+=1
 					level=level%(MAX_LEVELS+1)
