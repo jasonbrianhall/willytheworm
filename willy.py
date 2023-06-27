@@ -747,7 +747,7 @@ def main():
 		else:
 			currentlevel="level1"
 
-		score=game(screen, currentlevel, level, SCALER, wasd, flash, numberofballs, mousesupport, fps, numberoflives=5)
+		score=game(screen, currentlevel, level, SCALER, wasd, flash, numberofballs, mousesupport, fps, numberoflives=5, levelFile=levelFile)
 		game_score(screen, score)
 		level=1
 		pygame.display.set_caption('Willy the Worm Game Score')

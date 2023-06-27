@@ -1368,7 +1368,8 @@
             "8": "TACK",
             "21": "BALLPIT",
             "34": "BELL",
-            "39": "PIPE1"
+            "39": "PIPE1",
+            "5": "WILLY_LEFT"
         },
         "1": {
             "0": "PIPE20",
@@ -2047,7 +2048,8 @@
         },
         "21": {
             "0": "PIPE1",
-            "39": "PIPE1"
+            "39": "PIPE1",
+            "1": "WILLY_RIGHT"
         },
         "22": {
             "0": "PIPE1",
@@ -2131,7 +2133,9 @@
             "25": "PIPE18",
             "36": "BELL"
         },
-        "2": {},
+        "2": {
+            "0": "WILLY_LEFT"
+        },
         "3": {
             "0": "PIPE31",
             "2": "PIPE31",
@@ -2441,6 +2445,24 @@
         "PRIMARYBALLPIT": [
             0,
             15
+        ]
+    },
+    "level6PIT": {
+        "PRIMARYBALLPIT": [
+            0,
+            21
+        ]
+    },
+    "level7PIT": {
+        "PRIMARYBALLPIT": [
+            0,
+            19
+        ]
+    },
+    "level8PIT": {
+        "PRIMARYBALLPIT": [
+            0,
+            14
         ]
     }
 }
