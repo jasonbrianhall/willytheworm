@@ -22,7 +22,7 @@ SCREEN_WIDTH = 40
 MAX_WIDTH = 40
 SCREEN_HEIGHT = 26
 MAX_HEIGHT = 25
-MAX_LEVELS = 32
+#MAX_LEVELS = 32
 NEWLIFEPOINTS = 2000
 lock = threading.Lock()
 
@@ -713,6 +713,17 @@ def main():
 		i += 1
 		
 	intro(screen)
+
+	if getattr(sys, 'frozen', False):
+		__file__ = os.path.dirname(sys.executable)
+	else:
+		__file__ = "."
+	bundle_dir = getattr(sys, '_MEIPASS', os.path.abspath(os.path.dirname(__file__)))
+
+	path_to_levels = os.path.abspath(os.path.join(bundle_dir,'levels.json'))
+
+	MAX_LEVELS=getMaxLevels(path_to_levels)
+
 	while True:
 		if level>0 and level <= MAX_LEVELS:
 			currentlevel="level" + str(level)
@@ -724,6 +735,17 @@ def main():
 		level=1
 		pygame.display.set_caption('Willy the Worm Game Score')
 
+def getMaxLevels(pathtolevels):
+	with open(pathtolevels, 'r') as file:
+		# Load the data from the file using the json.load() function
+		level_data = json.load(file)
+		original_level=copy.deepcopy(level_data)
+		#print("Length", len(original_level))
+		MAX_LEVELS=0
+		for x in original_level:
+			if not "PIT" in x and "level" in x:
+				MAX_LEVELS+=1
+	return MAX_LEVELS
 
 
 def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofballs=6, mousesupport=False, fps=10, numberoflives=5, jumpheight=3.5):
@@ -764,15 +786,19 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 
 		if not os.path.isfile(path_to_levels):
 			path_to_levels="levels.json"
+
 			
 		with open(path_to_levels, 'r') as file:
 			# Load the data from the file using the json.load() function
 			level_data = json.load(file)
 			original_level=copy.deepcopy(level_data)
+			#print("Length", len(original_level))
 	except:
 		#traceback.print_exc()
 		print("Can't load levels.json; exiting")
 		sys.exit()
+
+	MAX_LEVELS=getMaxLevels(path_to_levels)
 
 	# Game loop
 	running = True
