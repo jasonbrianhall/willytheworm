@@ -877,6 +877,7 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 		counter += 1
 	liveadder=0
 	newlevel=False
+	jumping=False
 	while running:
 		clock.tick(fps)	 # limit the frame rate so Willy won't travel as fast (Willy travels at the frame rate)
 		if int(score/NEWLIFEPOINTS)>liveadder:
@@ -920,6 +921,7 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 				else:
 					y,x = willy_position
 					if (willy_yvelocity==0 and level_data[currentlevel][str(y + 1)][str(x)].startswith("PIPE")) or y==(MAX_HEIGHT-1):
+						jumping=True
 						willy_yvelocity=jumpheight
 						t = threading.Thread(target=play_audio, args=(mixerdict, "audio/jump.mp3",))
 						t.start()
@@ -1016,6 +1018,7 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 					keypressed=True
 					y,x = willy_position
 					if (willy_yvelocity<=0 and level_data[currentlevel][str(y + 1)][str(x)].startswith("PIPE")) or y==(MAX_HEIGHT-1):
+						jumping=True
 						willy_yvelocity=jumpheight
 						#print("Spacebar Pressed")
 						t = threading.Thread(target=play_audio, args=(mixerdict, "audio/jump.mp3",))
@@ -1059,6 +1062,7 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 
 		willy_list = list(willy_position)
 		if ladder_direction=="UP" and level_data[currentlevel][str(willy_list[0])][str(willy_list[1])].startswith("LADDER"):
+			jumping=False
 			#print("Going up Ladder")
 			# Convert tuple to list
 			willy_list = list(willy_position)
@@ -1082,6 +1086,7 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 
 		willy_list = list(willy_position)
 		if ladder_direction=="DOWN" and level_data[currentlevel][str(willy_list[0])][str(willy_list[1])].startswith("LADDER") and movedalready==False:
+			jumping=False
 			# Convert tuple to list
 			willy_xvelocity=-1
 			willy_list = list(willy_position)
@@ -1104,19 +1109,20 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 			movedalready=True
 
 		# Check if there's a PIPE object at Willy's position (below him)
-		if movedalready==False and willy_position is not None:
+		if willy_position is not None:
 			y, x = willy_position
 			if not (str(y + 1) in level_data[currentlevel] and str(x) in level_data[currentlevel][str(y + 1)] and level_data[currentlevel][str(y + 1)][str(x)].startswith("PIPE")):
 				if willy_yvelocity==0 and not (level_data[currentlevel][str(y)][str(x)].startswith("LADDER")):
 					willy_yvelocity = -1
 					#willy_xvelocity = 0
 					#willy_movement=None
+					jumping=False
 			else:
 				if willy_movement=="LEFT":
 					willy_xvelocity=1
 				elif willy_movement=="RIGHT":
 					willy_xvelocity=-1
-				movedalready=True
+			
 
 		for ball in balls:
 			#print(balls[ball])
@@ -1243,6 +1249,7 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 				counter += 1			
 
 		if level_data[currentlevel][str(willy_position[0])][str(willy_position[1])].startswith("UPSPRING"):
+			jumping=True
 			willy_yvelocity=jumpheight
 			t = threading.Thread(target=play_audio, args=(mixerdict, "audio/jump.mp3",))
 			t.start()
@@ -1442,7 +1449,7 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 			y, x = willy_position
 			for i in range(1, 5):
 				#if str(y + i) in level_data[currentlevel] and str(x) in level_data[currentlevel][str(y + i)] and (y+i)==row and x==col:
-				if (y+i)==row and x==col and willy_yvelocity!=0:
+				if (y+i)==row and x==col and jumping==True:
 					# Add 20 points to Willy's score here
 					score+=20
 					t = threading.Thread(target=play_audio, args=(mixerdict, "audio/boop.mp3",))
