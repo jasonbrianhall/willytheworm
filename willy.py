@@ -1013,8 +1013,7 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 						screenfillblue=255
 					font = loadFont(SCALER, screenfillred, screenfillgreen, screenfillblue)
 
-				if event.key == pygame.K_SPACE or (event.type == pygame.MOUSEBUTTONDOWN and event.button==1):
-				#if event.key == pygame.K_SPACE:
+				if event.key == pygame.K_SPACE:
 					keypressed=True
 					y,x = willy_position
 					if (willy_yvelocity<=0 and level_data[currentlevel][str(y + 1)][str(x)].startswith("PIPE")) or y==(MAX_HEIGHT-1):
