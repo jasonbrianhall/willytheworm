@@ -1285,12 +1285,6 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 
 			if str(y) in level_data[currentlevel] and str(x + 1) in level_data[currentlevel][str(y)] and level_data[currentlevel][str(y)][str(x + 1)].startswith("PIPE") and willy_yvelocity==0:
 				willy_xvelocity=0
-
-
-
-		'''if willy_yvelocity>0:
-			if str(y - 1) in level_data[currentlevel] and str(x) in level_data[currentlevel][str(y - 1)] and level_data[currentlevel][str(y - 1)][str(x)].startswith("PIPE"):
-				willy_yvelocity=0'''
 		
 		if willy_yvelocity<0:
 			if str(y) in level_data[currentlevel] and str(x) in level_data[currentlevel][str(y)] and level_data[currentlevel][str(y)][str(x)].startswith("LADDER"):
@@ -1336,41 +1330,6 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 
 			# Convert list back to tuple
 			willy_position = tuple(willy_list)
-
-		'''if willy_xvelocity<0:
-			# Convert tuple to list
-			willy_list = list(willy_position)
-			test_list = [elem for elem in willy_list]
-
-
-			# Subtract 1 from the first element of the list
-			if test_list[1]<(MAX_WIDTH-1):
-				test_list[1] += 1
-
-			if not level_data[currentlevel][str(test_list[0])][str(test_list[1])].startswith("PIPE"):
-				willy_list=test_list
-			del test_list
-	
-			# Convert list back to tuple
-			willy_position = tuple(willy_list)
-
-		if willy_xvelocity>0:
-			# Convert tuple to list
-			willy_list = list(willy_position)
-			test_list = [elem for elem in willy_list]
-
-			# Subtract 1 from the first element of the list
-			if test_list[1]>0:
-				test_list[1] -= 1
-
-			if not level_data[currentlevel][str(test_list[0])][str(test_list[1])].startswith("PIPE"):
-				willy_list=test_list
-
-
-			del test_list
-								
-			# Convert list back to tuple
-			willy_position = tuple(willy_list)'''
 
 		willy_list = list(willy_position)
 		if ladder_direction=="UP" and level_data[currentlevel][str(willy_list[0])][str(willy_list[1])].startswith("LADDER"):
