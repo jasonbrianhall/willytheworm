@@ -1060,14 +1060,11 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 		if willy_position is not None:
 			y, x = willy_position
 			if not (str(y + 1) in level_data[currentlevel] and str(x) in level_data[currentlevel][str(y + 1)] and level_data[currentlevel][str(y + 1)][str(x)].startswith("PIPE")):
-				'''if willy_yvelocity==0 and not (level_data[currentlevel][str(y)][str(x)].startswith("LADDER") or level_data[currentlevel][str(y+1)][str(x)].startswith("LADDER")):'''
 				if willy_yvelocity==0 and not (level_data[currentlevel][str(y)][str(x)].startswith("LADDER")):
 					willy_yvelocity = -1
 					#willy_xvelocity = 0
 					#willy_movement=None
 			else:
-				'''if willy_yvelocity<=0:
-					willy_yvelocity=0'''
 				if willy_movement=="LEFT":
 					willy_xvelocity=1
 				elif willy_movement=="RIGHT":
@@ -1100,9 +1097,6 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 					#level_data[curentlevel]={}
 					level_data[currentlevel]={}
 			elif not level_data[currentlevel][str(willy_position[0])][str(willy_position[1])].startswith("BELL"):
-				'''with open('levels.json', 'r') as file:
-					# Load the data from the file using the json.load() function
-					level_data = json.load(file)'''
 
 				level_data=copy.deepcopy(original_level)
 
@@ -1135,9 +1129,6 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 
 
 			else:
-				'''with open('levels.json', 'r') as file:
-					# Load the data from the file using the json.load() function
-					level_data = json.load(file)'''
 				level_data=copy.deepcopy(original_level)
 
 				t = threading.Thread(target=play_audio, args=(mixerdict, "audio/bell.mp3",))
@@ -1203,17 +1194,6 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 				balls[str(counter)]["Location"] = [primaryballpit[0], primaryballpit[1]]
 				balls[str(counter)]["Direction"] = None
 				counter += 1			
-
-
-		'''if level_data[currentlevel][str(willy_position[0])][str(willy_position[1])].startswith("LADDER") and ladder_direction==None:
-			willy_yvelocity=0
-			willy_xvelocity=0'''		
-
-		'''willy_list = list(willy_position)
-		if level_data[currentlevel][str(willy_list[0]+1)][str(willy_list[1])].startswith("LADDER") and level_data[currentlevel][str(willy_list[0])][str(willy_list[1])].startswith("EMPTY"):
-			willy_yvelocity=-1
-			print("Is this ever called")'''
-
 
 		if level_data[currentlevel][str(willy_position[0])][str(willy_position[1])].startswith("UPSPRING"):
 			willy_yvelocity=jumpheight
