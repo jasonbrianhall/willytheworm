@@ -1442,7 +1442,7 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 			y, x = willy_position
 			for i in range(1, 5):
 				#if str(y + i) in level_data[currentlevel] and str(x) in level_data[currentlevel][str(y + i)] and (y+i)==row and x==col:
-				if (y+i)==row and x==col:
+				if (y+i)==row and x==col and willy_yvelocity!=0:
 					# Add 20 points to Willy's score here
 					score+=20
 					t = threading.Thread(target=play_audio, args=(mixerdict, "audio/boop.mp3",))
