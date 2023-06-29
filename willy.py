@@ -1052,7 +1052,8 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 					ladder_direction=None
 					willy_movement="None"
 
-
+		movedalready=False
+		
 		# Clear the screen
 		screen.fill((screenfillred, screenfillgreen, screenfillblue))
 
@@ -1077,9 +1078,10 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 			willy_yvelocity=0
 			t = threading.Thread(target=play_audio, args=(mixerdict, "audio/ladder.mp3",))
 			t.start()
+			movedalready=True
 
 		willy_list = list(willy_position)
-		if ladder_direction=="DOWN" and level_data[currentlevel][str(willy_list[0])][str(willy_list[1])].startswith("LADDER"):
+		if ladder_direction=="DOWN" and level_data[currentlevel][str(willy_list[0])][str(willy_list[1])].startswith("LADDER") and movedalready==False:
 			# Convert tuple to list
 			willy_xvelocity=-1
 			willy_list = list(willy_position)
@@ -1099,10 +1101,10 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 			willy_yvelocity=0
 			t = threading.Thread(target=play_audio, args=(mixerdict, "audio/ladder.mp3",))
 			t.start()
-
+			movedalready=True
 
 		# Check if there's a PIPE object at Willy's position (below him)
-		if willy_position is not None:
+		if movedalready==False and willy_position is not None:
 			y, x = willy_position
 			if not (str(y + 1) in level_data[currentlevel] and str(x) in level_data[currentlevel][str(y + 1)] and level_data[currentlevel][str(y + 1)][str(x)].startswith("PIPE")):
 				if willy_yvelocity==0 and not (level_data[currentlevel][str(y)][str(x)].startswith("LADDER")):
@@ -1114,6 +1116,7 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 					willy_xvelocity=1
 				elif willy_movement=="RIGHT":
 					willy_xvelocity=-1
+				movedalready=True
 
 		for ball in balls:
 			#print(balls[ball])
@@ -1219,7 +1222,6 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 
 			
 			if numberoflives<1:
-				# Todo; make main screen
 				return score
 			else:
 				if level_data.get(currentlevel)==None:
