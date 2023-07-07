@@ -3,6 +3,8 @@
 Willy the Worm
 by Jason Hall
 
+![Willy the worm](images/intro.png)
+
 Original Pascal Version by Alan Farmer
 
 This code is Free Open Source Software (FOSS)
@@ -13,6 +15,8 @@ please share them with the world.
 
 Meet Willy the Worm. Willy is a fun-loving invertebrate who likes to climb ladders, bounce on springs,
 and find his presents.  But more than anything, Willy loves to ring bells!
+
+![Level 1](images/level1.png)
 
 You can press the arrow keys ↤ ↥ ↦ ↧ to make Willy run and climb, or the space bar to make him jump. Anything
 else will make Willy stop and wait
