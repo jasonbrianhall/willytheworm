@@ -62,7 +62,7 @@ A few differences from the original Willy the worm.
 
 
 
-Running
+# Running
 
 pip install -r requirements.txt
 
@@ -77,7 +77,7 @@ or python -m pip install -r requirements.txt
 or python3 -m pip install virtualenv; python -m virtualenv ~/python3/; source ~/python3/bin/activate; pip install -r requirements.txt       # Linux Instructions
 
 
-Making distributable version.
+# Making distributable version.
 
 pip install pyinstaller
 
