@@ -105,25 +105,29 @@ Windows:
 
 This will create a directory named dist with willy.exe or edwilly.exe (or just willy or edwilly for UNIX like operating systems).  The directory "audio", file "willy.chr", "levels.json" (only for Willy), and audio files will be zipped up with the dist.  For edwilly, levels.json are not zipped up because it creates a temporary directory and any edits would disappear; defeating the purpose of an editor.  
 
-
-Compiling with nutika
+# Compiling with nuitka
 
 pip install nuitka
 nuitka3 --follow-imports willy.py
-# Creates willy.bin
+
+-- Creates willy.bin
+
+# Compiling edwilly
 
 pip install nuitka
 nuitka3 --follow-imports edwilly.py
-# Creates edwilly.bin
 
-Compiling as standalone
+-- Creates edwilly.bin
+
+# Compiling as standalone
+
 sudo yum install patchelf
 nuitka3 --follow-imports --standalone --onefile willy.py
 nuitka3 --follow-imports --standalone --onefile edwilly.py
 
 
 
-Compiling with Cython (not recommended since it doesn't compile dependencies)
+# Compiling with Cython (not recommended since it doesn't compile dependencies)
 
 pip install cython
 cython --embed -o willy.c willy.py
