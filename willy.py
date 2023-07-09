@@ -1079,12 +1079,15 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 			willy_position = tuple(willy_list)
 			willy_xvelocity=0
 			willy_yvelocity=0
-			t = threading.Thread(target=play_audio, args=(mixerdict, "audio/ladder.mp3",))
-			t.start()
 			movedalready=True
 			try:
 				if not level_data[currentlevel][str(willy_list[0]-1)][str(willy_list[1])].startswith("LADDER"):
 					ladder_direction=None
+				else:
+					t = threading.Thread(target=play_audio, args=(mixerdict, "audio/ladder.mp3",))
+					t.start()
+					#movedalready=True
+
 			except:
 				ladder_direction=None
 				pass
@@ -1108,12 +1111,13 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 			willy_position = tuple(willy_list)
 			willy_xvelocity=0
 			willy_yvelocity=0
-			t = threading.Thread(target=play_audio, args=(mixerdict, "audio/ladder.mp3",))
-			t.start()
 			movedalready=True
 			try:
 				if not level_data[currentlevel][str(willy_list[0]+1)][str(willy_list[1])].startswith("LADDER"):
 					ladder_direction=None
+				else:
+					t = threading.Thread(target=play_audio, args=(mixerdict, "audio/ladder.mp3",))
+					t.start()
 			except:
 				ladder_direction=None
 				pass
