@@ -1082,7 +1082,12 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 			t = threading.Thread(target=play_audio, args=(mixerdict, "audio/ladder.mp3",))
 			t.start()
 			movedalready=True
-
+			try:
+				if not level_data[currentlevel][str(willy_list[0]-1)][str(willy_list[1])].startswith("LADDER"):
+					ladder_direction=None
+			except:
+				ladder_direction=None
+				pass
 		willy_list = list(willy_position)
 		if ladder_direction=="DOWN" and level_data[currentlevel][str(willy_list[0])][str(willy_list[1])].startswith("LADDER") and movedalready==False:
 			jumping=False
@@ -1106,6 +1111,12 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 			t = threading.Thread(target=play_audio, args=(mixerdict, "audio/ladder.mp3",))
 			t.start()
 			movedalready=True
+			try:
+				if not level_data[currentlevel][str(willy_list[0]+1)][str(willy_list[1])].startswith("LADDER"):
+					ladder_direction=None
+			except:
+				ladder_direction=None
+				pass
 
 		# Check if there's a PIPE object at Willy's position (below him)
 		if willy_position is not None:
