@@ -131,7 +131,7 @@ nuitka3 --follow-imports --standalone --onefile edwilly.py
 
 pip install cython
 cython --embed -o willy.c willy.py
-gcc -Os -I /usr/include/python3.11 -o willy willy.c -lpython3.11 -lpthread -lm -lutil -ldl
+gcc `python3-config --cflags --ldflags --embed` willy.c -o willy
 
 cython --embed -o edwilly.c edwilly.py
-gcc -Os -I /usr/include/python3.11 -o edwilly edwilly.c -lpython3.11 -lpthread -lm -lutil -ldl
+gcc `python3-config --cflags --ldflags --embed` edwilly.c -o edwilly
