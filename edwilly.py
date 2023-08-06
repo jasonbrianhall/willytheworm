@@ -7,6 +7,7 @@ import traceback
 import sys
 import copy
 from willy import game as willymaingame
+import willy
 import os
 
 # Constants
@@ -81,20 +82,8 @@ def intro(screen):
         font_size = int(screen_height / len(textdata))
         # font_size=font_size-font_size%8
         SCALER = int(font_size / 8)
-        willyfont = loadFont(SCALER)
+        willyfont = willy.loadFont(SCALER)
 
-        '''display_info = pygame.display.Info()
-		screen_width = display_info.current_w
-		screen_height = display_info.current_h
-		# Keep current resolution but use the smallest scaler
-		SCALER1=int(screen_width/(SCREEN_WIDTH*CHAR_WIDTH))
-		SCALER2=int(screen_height/(SCREEN_HEIGHT*CHAR_HEIGHT))
-		if SCALER1<=SCALER2:
-			SCALER=SCALER1
-		else:
-			SCALER=SCALER2
-		font_size=8*SCALER
-		willyfont=loadFont(SCALER)'''
         # screen = pygame.display.set_mode((SCREEN_WIDTH * CHAR_WIDTH * SCALER, SCREEN_HEIGHT * CHAR_HEIGHT * SCALER), pygame.FULLSCREEN)
 
         screenwidth = screen_width
@@ -149,120 +138,6 @@ def intro(screen):
                 if event.key == pygame.K_ESCAPE:
                     print("Goodbye.	 Thank you for playing Willy the Worm!!!")
                     sys.exit(0)
-
-
-def loadFont(SCALER):
-    namedpart = {}
-    namedpart["0"] = "WILLY_RIGHT"
-    namedpart["1"] = "WILLY_LEFT"
-    namedpart["2"] = "PRESENT"
-    namedpart["3"] = "LADDER"
-    namedpart["4"] = "TACK"
-    namedpart["5"] = "UPSPRING"
-    namedpart["6"] = "SIDESPRING"
-    # namedpart["7"]="BALL"
-    namedpart["8"] = "BELL"
-    namedpart["51"] = "PIPE1"
-    namedpart["52"] = "PIPE2"
-    namedpart["53"] = "PIPE3"
-    namedpart["54"] = "PIPE4"
-    namedpart["55"] = "PIPE5"
-    namedpart["56"] = "PIPE6"
-    namedpart["57"] = "PIPE7"
-    namedpart["58"] = "PIPE8"
-    namedpart["59"] = "PIPE9"
-    namedpart["60"] = "PIPE10"
-    namedpart["61"] = "PIPE11"
-    namedpart["62"] = "PIPE12"
-    namedpart["63"] = "PIPE13"
-    namedpart["64"] = "PIPE14"
-    namedpart["65"] = "PIPE15"
-    namedpart["66"] = "PIPE16"
-    namedpart["67"] = "PIPE17"
-    namedpart["68"] = "PIPE18"
-    namedpart["69"] = "PIPE19"
-    namedpart["70"] = "PIPE20"
-    namedpart["71"] = "PIPE21"
-    namedpart["72"] = "PIPE22"
-    namedpart["73"] = "PIPE23"
-    namedpart["74"] = "PIPE24"
-    namedpart["75"] = "PIPE25"
-    namedpart["76"] = "PIPE26"
-    namedpart["77"] = "PIPE27"
-    namedpart["78"] = "PIPE28"
-    namedpart["79"] = "PIPE29"
-    namedpart["80"] = "PIPE30"
-    namedpart["81"] = "PIPE31"
-    namedpart["82"] = "PIPE32"
-    namedpart["83"] = "PIPE33"
-    namedpart["84"] = "PIPE34"
-    namedpart["85"] = "PIPE35"
-    namedpart["86"] = "PIPE36"
-    namedpart["87"] = "PIPE37"
-    namedpart["88"] = "PIPE38"
-    namedpart["89"] = "PIPE39"
-    namedpart["90"] = "PIPE40"
-    namedpart["126"] = "BALLPIT"
-    namedpart["127"] = "EMPTY"
-
-    # Define the colors (in RGB format)
-    BACKGROUND = (0, 0, 255)
-    WHITE = (255, 255, 255)
-
-    # Define the size of the output image (in pixels)
-    IMAGE_WIDTH = 128
-    IMAGE_HEIGHT = 256
-
-    # Open the willy.chr file
-    if getattr(sys, 'frozen', False):
-        __file__ = os.path.dirname(sys.executable)
-    else:
-        __file__ = "."
-    bundle_dir = getattr(sys, '_MEIPASS', os.path.abspath(os.path.dirname(__file__)))
-
-    path_to_chr = os.path.abspath(os.path.join(bundle_dir, 'willy.chr'))
-
-    with open(path_to_chr, 'rb') as f:
-        # Read the file contents into a bytearray
-        data = bytearray(f.read())
-
-    # Create a new PIL image
-    img = Image.new('RGB', (IMAGE_WIDTH, IMAGE_HEIGHT), BACKGROUND)
-
-    char_array = {}
-
-    counter = 0
-    # Loop through the characters in the file
-    for i in range(len(data) // 8):
-        # Extract the bits for each row of the character
-        bits = [((data[i * 8 + j] >> k) & 1) for j in range(8) for k in range(7, -1, -1)]
-
-        # Create a new PIL image for the character
-        char_img = Image.new('RGB', (CHAR_WIDTH, CHAR_HEIGHT), BACKGROUND)
-        # Loop through the rows of the character
-        for y in range(CHAR_HEIGHT):
-            # Loop through the pixels in the row
-            for x in range(CHAR_WIDTH):
-                # Calculate the index of the pixel in the bits array
-                index = y * CHAR_WIDTH + x
-
-                # If the bit is set, set the pixel to white
-                if bits[index] == 1:
-                    char_img.putpixel((x, y), WHITE)
-
-        new_size = (char_img.size[0] * SCALER, char_img.size[1] * SCALER)
-        char_img = char_img.resize(new_size)
-        pygame_image = pygame.image.fromstring(char_img.tobytes(), char_img.size, char_img.mode).convert()
-        try:
-            partnumber = namedpart[str(counter)]
-            char_array[partnumber] = pygame_image
-        except:
-            # char_array[str(counter)]=pygame_image
-            pass
-        counter += 1
-
-    return char_array
-
 
 def main():
     pygame.init()
@@ -340,7 +215,7 @@ def game(screen, SCALER, levelFile="levels.json"):
     fontdata = pygame.font.SysFont("Courier", font_size)
 
     # Load the font
-    font = loadFont(SCALER)
+    font = willy.loadFont(SCALER)
 
     # Create a 2D array to store the level data
     # level_data = [[None] * SCREEN_WIDTH for i in range(SCREEN_HEIGHT)]
