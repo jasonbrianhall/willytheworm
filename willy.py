@@ -26,6 +26,10 @@ MAX_HEIGHT = 25
 NEWLIFEPOINTS = 2000
 lock = threading.Lock()
 soundenabled=True
+screenfillred = 0
+screenfillgreen = 0
+screenfillblue = 255
+
 
 
 def game_score(screen, score):
@@ -767,9 +771,9 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
 
     mixerdict = {}
 
-    screenfillgreen = 0
-    screenfillred = 0
-    screenfillblue = 255
+    global screenfillgreen
+    global screenfillred
+    global screenfillblue
 
     display_info = pygame.display.Info()
     screen_width = display_info.current_w
@@ -777,7 +781,7 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
     orig_width = screen_width
     orig_height = screen_height
     # Load Willy Font
-    font = loadFont(SCALER)
+    font = loadFont(SCALER, screenfillred, screenfillgreen,screenfillblue)
 
     if mousesupport == True:
         # Hide the mouse cursor
