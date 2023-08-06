@@ -19,6 +19,9 @@ MAX_WIDTH = 40
 SCREEN_HEIGHT = 26
 MAX_HEIGHT = 25
 # MAX_LEVELS = 32
+screenfillred=0
+screenfillgreen=0
+screenfillblue=255
 
 
 def getMaxLevels(pathtolevels):
@@ -211,11 +214,15 @@ def game(screen, SCALER, levelFile="levels.json"):
 
     # Initialize Pygame
 
+    global screenfillred
+    global screenfillblue
+    global screenfillgreen
+
     font_size = 32
     fontdata = pygame.font.SysFont("Courier", font_size)
 
     # Load the font
-    font = willy.loadFont(SCALER)
+    font = willy.loadFont(SCALER, screenfillred, screenfillgreen, screenfillblue)
     del font["BALL"]
     # Create a 2D array to store the level data
     # level_data = [[None] * SCREEN_WIDTH for i in range(SCREEN_HEIGHT)]
@@ -309,7 +316,40 @@ def game(screen, SCALER, levelFile="levels.json"):
 
                     # Stop capturing the mouse input
                     pygame.event.set_grab(False)
+                elif event.key == pygame.K_F5:
+                    if screenfillred == 255:
+                        screenfillred = 0
+                    elif screenfillred >= 0 and screenfillred < 192:
+                        screenfillred += 64
+                    else:
+                        screenfillred = 255
+                    font = willy.loadFont(SCALER, screenfillred, screenfillgreen, screenfillblue)
+                    del font["BALL"]
 
+                elif event.key == pygame.K_F6:
+                    if screenfillgreen == 255:
+                        screenfillgreen = 0
+                    elif screenfillgreen >= 0 and screenfillgreen < 192:
+                        screenfillgreen += 64
+                    else:
+                        screenfillgreen = 255
+                    font = willy.loadFont(SCALER, screenfillred, screenfillgreen, screenfillblue)
+                    del font["BALL"]
+                elif event.key == pygame.K_F7:
+                    if screenfillblue == 255:
+                        screenfillblue = 0
+                    elif screenfillblue >= 0 and screenfillblue < 192:
+                        screenfillblue += 64
+                    else:
+                        screenfillblue = 255
+                    font = willy.loadFont(SCALER, screenfillred, screenfillgreen, screenfillblue)
+                    del font["BALL"]                    
+                elif event.key == pygame.K_F8:
+                    screenfillblue=255
+                    screenfillred=0
+                    screenfillgreen=0
+                    font = willy.loadFont(SCALER, screenfillred, screenfillgreen, screenfillblue)
+                    del font["BALL"]                   
             # Right Button Deletes Object
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 3:
                 # Get the mouse position
@@ -354,7 +394,6 @@ def game(screen, SCALER, levelFile="levels.json"):
                 if currentitem[0] == "BALLPIT":
                     level_data[currentlevel + "PIT"] = {}
                     level_data[currentlevel + "PIT"]["PRIMARYBALLPIT"] = (row, col)
-
             # Wheel Button Down
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 5:
                 # Get the mouse position
@@ -420,7 +459,7 @@ def game(screen, SCALER, levelFile="levels.json"):
 				if char_img is not None:
 					# Draw the character image
 					screen.blit(char_img, (col * CHAR_WIDTH * SCALER, row * CHAR_HEIGHT * SCALER))'''
-        screen.fill((0, 0, 255))
+        screen.fill((screenfillred, screenfillgreen, screenfillblue))
 
         for row in level_data[currentlevel]:
             for col in level_data[currentlevel][row]:
