@@ -25,6 +25,7 @@ MAX_HEIGHT = 25
 # MAX_LEVELS = 32
 NEWLIFEPOINTS = 2000
 lock = threading.Lock()
+soundenabled=True
 
 
 def game_score(screen, score):
@@ -486,7 +487,9 @@ def intro(screen):
                     sys.exit(0)
 
 
-def play_audio(mixerdict, filename):
+def play_audio(mixerdict, filename, soundenabled=True):
+    if not soundenabled:
+        return
     if getattr(sys, 'frozen', False):
         __file__ = os.path.dirname(sys.executable)
     else:
@@ -755,20 +758,10 @@ def getMaxLevels(pathtolevels):
     return MAX_LEVELS
 
 
-def game(
-    screen,
-    currentlevel,
-    level,
-    SCALER,
-    wasd=False,
-    flash=True,
-    numberofballs=6,
-    mousesupport=False,
-    fps=10,
-    numberoflives=5,
-    jumpheight=3.5,
-    levelFile="levels.json",
-):
+def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofballs=6, mousesupport=False, fps=10, numberoflives=5, jumpheight=3.5, levelFile="levels.json"):
+
+    global soundenabled
+
     display_info = pygame.display.Info()
     pygame.display.set_caption('Willy the Worm')
 
@@ -930,6 +923,7 @@ def game(
                             args=(
                                 mixerdict,
                                 "audio/jump.mp3",
+                                soundenabled,
                             ),
                         )
                         t.start()
@@ -1034,6 +1028,7 @@ def game(
                             args=(
                                 mixerdict,
                                 "audio/jump.mp3",
+                                soundenabled
                             ),
                         )
                         t.start()
@@ -1063,6 +1058,8 @@ def game(
                     keypressed = True
                 elif event.key == pygame.K_l and (pygame.K_LCTRL or pygame.K_RCTRL):
                     newlevel = True
+                elif event.key == pygame.K_s and (pygame.K_LCTRL or pygame.K_RCTRL):
+                    soundenabled = not soundenabled
                 if keypressed == False:
                     # print("Any Key Pressed")
                     willy_xvelocity = 0
@@ -1087,6 +1084,7 @@ def game(
                         args=(
                             mixerdict,
                             "audio/ladder.mp3",
+                            soundenabled
                         ),
                     )
                     t.start()
@@ -1130,6 +1128,7 @@ def game(
                         args=(
                             mixerdict,
                             "audio/ladder.mp3",
+                            soundenabled
                         ),
                     )
                     t.start()
@@ -1220,6 +1219,7 @@ def game(
                     args=(
                         mixerdict,
                         "audio/tack.mp3",
+                        soundenabled,
                     ),
                 )
                 t.start()
@@ -1255,6 +1255,7 @@ def game(
                     args=(
                         mixerdict,
                         "audio/bell.mp3",
+                        soundenabled,
                     ),
                 )
                 t.start()
@@ -1324,6 +1325,7 @@ def game(
                 args=(
                     mixerdict,
                     "audio/jump.mp3",
+                    soundenabled,
                 ),
             )
             t.start()
@@ -1338,6 +1340,7 @@ def game(
                         args=(
                             mixerdict,
                             "audio/jump.mp3",
+                            soundenabled,                    
                         ),
                     )
                     t.start()
@@ -1357,6 +1360,7 @@ def game(
                 args=(
                     mixerdict,
                     "audio/present.mp3",
+                    soundenabled,                   
                 ),
             )
             t.start()
@@ -1565,6 +1569,7 @@ def game(
                         args=(
                             mixerdict,
                             "audio/boop.mp3",
+                           soundenabled,                     
                         ),
                     )
                     t.start()
