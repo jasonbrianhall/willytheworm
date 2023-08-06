@@ -216,7 +216,7 @@ def game(screen, SCALER, levelFile="levels.json"):
 
     # Load the font
     font = willy.loadFont(SCALER)
-
+    del font["BALL"]
     # Create a 2D array to store the level data
     # level_data = [[None] * SCREEN_WIDTH for i in range(SCREEN_HEIGHT)]
     # Create a 2D array to store the level data
