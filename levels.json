@@ -918,7 +918,7 @@
     },
     "level3": {
         "0": {
-            "28": "BALLPIT"
+            "19": "BALLPIT"
         },
         "1": {
             "15": "BELL"
@@ -927,7 +927,11 @@
             "10": "TACK",
             "13": "PIPE23",
             "14": "PIPE27",
-            "15": "PIPE27"
+            "15": "PIPE27",
+            "16": "PIPE27",
+            "17": "PIPE27",
+            "18": "PIPE27",
+            "19": "PIPE27"
         },
         "3": {
             "1": "PRESENT",
@@ -998,7 +1002,6 @@
         },
         "10": {
             "0": "PIPE27",
-            "1": "PIPE27",
             "2": "PIPE27",
             "3": "PIPE27",
             "4": "PIPE27",
@@ -1053,7 +1056,8 @@
         "16": {
             "11": "LADDER",
             "30": "PRESENT",
-            "37": "LADDER"
+            "37": "LADDER",
+            "0": "PRESENT"
         },
         "17": {
             "0": "PIPE27",
@@ -7967,7 +7971,7 @@
     "level3PIT": {
         "PRIMARYBALLPIT": [
             0,
-            28
+            19
         ]
     },
     "level4PIT": {
@@ -8488,7 +8492,8 @@
             "1": "LADDER",
             "5": "PRESENT",
             "11": "SIDESPRING",
-            "38": "LADDER"
+            "38": "LADDER",
+            "20": "UPSPRING"
         },
         "18": {
             "0": "PIPE27",
