@@ -782,6 +782,7 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
     orig_height = screen_height
     # Load Willy Font
     font = loadFont(SCALER, screenfillred, screenfillgreen,screenfillblue)
+    #print(font)
 
     if mousesupport == True:
         # Hide the mouse cursor
