@@ -817,8 +817,6 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
         if not os.path.isfile(path_to_levels):
             path_to_levels = levelFile
 
-        print("path to levels:  ", path_to_levels)
-
         with open(path_to_levels, 'r') as file:
             # Load the data from the file using the json.load() function
             level_data = json.load(file)
