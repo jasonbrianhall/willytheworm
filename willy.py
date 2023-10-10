@@ -502,7 +502,7 @@ def play_audio(mixerdict, filename, soundenabled=True):
     new_filename = os.path.abspath(os.path.join(bundle_dir, filename))
 
     if not os.path.isfile(new_filename):
-        path_to_levels = "/usr/games/willytheworm/data/" + new_filename
+        new_filename = "/usr/games/willytheworm/audio/" + new_filename.split("/")[-1]
 
 
     if mixerdict == None:
