@@ -28,7 +28,7 @@ setup(
 'audio/tack.mp3'])
     ],
 
-    author='Jason Hall',
+    author='Jason Brian Hall',
     author_email='jasonbrianhall@gmail.com',
     description='Willy the Worm is a sprite based side-scrolling retro game that plays on a single screen.  The idea is to ring the bell on each level while avoiding balls, tacks, and falling into holes.  This game is a clone of a 1985 video game written by Alan Farme and plays extremely similar to the original game.'
     license='MIT',
