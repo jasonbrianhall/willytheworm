@@ -135,3 +135,10 @@ gcc `python3-config --cflags --ldflags --embed` willy.c -o willy
 
 cython --embed -o edwilly.c edwilly.py
 gcc `python3-config --cflags --ldflags --embed` edwilly.c -o edwilly
+
+
+------------------
+
+Building an RPM:
+
+python setup.py bdist_rpm
