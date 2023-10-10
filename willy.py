@@ -501,6 +501,10 @@ def play_audio(mixerdict, filename, soundenabled=True):
     bundle_dir = getattr(sys, '_MEIPASS', os.path.abspath(os.path.dirname(__file__)))
     new_filename = os.path.abspath(os.path.join(bundle_dir, filename))
 
+    if not os.path.isfile(new_filename):
+        path_to_levels = "/usr/games/willytheworm/data/" + new_filename
+
+
     if mixerdict == None:
         mixerdict = {}
     if mixerdict.get(filename) == None:
@@ -581,6 +585,10 @@ def loadFont(SCALER, screenfillred=0, screenfillgreen=0, screenfillblue=255):
     else:
         __file__ = "."
     bundle_dir = getattr(sys, '_MEIPASS', os.path.abspath(os.path.dirname(__file__)))
+
+    if not os.path.isfile(bundle_dir + "/willy.chr"):
+        bundle_dir = "/usr/games/willytheworm/data/"
+
 
     path_to_chr = os.path.abspath(os.path.join(bundle_dir, 'willy.chr'))
 
@@ -801,7 +809,12 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
         path_to_levels = os.path.abspath(os.path.join(bundle_dir, levelFile))
 
         if not os.path.isfile(path_to_levels):
+            path_to_levels = "/usr/games/willytheworm/data/" + levelFile
+
+        if not os.path.isfile(path_to_levels):
             path_to_levels = levelFile
+
+
 
         with open(path_to_levels, 'r') as file:
             # Load the data from the file using the json.load() function
