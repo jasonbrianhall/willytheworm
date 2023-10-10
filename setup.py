@@ -19,8 +19,8 @@ setup(
     },
 
     data_files=[
-        ('data', ['levels.json', 'willy.chr']),
-        ('audio', ['audio/bell.mp3',
+        ('games/willytheworm/data', ['levels.json', 'willy.chr']),
+        ('games/willytheworm/audio', ['audio/bell.mp3',
 'audio/boop.mp3',
 'audio/jump.mp3',
 'audio/ladder.mp3',
