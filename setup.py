@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='willy',
+    name='Willy_the_Worm',
     version='1.0',
     py_modules=['willy', 'edwilly'],
     packages=find_packages(include=['willy.py', 'edwilly.py']),
