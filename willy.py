@@ -727,6 +727,9 @@ def main():
     pathtolevels = os.path.abspath(os.path.join(bundle_dir, levelFile))
 
     if not os.path.isfile(pathtolevels):
+        pathtolevels = "/usr/games/willytheworm/data/" + levelFile
+
+    if not os.path.isfile(pathtolevels):
         pathtolevels = levelFile
 
     MAX_LEVELS = getMaxLevels(pathtolevels)
@@ -814,7 +817,7 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
         if not os.path.isfile(path_to_levels):
             path_to_levels = levelFile
 
-
+        print("path to levels:  ", path_to_levels)
 
         with open(path_to_levels, 'r') as file:
             # Load the data from the file using the json.load() function
