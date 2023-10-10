@@ -19,7 +19,7 @@ setup(
     },
 
     data_files=[
-        ('data', ['levels.json']),
+        ('data', ['levels.json', 'willy.chr']),
         ('audio', ['audio/bell.mp3',
 'audio/boop.mp3',
 'audio/jump.mp3',
