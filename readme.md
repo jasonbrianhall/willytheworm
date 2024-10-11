@@ -98,7 +98,7 @@ Created something cool? Found a bug? Want to chat about worm physics? Open an is
 🎉 **Willy the Worm** - Bringing joy to invertebrate enthusiasts since 2023! 🎉
 
 *Original Pascal version by Alan Farmer (1985)*  
-*Python reincarnation by Jason Hall*
+*Python reincarnation by Jason Hall (jasonbrianhall@gmail.com)*
 
 This code is FOSS (Free and Open-Source Software). Remix it, share it, love it! 💖
 
