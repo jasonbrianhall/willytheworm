@@ -88,6 +88,11 @@ Enjoyed your wormy adventure? Don't keep it to yourself:
 
 Created something cool? Found a bug? Want to chat about worm physics? Open an issue or submit a pull request. Let's make Willy the talk of the town!
 
+### 📚 Additional Resources
+
+- [Wiki](wiki.md): Detailed game mechanics, characters, items, and level design tips
+- [Contribution Guide](contribution.md): Learn how to contribute to Willy the Worm
+
 ---
 
 🎉 **Willy the Worm** - Bringing joy to invertebrate enthusiasts since 2023! 🎉
@@ -96,3 +101,7 @@ Created something cool? Found a bug? Want to chat about worm physics? Open an is
 *Python reincarnation by Jason Hall*
 
 This code is FOSS (Free and Open-Source Software). Remix it, share it, love it! 💖
+
+---
+
+**Keywords**: retro gaming, platformer, Python game, open-source game, Willy the Worm, level editor, nostalgic games, indie game, 2D game, arcade-style game
