@@ -23,6 +23,12 @@ check_ndk() {
    fi
 }
 
+check_requirements() {
+   if [ -f "requirements-android.txt" ]; then
+       pip install -r requirements-android.txt
+   fi
+}
+
 clean() {
    local arch=$1
    p4a clean_all
@@ -35,6 +41,7 @@ build() {
    local apk_name="WillyTheWorm-$arch.apk"
 
    check_ndk
+   check_requirements
    cp willy.py main.py -f
    p4a apk --requirements=kivy,sdl2,pillow \
        --bootstrap=sdl2 \
