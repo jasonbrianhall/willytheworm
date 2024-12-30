@@ -1,3 +1,5 @@
 pillow
 pygame
 python-for-android
+cython
+cmake
