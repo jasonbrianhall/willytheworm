@@ -1,5 +1,7 @@
 #!/bin/bash
 
+#sudo dnf install gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu
+
 help() {
    echo "Usage: $0 [OPTION]"
    echo "Options:"
