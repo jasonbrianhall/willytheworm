@@ -3,7 +3,7 @@ title = WillyTheWorm
 package.name = willytheworm
 package.domain = org.test
 source.dir = .
-source.include_exts = py,png,jpg,kv,atlas,mp3
+source.include_exts = py,png,jpg,kv,atlas,mp3,json
 requirements = python3,kivy,sdl2
 
 android.permissions = INTERNET
