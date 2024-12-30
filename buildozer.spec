@@ -1,7 +1,7 @@
 [app]
 title = WillyTheWorm
 package.name = willytheworm
-package.domain = org.test
+package.domain = org
 source.dir = .
 source.include_exts = py,png,jpg,kv,atlas,mp3,json,chr
 requirements = python3,kivy,sdl2
