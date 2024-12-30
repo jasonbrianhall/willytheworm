@@ -11,7 +11,7 @@ cp willy.py main.py -f
 p4a apk --requirements=kivy,sdl2,pillow \
     --bootstrap=sdl2 \
     --arch=x86_64 \
-    --package=org.test.willytheworm \
+    --package=org.willytheworm \
     --name="WillyTheWorm" \
     --version=1.0 \
     --private=$(pwd) \
