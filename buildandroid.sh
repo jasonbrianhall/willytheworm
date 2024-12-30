@@ -17,6 +17,5 @@ p4a apk --requirements=kivy,sdl2,pillow \
     --private=$(pwd) \
     --sdk-dir=$HOME/Android/Sdk \
     --dist-name willytheworm \
-    --ndk-version=25 \
     --ignore-setup-py
 
