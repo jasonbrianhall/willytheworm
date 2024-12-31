@@ -48,7 +48,7 @@ build() {
    p4a apk --requirements=kivy,sdl2,pillow \
        --bootstrap=sdl2 \
        --arch=$arch \
-       --package=org.test.willytheworm \
+       --package=org.willytheworm \
        --name="Willy the Worm" \
        --version=1.0 \
        --private=$(pwd) \
