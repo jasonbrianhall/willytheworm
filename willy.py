@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import pygame
-from PIL import Image
+#from PIL import Image
 import json
 import traceback
 import sys
@@ -517,122 +517,68 @@ def play_audio(mixerdict, filename, soundenabled=True):
 
 
 def loadFont(SCALER, screenfillred=0, screenfillgreen=0, screenfillblue=255):
-    namedpart = {}
-    namedpart["0"] = "WILLY_RIGHT"
-    namedpart["1"] = "WILLY_LEFT"
-    namedpart["2"] = "PRESENT"
-    namedpart["3"] = "LADDER"
-    namedpart["4"] = "TACK"
-    namedpart["5"] = "UPSPRING"
-    namedpart["6"] = "SIDESPRING"
-    namedpart["7"] = "BALL"
-    namedpart["8"] = "BELL"
-    namedpart["51"] = "PIPE1"
-    namedpart["52"] = "PIPE2"
-    namedpart["53"] = "PIPE3"
-    namedpart["54"] = "PIPE4"
-    namedpart["55"] = "PIPE5"
-    namedpart["56"] = "PIPE6"
-    namedpart["57"] = "PIPE7"
-    namedpart["58"] = "PIPE8"
-    namedpart["59"] = "PIPE9"
-    namedpart["60"] = "PIPE10"
-    namedpart["61"] = "PIPE11"
-    namedpart["62"] = "PIPE12"
-    namedpart["63"] = "PIPE13"
-    namedpart["64"] = "PIPE14"
-    namedpart["65"] = "PIPE15"
-    namedpart["66"] = "PIPE16"
-    namedpart["67"] = "PIPE17"
-    # Destroyable
-    namedpart["68"] = "PIPE18"
-    namedpart["69"] = "PIPE19"
-    namedpart["70"] = "PIPE20"
-    namedpart["71"] = "PIPE21"
-    namedpart["72"] = "PIPE22"
-    namedpart["73"] = "PIPE23"
-    namedpart["74"] = "PIPE24"
-    namedpart["75"] = "PIPE25"
-    namedpart["76"] = "PIPE26"
-    namedpart["77"] = "PIPE27"
-    namedpart["78"] = "PIPE28"
-    namedpart["79"] = "PIPE29"
-    namedpart["80"] = "PIPE30"
-    namedpart["81"] = "PIPE31"
-    namedpart["82"] = "PIPE32"
-    namedpart["83"] = "PIPE33"
-    namedpart["84"] = "PIPE34"
-    namedpart["85"] = "PIPE35"
-    namedpart["86"] = "PIPE36"
-    namedpart["87"] = "PIPE37"
-    namedpart["88"] = "PIPE38"
-    namedpart["89"] = "PIPE39"
-    namedpart["90"] = "PIPE40"
+    """Creates game sprites directly using Pygame surfaces instead of PIL"""
+    namedpart = {
+        "0": "WILLY_RIGHT", "1": "WILLY_LEFT", "2": "PRESENT", "3": "LADDER",
+        "4": "TACK", "5": "UPSPRING", "6": "SIDESPRING", "7": "BALL", "8": "BELL"
+    }
+    # Add pipe parts 51-90
+    for i in range(51, 91):
+        namedpart[str(i)] = f"PIPE{i-50}"
     namedpart["126"] = "BALLPIT"
     namedpart["127"] = "EMPTY"
 
-    # Define the colors (in RGB format)
+    # Define colors
     BACKGROUND = (screenfillred, screenfillgreen, screenfillblue)
     WHITE = (255, 255, 255)
 
-    # Define the size of the output image (in pixels)
-    IMAGE_WIDTH = 128
-    IMAGE_HEIGHT = 256
-
-    # Open the willy.chr file
+    # Create sprite dictionary
+    char_array = {}
+    
+    # Read the character data file
     if getattr(sys, 'frozen', False):
         __file__ = os.path.dirname(sys.executable)
     else:
         __file__ = "."
     bundle_dir = getattr(sys, '_MEIPASS', os.path.abspath(os.path.dirname(__file__)))
-
+    
     if not os.path.isfile(bundle_dir + "/willy.chr"):
         bundle_dir = "/usr/games/willytheworm/data/"
-
 
     path_to_chr = os.path.abspath(os.path.join(bundle_dir, 'willy.chr'))
 
     with open(path_to_chr, 'rb') as f:
-        # Read the file contents into a bytearray
         data = bytearray(f.read())
 
-    # Create a new PIL image
-    img = Image.new('RGB', (IMAGE_WIDTH, IMAGE_HEIGHT), BACKGROUND)
-
-    char_array = {}
-
-    counter = 0
-    # Loop through the characters in the file
+    # Process each character
     for i in range(len(data) // 8):
-        # Extract the bits for each row of the character
+        # Create a new Pygame surface for the character
+        char_surface = pygame.Surface((CHAR_WIDTH, CHAR_HEIGHT))
+        char_surface.fill(BACKGROUND)
+
+        # Extract bits for each row
         bits = [((data[i * 8 + j] >> k) & 1) for j in range(8) for k in range(7, -1, -1)]
 
-        # Create a new PIL image for the character
-        char_img = Image.new('RGB', (CHAR_WIDTH, CHAR_HEIGHT), BACKGROUND)
-        # Loop through the rows of the character
+        # Draw pixels on surface
         for y in range(CHAR_HEIGHT):
-            # Loop through the pixels in the row
             for x in range(CHAR_WIDTH):
-                # Calculate the index of the pixel in the bits array
                 index = y * CHAR_WIDTH + x
-
-                # If the bit is set, set the pixel to white
                 if bits[index] == 1:
-                    char_img.putpixel((x, y), WHITE)
+                    char_surface.set_at((x, y), WHITE)
 
-        new_size = (int(char_img.size[0] * SCALER), int(char_img.size[1] * SCALER))
-        char_img = char_img.resize(new_size)
-        pygame_image = pygame.image.fromstring(char_img.tobytes(), char_img.size, char_img.mode).convert()
+        # Scale the surface
+        if SCALER != 1:
+            new_size = (int(CHAR_WIDTH * SCALER), int(CHAR_HEIGHT * SCALER))
+            char_surface = pygame.transform.scale(char_surface, new_size)
+
+        # Store in character array if it has a name
         try:
-            partnumber = namedpart[str(counter)]
-            char_array[partnumber] = pygame_image
-        except:
-            # char_array[str(counter)]=pygame_image
+            partnumber = namedpart[str(i)]
+            char_array[partnumber] = char_surface.convert()
+        except KeyError:
             pass
-        counter += 1
 
     return char_array
-
 
 def main():
     global SCALER
