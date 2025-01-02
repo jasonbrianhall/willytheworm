@@ -85,6 +85,7 @@ python hd/hd.py extract --input willy.chr --output hd/sprites/
 # Customize sprites in your favorite image editor
 # Create new HD chr file
 python hd/hd.py create --input hd/sprites/ --output willy.chr
+```
 
 ### 🚀 Ready to Dive In?
 
