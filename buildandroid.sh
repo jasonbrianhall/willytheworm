@@ -45,7 +45,7 @@ build() {
    check_ndk
    check_requirements
    cp willy.py main.py -f
-   p4a apk --requirements=kivy,sdl2,pillow \
+   p4a apk --requirements=kivy,sdl2 \
        --bootstrap=sdl2 \
        --arch=$arch \
        --package=org.willytheworm \
