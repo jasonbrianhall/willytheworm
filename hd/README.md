@@ -110,3 +110,8 @@ Your HD sprites will work with the latest version of Willy the Worm while mainta
 6. Enjoy Willy in HD glory!
 
 Give Willy the high-definition treatment he deserves! Happy sprite crafting! 🪱✨
+
+
+** I can't draw worth squat.  I have no artistic talent so if someone wants to donate their drawings, I will accept.
+
+
