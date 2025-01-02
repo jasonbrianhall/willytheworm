@@ -1552,17 +1552,6 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
                     screen.blit(char_img, (int(col) * CHAR_WIDTH * SCALER, int(row) * CHAR_HEIGHT * SCALER))
                 # print(char_img)
 
-        # print(willy_direction)
-        if willy_direction == "LEFT":
-            char_img = font["WILLY_LEFT"]
-        else:
-            char_img = font["WILLY_RIGHT"]
-        row, col = willy_position
-        black_surface = pygame.Surface((CHAR_WIDTH * SCALER, CHAR_HEIGHT * SCALER))
-        black_surface.fill((screenfillred, screenfillgreen, screenfillblue))
-        screen.blit(black_surface, (int(col) * CHAR_WIDTH * SCALER, int(row) * CHAR_HEIGHT * SCALER))
-        screen.blit(char_img, (int(col) * CHAR_WIDTH * SCALER, int(row) * CHAR_HEIGHT * SCALER))
-
         font_size = 8 * SCALER
         fontdata = pygame.font.SysFont(None, int(font_size))
 
@@ -1620,6 +1609,17 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
                     screen.blit(black_surface, (int(col) * CHAR_WIDTH * SCALER, int(row) * CHAR_HEIGHT * SCALER))
 
                 screen.blit(char_img, (int(col) * CHAR_WIDTH * SCALER, int(row) * CHAR_HEIGHT * SCALER))
+
+        # print(willy_direction)
+        if willy_direction == "LEFT":
+            char_img = font["WILLY_LEFT"]
+        else:
+            char_img = font["WILLY_RIGHT"]
+        row, col = willy_position
+        black_surface = pygame.Surface((CHAR_WIDTH * SCALER, CHAR_HEIGHT * SCALER))
+        black_surface.fill((screenfillred, screenfillgreen, screenfillblue))
+        screen.blit(black_surface, (int(col) * CHAR_WIDTH * SCALER, int(row) * CHAR_HEIGHT * SCALER))
+        screen.blit(char_img, (int(col) * CHAR_WIDTH * SCALER, int(row) * CHAR_HEIGHT * SCALER))
 
         for ball in balls:
             # print(balls[ball])
