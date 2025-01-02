@@ -516,6 +516,54 @@ def play_audio(mixerdict, filename, soundenabled=True):
     mixerdict[filename].play()
 
 
+def hq2x_scale(surface):
+    """Implements HQ2x-style scaling for pixel art"""
+    width = surface.get_width()
+    height = surface.get_height()
+    new_surface = pygame.Surface((width * 2, height * 2))
+    
+    for y in range(height):
+        for x in range(width):
+            # Get center pixel
+            c = surface.get_at((x, y))
+            
+            # Get surrounding pixels (with bounds checking)
+            up = surface.get_at((x, max(0, y-1))) if y > 0 else c
+            down = surface.get_at((x, min(height-1, y+1))) if y < height-1 else c
+            left = surface.get_at((max(0, x-1), y)) if x > 0 else c
+            right = surface.get_at((min(width-1, x+1), y)) if x < width-1 else c
+            
+            # Check for edges
+            up_diff = up != c
+            down_diff = down != c
+            left_diff = left != c
+            right_diff = right != c
+            
+            # Set output pixels
+            new_surface.set_at((x*2, y*2), c)  # Top-left
+            new_surface.set_at((x*2+1, y*2), c if right_diff else right)  # Top-right
+            new_surface.set_at((x*2, y*2+1), c if down_diff else down)  # Bottom-left
+            new_surface.set_at((x*2+1, y*2+1), c)  # Bottom-right
+            
+    return new_surface
+    
+def hq4x_scale(surface):
+    """Implements Scale4x algorithm for pixel art scaling"""
+    width = surface.get_width()
+    height = surface.get_height()
+    new_surface = pygame.Surface((width * 4, height * 4))
+    
+    for y in range(height):
+        for x in range(width):
+            color = surface.get_at((x, y))
+            
+            # Fill 4x4 block with the original pixel's color
+            for dy in range(4):
+                for dx in range(4):
+                    new_surface.set_at((x*4 + dx, y*4 + dy), color)
+    
+    return new_surface
+
 def loadFont(SCALER, screenfillred=0, screenfillgreen=0, screenfillblue=255):
     """Creates game sprites directly using Pygame surfaces instead of PIL"""
     namedpart = {
@@ -552,32 +600,34 @@ def loadFont(SCALER, screenfillred=0, screenfillgreen=0, screenfillblue=255):
 
     # Process each character
     for i in range(len(data) // 8):
-        # Create a new Pygame surface for the character
         char_surface = pygame.Surface((CHAR_WIDTH, CHAR_HEIGHT))
         char_surface.fill(BACKGROUND)
-
-        # Extract bits for each row
+        
         bits = [((data[i * 8 + j] >> k) & 1) for j in range(8) for k in range(7, -1, -1)]
-
-        # Draw pixels on surface
+        
         for y in range(CHAR_HEIGHT):
             for x in range(CHAR_WIDTH):
                 index = y * CHAR_WIDTH + x
                 if bits[index] == 1:
                     char_surface.set_at((x, y), WHITE)
-
-        # Scale the surface
-        if SCALER != 1:
-            new_size = (int(CHAR_WIDTH * SCALER), int(CHAR_HEIGHT * SCALER))
-            char_surface = pygame.transform.scale(char_surface, new_size)
-
-        # Store in character array if it has a name
+        
+        # Apply HQ2x scaling first
+        scaled_surface = char_surface
+        iterations = max(1, int(math.log2(SCALER)))
+        for _ in range(iterations):
+            scaled_surface = hq4x_scale(scaled_surface)
+        
+        # Final scaling to exact size if needed
+        final_size = (int(CHAR_WIDTH * SCALER), int(CHAR_HEIGHT * SCALER))
+        if scaled_surface.get_size() != final_size:
+            scaled_surface = pygame.transform.scale(scaled_surface, final_size)
+            
         try:
             partnumber = namedpart[str(i)]
-            char_array[partnumber] = char_surface.convert()
+            char_array[partnumber] = scaled_surface.convert()
         except KeyError:
             pass
-
+            
     return char_array
 
 def main():
