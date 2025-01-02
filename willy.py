@@ -565,7 +565,13 @@ def hq4x_scale(surface):
     return new_surface
 
 def loadFont(SCALER, screenfillred=0, screenfillgreen=0, screenfillblue=255):
-    """Creates game sprites directly using Pygame surfaces instead of PIL"""
+    """Creates game sprites from chr file, handling both old 8x8 and new 128x128 formats.
+    Maintains game's 8x8 cell grid while displaying high-res sprites."""
+    import json
+    from PIL import Image
+    import io
+    import numpy as np
+    
     namedpart = {
         "0": "WILLY_RIGHT", "1": "WILLY_LEFT", "2": "PRESENT", "3": "LADDER",
         "4": "TACK", "5": "UPSPRING", "6": "SIDESPRING", "7": "BALL", "8": "BELL"
@@ -576,14 +582,9 @@ def loadFont(SCALER, screenfillred=0, screenfillgreen=0, screenfillblue=255):
     namedpart["126"] = "BALLPIT"
     namedpart["127"] = "EMPTY"
 
-    # Define colors
-    BACKGROUND = (screenfillred, screenfillgreen, screenfillblue)
-    WHITE = (255, 255, 255)
-
-    # Create sprite dictionary
     char_array = {}
     
-    # Read the character data file
+    # Get the path to chr file
     if getattr(sys, 'frozen', False):
         __file__ = os.path.dirname(sys.executable)
     else:
@@ -596,40 +597,83 @@ def loadFont(SCALER, screenfillred=0, screenfillgreen=0, screenfillblue=255):
     path_to_chr = os.path.abspath(os.path.join(bundle_dir, 'willy.chr'))
 
     with open(path_to_chr, 'rb') as f:
-        data = bytearray(f.read())
-
-    # Process each character
-    for i in range(len(data) // 8):
-        char_surface = pygame.Surface((CHAR_WIDTH, CHAR_HEIGHT))
-        char_surface.fill(BACKGROUND)
-        
-        bits = [((data[i * 8 + j] >> k) & 1) for j in range(8) for k in range(7, -1, -1)]
-        
-        for y in range(CHAR_HEIGHT):
-            for x in range(CHAR_WIDTH):
-                index = y * CHAR_WIDTH + x
-                if bits[index] == 1:
-                    char_surface.set_at((x, y), WHITE)
-        
-        # Apply HQ2x scaling first
-        scaled_surface = char_surface
-        iterations = max(1, int(math.log2(SCALER)))
-        for _ in range(iterations):
-            scaled_surface = hq4x_scale(scaled_surface)
-        
-        # Final scaling to exact size if needed
-        final_size = (int(CHAR_WIDTH * SCALER), int(CHAR_HEIGHT * SCALER))
-        if scaled_surface.get_size() != final_size:
-            scaled_surface = pygame.transform.scale(scaled_surface, final_size)
-            
+        # Try to read as new format first
         try:
-            partnumber = namedpart[str(i)]
-            char_array[partnumber] = scaled_surface.convert()
-        except KeyError:
-            pass
+            header_size = int.from_bytes(f.read(4), byteorder='little')
+            header_data = f.read(header_size)
+            metadata = json.loads(header_data.decode('utf-8'))
             
-    return char_array
+            # New format (128x128 RGBA)
+            if metadata["version"] == 2:
+                char_size = metadata["width"] * metadata["height"] * metadata["channels"]
+                char_data = f.read()
+                
+                # Calculate final sprite size based on cell size and scaler
+                cell_size = 8 * SCALER  # Size of game grid cell
+                sprite_scale = cell_size / 128  # Scale to fit in cell
+                
+                for i in range(128):  # Process all possible characters
+                    start = i * char_size
+                    end = start + char_size
+                    if end <= len(char_data):
+                        try:
+                            char_name = namedpart[str(i)]
+                            
+                            # Extract and convert pixel data
+                            pixel_data = char_data[start:end]
+                            img = Image.frombytes('RGBA', (128, 128), pixel_data)
+                            
+                            # Scale to fit in game grid cell
+                            final_size = (int(cell_size), int(cell_size))
+                            img = img.resize(final_size, Image.NEAREST)
+                            
+                            # Convert to Pygame surface
+                            pygame_surface = pygame.image.fromstring(
+                                img.tobytes(), img.size, 'RGBA'
+                            ).convert_alpha()
+                            
+                            char_array[char_name] = pygame_surface
+                        except KeyError:
+                            continue
+                
+                return char_array
+                
+        except Exception as e:
+            # Fall back to old format
+            f.seek(0)
+            data = bytearray(f.read())
+            
+            # Process each character (old 8x8 format)
+            for i in range(len(data) // 8):
+                # Create a new Pygame surface with alpha
+                char_surface = pygame.Surface((8, 8), pygame.SRCALPHA)
 
+                # Extract bits for each row
+                bits = [((data[i * 8 + j] >> k) & 1) for j in range(8) for k in range(7, -1, -1)]
+
+                # Draw pixels on surface
+                for y in range(8):
+                    for x in range(8):
+                        index = y * 8 + x
+                        if bits[index] == 1:
+                            char_surface.set_at((x, y), (255, 255, 255, 255))
+                        else:
+                            char_surface.set_at((x, y), (0, 0, 0, 0))  # Transparent
+
+                # Scale the surface to match game grid
+                if SCALER != 1:
+                    new_size = (int(8 * SCALER), int(8 * SCALER))
+                    char_surface = pygame.transform.scale(char_surface, new_size)
+
+                # Store in character array if it has a name
+                try:
+                    char_name = namedpart[str(i)]
+                    char_array[char_name] = char_surface.convert_alpha()
+                except KeyError:
+                    continue
+
+    return char_array
+    
 def main():
     global SCALER
     pygame.init()
