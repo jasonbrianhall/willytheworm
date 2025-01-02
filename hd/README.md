@@ -111,7 +111,8 @@ Your HD sprites will work with the latest version of Willy the Worm while mainta
 
 Give Willy the high-definition treatment he deserves! Happy sprite crafting! 🪱✨
 
+## 🎨 Contributing Artwork
 
-** I can't draw worth squat.  I have no artistic talent so if someone wants to donate their drawings, I will accept.
+Looking to collaborate with pixel artists! If you're interested in contributing sprite artwork or HD reimaginings for Willy the Worm, we welcome your creative talents. Whether you're an experienced pixel artist or want to try your hand at retro-style game art, your contributions can help make Willy's world even more vibrant.
 
-
+Feel free to submit your sprite designs via pull request or reach out to discuss potential collaborations.
