@@ -12,18 +12,39 @@ Transform your favorite retro worm into glorious high definition! This tool lets
 
 ## 🎯 Quick Start
 
-### Extract the original sprites:
+### Command Line Interface
+
 ```bash
-python hd.py extract willy.chr sprites_folder/
+python hd.py <command> [options]
 ```
 
-### Create a new HD character file:
-```bash
-python hd.py create sprites_folder/ willy_hd.chr
-```
+Available commands:
+- `extract`: Extract sprites from a chr file
+- `create`: Create a new chr file from sprites
+- `info`: Display available character types
 
-### View available character types:
+Options:
+- `--input`: Input chr file (for extract) or directory (for create)
+- `--output`: Output directory (for extract) or chr file (for create)
+- `--size`: Output size for extraction (8 or 128 pixels)
+- `--classic`: Create classic 8x8 format chr file
+
+Examples:
+
 ```bash
+# Extract to 8x8 sprites
+python hd.py extract --input willy.chr --output sprites/ --size 8
+
+# Extract to 128x128 HD sprites
+python hd.py extract --input willy.chr --output sprites/ --size 128
+
+# Create classic 8x8 chr file
+python hd.py create --input sprites/ --output willy.chr --classic
+
+# Create HD 128x128 chr file
+python hd.py create --input sprites/ --output willy.chr
+
+# View available character types
 python hd.py info
 ```
 
@@ -46,16 +67,27 @@ Each sprite can be edited in your favorite image editor as a 128x128 PNG file wi
 
 ## 🛠️ Technical Details
 
-The tool supports two formats:
-- Classic 8x8 bitmap format from the original game
-- New HD format with 128x128 RGBA sprites and JSON metadata
+The tool fully supports both sprite formats:
+- Classic Format:
+  - 8x8 bitmap sprites
+  - 1-bit per pixel (black and white)
+  - Original game compatibility
+  - Compact file size
 
-The HD format includes:
-- Version identifier
-- Image dimensions
-- RGBA channel support
-- Character mapping data
-- Raw pixel data for each sprite
+- HD Format:
+  - 128x128 RGBA sprites
+  - Full color and alpha channel support
+  - JSON metadata including:
+    - Version identifier
+    - Image dimensions
+    - Character mapping data
+  - Automatic format detection
+
+You can freely convert between formats:
+- Upscale classic 8x8 sprites to 128x128 HD versions
+- Downscale HD sprites to classic 8x8 format
+- Extract and modify sprites while preserving original format
+- Mix and match sprite sizes in your workflow
 
 ## 🌟 Pro Tips
 
