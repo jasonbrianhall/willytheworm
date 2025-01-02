@@ -12,10 +12,10 @@ cp willy.py main.py -f
 
 pip install -r requirements-android.txt
 
-ARCH="arm64-v8a"  # x86_64
-#ARCH="x86_64"
+#ARCH="arm64-v8a"  # x86_64
+ARCH="x86_64"
 
-p4a apk --requirements=kivy,sdl2,pygame \
+p4a apk --requirements=kivy,sdl2 \
     --bootstrap=sdl2 \
     --arch=$ARCH \
     --package=org.willytheworm \
