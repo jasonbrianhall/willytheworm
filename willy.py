@@ -1558,6 +1558,9 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
         else:
             char_img = font["WILLY_RIGHT"]
         row, col = willy_position
+        black_surface = pygame.Surface((CHAR_WIDTH * SCALER, CHAR_HEIGHT * SCALER))
+        black_surface.fill((screenfillred, screenfillgreen, screenfillblue))
+        screen.blit(black_surface, (int(col) * CHAR_WIDTH * SCALER, int(row) * CHAR_HEIGHT * SCALER))
         screen.blit(char_img, (int(col) * CHAR_WIDTH * SCALER, int(row) * CHAR_HEIGHT * SCALER))
 
         font_size = 8 * SCALER
@@ -1611,6 +1614,11 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
                         balls[ball]["Direction"] = "RIGHT"
             char_img = font["BALL"]
             if not level_data[currentlevel][str(row)][str(col)].startswith("BALLPIT"):
+                if char_img == font["BALL"]:
+                    black_surface = pygame.Surface((CHAR_WIDTH * SCALER, CHAR_HEIGHT * SCALER))
+                    black_surface.fill((screenfillred, screenfillgreen, screenfillblue))
+                    screen.blit(black_surface, (int(col) * CHAR_WIDTH * SCALER, int(row) * CHAR_HEIGHT * SCALER))
+
                 screen.blit(char_img, (int(col) * CHAR_WIDTH * SCALER, int(row) * CHAR_HEIGHT * SCALER))
 
         for ball in balls:
