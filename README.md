@@ -71,6 +71,21 @@ Every great level needs:
 
 While we've updated the audio for modern ears, the spirit of the original game lives on. We've even added an option to disable screen flashes for our photosensitive friends!
 
+### 🎨 Customize Willy's Look with HD Sprites!
+
+Want to give Willy and friends a high-definition makeover? Check out the HD Sprite Tool in `hd/hd.py`! Transform those classic 8x8 sprites into glorious 128x128 HD versions.
+
+Quick Start with HD Sprites:
+```bash
+
+# Extract existing sprites
+pip install -r hd/requirements.txt (one time only)
+python hd/hd.py extract --input willy.chr --output hd/sprites/
+
+# Customize sprites in your favorite image editor
+# Create new HD chr file
+python hd/hd.py create --input hd/sprites/ --output willy.chr
+
 ### 🚀 Ready to Dive In?
 
 1. Clone this repo
