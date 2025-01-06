@@ -13,6 +13,9 @@ from datetime import datetime, date
 import copy
 import os
 import math
+import json
+import io
+import numpy as np
 
 # Constants
 # SCALER = 4
@@ -567,11 +570,6 @@ def hq4x_scale(surface):
 def loadFont(SCALER, screenfillred=0, screenfillgreen=0, screenfillblue=255):
     """Creates game sprites from chr file, handling both old 8x8 and new 128x128 formats.
     Maintains game's 8x8 cell grid while displaying high-res sprites."""
-    import json
-    from PIL import Image
-    import io
-    import numpy as np
-    
     namedpart = {
         "0": "WILLY_RIGHT", "1": "WILLY_LEFT", "2": "PRESENT", "3": "LADDER",
         "4": "TACK", "5": "UPSPRING", "6": "SIDESPRING", "7": "BALL", "8": "BELL"
