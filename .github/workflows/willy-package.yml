@@ -8,6 +8,8 @@ on:
 
 jobs:
   create-source-release:
+    permissions:
+      contents: write # Required for creating releases
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
