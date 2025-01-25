@@ -68,19 +68,41 @@ jobs:
         run: |
           echo '<?xml version="1.0" encoding="UTF-8"?>
           <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-            <Product Id="*" Name="Willy the Worm" Language="1033" Version="1.0.0" Manufacturer="Jason Hall" UpgradeCode="12345678-1234-1234-1234-123456789012">
+            <Product Id="*" Name="Willy the Worm" Language="1033" Version="1.0.0" Manufacturer="Jason Hall" UpgradeCode="D0A8E7F1-3B92-4C67-B8E5-1A4F26D95C03">
               <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
               <MajorUpgrade DowngradeErrorMessage="A newer version is already installed." />
               <MediaTemplate EmbedCab="yes" />
               <Directory Id="TARGETDIR" Name="SourceDir">
                 <Directory Id="ProgramFilesFolder">
-                  <Directory Id="INSTALLFOLDER" Name="WillyTheWorm">
-                    <Component Id="MainExecutable" Guid="12345678-1234-1234-1234-123456789012">
-                      <File Id="WillyEXE" Name="willy.exe" Source="dist/willy.exe" KeyPath="yes" />
-                      <File Id="EdWillyEXE" Name="edwilly.exe" Source="dist/edwilly.exe" />
+                  <Directory Id="INSTALLFOLDER" Name="Willy the Worm">
+                    <Component Id="MainExecutable" Guid="E2A49E3F-B0A4-45D9-8923-A4A6D3EA2944">
+                      <File Id="WillyEXE" Name="willy.exe" Source="dist/willy.exe" KeyPath="yes">
+                        <Shortcut Id="WillyStartMenuShortcut" 
+                                  Directory="ProgramMenuDir" 
+                                  Name="Willy the Worm" 
+                                  WorkingDirectory="INSTALLFOLDER"
+                                  Icon="WillyIcon.exe"
+                                  IconIndex="0"
+                                  Advertise="yes" />
+                      </File>
+                      <File Id="EdWillyEXE" Name="edwilly.exe" Source="dist/edwilly.exe">
+                        <Shortcut Id="EdWillyStartMenuShortcut" 
+                                  Directory="ProgramMenuDir" 
+                                  Name="Willy Level Editor" 
+                                  WorkingDirectory="INSTALLFOLDER"
+                                  Icon="EdWillyIcon.exe"
+                                  IconIndex="0"
+                                  Advertise="yes" />
+                      </File>
+                      <File Id="README" Name="README.md" Source="README.md">
+                        <Shortcut Id="ReadmeStartMenuShortcut" 
+                                  Directory="ProgramMenuDir" 
+                                  Name="Willy Documentation" 
+                                  WorkingDirectory="INSTALLFOLDER"
+                                  Advertise="yes" />
+                      </File>
                       <File Id="OriginalLevels" Name="original_levels.json" Source="original_levels.json" />
                       <File Id="Levels" Name="levels.json" Source="levels.json" />
-                      <File Id="README" Name="README.md" Source="README.md" />
                       <File Id="WIKI" Name="wiki.md" Source="wiki.md" />
                       <File Id="CHARACTERS" Name="willy.chr" Source="willy.chr" />
                       <File Id="LICENSE" Name="LICENSE.md" Source="LICENSE.md" />
@@ -92,7 +114,7 @@ jobs:
                       <File Id="REQUIREMENTS" Name="requirements.txt" Source="requirements.txt" />
                     </Component>
                     <Directory Id="AudioDir" Name="audio">
-                      <Component Id="AudioFiles" Guid="87654321-4321-4321-4321-210987654321">
+                      <Component Id="AudioFiles" Guid="7B9DD5C8-2C1E-4B7F-9D47-F5A4D653809C">
                         <File Id="Bell" Name="bell.mp3" Source="audio/bell.mp3" />
                         <File Id="Boop" Name="boop.mp3" Source="audio/boop.mp3" />
                         <File Id="Jump" Name="jump.mp3" Source="audio/jump.mp3" />
@@ -102,12 +124,23 @@ jobs:
                       </Component>
                     </Directory>
                   </Directory>
+                </Directory>      
+                <Directory Id="ProgramMenuFolder">
+                  <Directory Id="ProgramMenuDir" Name="Willy the Worm">
+                    <Component Id="StartMenuShortcuts" Guid="F8A427D5-9EE6-4B85-A543-E2B8C5D478B1">
+                      <RemoveFolder Id="ProgramMenuDir" On="uninstall" />
+                      <RegistryValue Root="HKCU" Key="Software\WillyTheWorm" Name="installed" Type="integer" Value="1" KeyPath="yes" />
+                    </Component>
+                  </Directory>
                 </Directory>
               </Directory>
               <Feature Id="ProductFeature" Title="WillyTheWorm" Level="1">
                 <ComponentRef Id="MainExecutable" />
                 <ComponentRef Id="AudioFiles" />
+                <ComponentRef Id="StartMenuShortcuts" />
               </Feature>
+              <Icon Id="WillyIcon.exe" SourceFile="icon.ico" />
+              <Icon Id="EdWillyIcon.exe" SourceFile="icon.ico" />
             </Product>
           </Wix>' > installer.wxs
 
