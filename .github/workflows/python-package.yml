@@ -82,7 +82,10 @@ jobs:
                       <File Id="WIKI" Name="wiki.md" Source="wiki.md" />
                       <File Id="CHARACTERS" Name="willy.chr" Source="willy.chr" />
                       <File Id="LICENSE" Name="LICENSE.md" Source="LICENSE.md" />
-                    </Component>
+                      <File Id="CONTRIBUTION" Name="contribution.md" Source="contribution.md" />
+                      <File Id="ICON" Name="icon.png" Source="icon.png" />
+                      <File Id="ICON_WINDOWS" Name="icon.ico" Source="icon.ico" />
+                      </Component>
                     <Directory Id="AudioDir" Name="audio">
                       <Component Id="AudioFiles" Guid="87654321-4321-4321-4321-210987654321">
                         <File Id="Bell" Name="bell.mp3" Source="audio/bell.mp3" />
