@@ -77,7 +77,22 @@ jobs:
                       <File Id="WillyEXE" Name="willy.exe" Source="dist/willy.exe" KeyPath="yes" />
                       <File Id="EdWillyEXE" Name="edwilly.exe" Source="dist/edwilly.exe" />
                       <File Id="OriginalLevels" Name="original_levels.json" Source="original_levels.json" />
+                      <File Id="Levels" Name="levels.json" Source="levels.json" />
+                      <File Id="README" Name="README.md" Source="README.md" />
+                      <File Id="WIKI" Name="wiki.md" Source="wiki.md" />
+                      <File Id="CHARACTERS" Name="willy.chr" Source="willy.chr" />
+                      <File Id="LICENSE" Name="LICENSE.md" Source="LICENSE.md" />
                     </Component>
+                    <Directory Id="AudioDir" Name="audio">
+                      <Component Id="AudioFiles" Guid="87654321-4321-4321-4321-210987654321">
+                        <File Id="Bell" Name="bell.mp3" Source="audio/bell.mp3" />
+                        <File Id="Boop" Name="boop.mp3" Source="audio/boop.mp3" />
+                        <File Id="Jump" Name="jump.mp3" Source="audio/jump.mp3" />
+                        <File Id="Ladder" Name="ladder.mp3" Source="audio/ladder.mp3" />
+                        <File Id="Present" Name="present.mp3" Source="audio/present.mp3" />
+                        <File Id="Tack" Name="tack.mp3" Source="audio/tack.mp3" />
+                      </Component>
+                    </Directory>
                   </Directory>
                 </Directory>
               </Directory>
