@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import pygame
-from PIL import Image
 import json
 import traceback
 import sys
