@@ -87,6 +87,7 @@ jobs:
                       <File Id="ICON_WINDOWS" Name="icon.ico" Source="icon.ico" />
                       <File Id="WILLYPY" Name="willy.py" Source="willy.py" />
                       <File Id="EDWILLYPY" Name="edwilly.py" Source="edwilly.py" />
+                      <File Id="REQUIREMENTS" Name="requirements.txt" Source="requirements.txt" />
                     </Component>
                     <Directory Id="AudioDir" Name="audio">
                       <Component Id="AudioFiles" Guid="87654321-4321-4321-4321-210987654321">
