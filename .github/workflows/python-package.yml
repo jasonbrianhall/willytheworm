@@ -70,9 +70,6 @@ jobs:
               <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
               <MajorUpgrade DowngradeErrorMessage="A newer version is already installed." />
               <MediaTemplate EmbedCab="yes" />
-              <Feature Id="ProductFeature" Title="WillyTheWorm" Level="1">
-                <ComponentGroupRef Id="ProductComponents" />
-              </Feature>
               <Directory Id="TARGETDIR" Name="SourceDir">
                 <Directory Id="ProgramFilesFolder">
                   <Directory Id="INSTALLFOLDER" Name="WillyTheWorm">
@@ -84,6 +81,9 @@ jobs:
                   </Directory>
                 </Directory>
               </Directory>
+              <Feature Id="ProductFeature" Title="WillyTheWorm" Level="1">
+                <ComponentRef Id="MainExecutable" />
+              </Feature>
             </Product>
           </Wix>' > installer.wxs
 
