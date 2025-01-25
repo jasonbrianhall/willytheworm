@@ -74,8 +74,8 @@ jobs:
                 <Directory Id="ProgramFilesFolder">
                   <Directory Id="INSTALLFOLDER" Name="WillyTheWorm">
                     <Component Id="MainExecutable" Guid="12345678-1234-1234-1234-123456789012">
-                      <File Id="WillyEXE" Name="willy.exe" Source="dist/willy/willy.exe" KeyPath="yes" />
-                      <File Id="EdWillyEXE" Name="edwilly.exe" Source="dist/edwilly/edwilly.exe" />
+                      <File Id="WillyEXE" Name="willy.exe" Source="dist/willy.exe" KeyPath="yes" />
+                      <File Id="EdWillyEXE" Name="edwilly.exe" Source="dist/edwilly.exe" />
                       <File Id="OriginalLevels" Name="original_levels.json" Source="original_levels.json" />
                     </Component>
                   </Directory>
