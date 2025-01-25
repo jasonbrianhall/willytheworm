@@ -118,6 +118,10 @@ Created something cool? Found a bug? Want to chat about worm physics? Open an is
 
 This code is FOSS (Free and Open-Source Software). Remix it, share it, love it! 💖
 
+### 📣 Find Us on SourceForge
+
+https://sourceforge.net/projects/willy-the-worm
+
 ---
 
 **Keywords**: retro gaming, platformer, Python game, open-source game, Willy the Worm, level editor, nostalgic games, indie game, 2D game, arcade-style game
