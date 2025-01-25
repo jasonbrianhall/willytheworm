@@ -1,40 +1,160 @@
-# This workflow will install Python dependencies, run tests and lint with a variety of Python versions
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
-
-name: Python package
+name: Build and Release Willy the Worm
 
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    branches:
+      - main
+      - dev
 
 jobs:
-  build:
-
+  create-source-release:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ["3.8", "3.9", "3.10", "3.11"]
-
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v3
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        python -m pip install flake8 pytest pyinstaller
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-    - name: Lint with flake8
-      run: |
-        # stop the build if there are Python syntax errors or undefined names
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-        # check if I can build the .exe file
-        pyinstaller -F --add-binary "willy.chr:." --add-data "levels.json:." --add-binary "audio/*.mp3:audio/" willy.py
-        pyinstaller -F --add-binary "willy.chr:." --add-binary "audio/*.mp3:audio/" edwilly.py
+      - uses: actions/checkout@v3
+      
+      - name: Create Source Archive
+        run: |
+          zip -r willy-the-worm-source.zip . -x '*.git*'
+      
+      - name: Upload Source Archive
+        uses: actions/upload-artifact@v3
+        with:
+          name: source-package
+          path: willy-the-worm-source.zip
+
+  build-windows-installer:
+    runs-on: windows-latest
+    needs: create-source-release
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+          pip install cx_Freeze
+          pip install wheel setuptools
+
+      - name: Create Runtime Hook
+        run: |
+          echo 'import os
+          import sys
+          os.environ["SDL_VIDEODRIVER"] = "windows"
+          if getattr(sys, "frozen", False):
+              os.chdir(os.path.dirname(sys.executable))' > rthooks.py
+          
+      - name: Create Windows Executables
+        run: |
+          pyinstaller --onefile --noconsole --icon=icon.ico --add-data "levels.json;." --add-data "original_levels.json;." --add-data "willy.chr;." --add-data "audio/*;audio/" --runtime-hook rthooks.py --collect-all pygame willy.py
+          pyinstaller --onefile --noconsole --icon=icon.ico --add-data "levels.json;." --add-data "original_levels.json;." --add-data "willy.chr;." --add-data "audio/*;audio/" --runtime-hook rthooks.py --collect-all pygame edwilly.py
+
+      - name: Install WiX Toolset
+        run: |
+          mkdir wix
+          cd wix
+          Invoke-WebRequest -Uri "https://github.com/wixtoolset/wix3/releases/download/wix3112rtm/wix311-binaries.zip" -OutFile "wix311-binaries.zip"
+          Expand-Archive wix311-binaries.zip -DestinationPath .
+          echo "$pwd" | Out-File -FilePath $env:GITHUB_PATH -Append
+
+      - name: Create MSI Installer
+        run: |
+          echo '<?xml version="1.0" encoding="UTF-8"?>
+          <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+            <Product Id="*" Name="Willy the Worm" Language="1033" Version="1.0.0" Manufacturer="Jason Hall" UpgradeCode="12345678-1234-1234-1234-123456789012">
+              <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
+              <MajorUpgrade DowngradeErrorMessage="A newer version is already installed." />
+              <MediaTemplate EmbedCab="yes" />
+              <Directory Id="TARGETDIR" Name="SourceDir">
+                <Directory Id="ProgramFilesFolder">
+                  <Directory Id="INSTALLFOLDER" Name="WillyTheWorm">
+                    <Component Id="MainExecutable" Guid="12345678-1234-1234-1234-123456789012">
+                      <File Id="WillyEXE" Name="willy.exe" Source="dist/willy.exe" KeyPath="yes" />
+                      <File Id="EdWillyEXE" Name="edwilly.exe" Source="dist/edwilly.exe" />
+                      <File Id="OriginalLevels" Name="original_levels.json" Source="original_levels.json" />
+                      <File Id="Levels" Name="levels.json" Source="levels.json" />
+                      <File Id="README" Name="README.md" Source="README.md" />
+                      <File Id="WIKI" Name="wiki.md" Source="wiki.md" />
+                      <File Id="CHARACTERS" Name="willy.chr" Source="willy.chr" />
+                      <File Id="LICENSE" Name="LICENSE.md" Source="LICENSE.md" />
+                      <File Id="CONTRIBUTION" Name="contribution.md" Source="contribution.md" />
+                      <File Id="ICON" Name="icon.png" Source="icon.png" />
+                      <File Id="ICON_WINDOWS" Name="icon.ico" Source="icon.ico" />
+                      <File Id="WILLYPY" Name="willy.py" Source="willy.py" />
+                      <File Id="EDWILLYPY" Name="edwilly.py" Source="edwilly.py" />
+                      <File Id="REQUIREMENTS" Name="requirements.txt" Source="requirements.txt" />
+                    </Component>
+                    <Directory Id="AudioDir" Name="audio">
+                      <Component Id="AudioFiles" Guid="87654321-4321-4321-4321-210987654321">
+                        <File Id="Bell" Name="bell.mp3" Source="audio/bell.mp3" />
+                        <File Id="Boop" Name="boop.mp3" Source="audio/boop.mp3" />
+                        <File Id="Jump" Name="jump.mp3" Source="audio/jump.mp3" />
+                        <File Id="Ladder" Name="ladder.mp3" Source="audio/ladder.mp3" />
+                        <File Id="Present" Name="present.mp3" Source="audio/present.mp3" />
+                        <File Id="Tack" Name="tack.mp3" Source="audio/tack.mp3" />
+                      </Component>
+                    </Directory>
+                  </Directory>
+                </Directory>
+              </Directory>
+              <Feature Id="ProductFeature" Title="WillyTheWorm" Level="1">
+                <ComponentRef Id="MainExecutable" />
+                <ComponentRef Id="AudioFiles" />
+              </Feature>
+            </Product>
+          </Wix>' > installer.wxs
+
+          candle installer.wxs
+          light installer.wixobj -out WillyTheWorm.msi
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: windows-installer
+          path: WillyTheWorm.msi
+
+  create-release:
+    needs: build-windows-installer
+    runs-on: ubuntu-latest
+    if: ${{ github.ref == 'refs/heads/main' && contains(github.ref, 'refs/tags/') }}
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Download Artifacts
+        uses: actions/download-artifact@v3
+        
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+
+      - name: Upload Source Package
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./source-package/willy-the-worm-source.zip
+          asset_name: willy-the-worm-source.zip
+          asset_content_type: application/zip
+
+      - name: Upload Windows Installer
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./windows-installer/WillyTheWorm.msi
+          asset_name: WillyTheWorm.msi
+          asset_content_type: application/x-msi
