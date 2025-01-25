@@ -85,7 +85,9 @@ jobs:
                       <File Id="CONTRIBUTION" Name="contribution.md" Source="contribution.md" />
                       <File Id="ICON" Name="icon.png" Source="icon.png" />
                       <File Id="ICON_WINDOWS" Name="icon.ico" Source="icon.ico" />
-                      </Component>
+                      <File Id="WILLYPY" Name="willy.py" Source="willy.py" />
+                      <File Id="EDWILLYPY" Name="edwilly.py" Source="edwilly.py" />
+                    </Component>
                     <Directory Id="AudioDir" Name="audio">
                       <Component Id="AudioFiles" Guid="87654321-4321-4321-4321-210987654321">
                         <File Id="Bell" Name="bell.mp3" Source="audio/bell.mp3" />
@@ -101,6 +103,7 @@ jobs:
               </Directory>
               <Feature Id="ProductFeature" Title="WillyTheWorm" Level="1">
                 <ComponentRef Id="MainExecutable" />
+                <ComponentRef Id="AudioFiles" />
               </Feature>
             </Product>
           </Wix>' > installer.wxs
