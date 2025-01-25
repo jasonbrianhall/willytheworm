@@ -41,10 +41,18 @@ jobs:
           pip install cx_Freeze
           pip install wheel setuptools
 
+      - name: Create Runtime Hook
+        run: |
+          echo 'import os
+          import sys
+          os.environ["SDL_VIDEODRIVER"] = "windows"
+          if getattr(sys, "frozen", False):
+              os.chdir(os.path.dirname(sys.executable))' > rthooks.py
+          
       - name: Create Windows Executables
         run: |
-          pyinstaller --onefile --add-data "levels.json;." --add-data "original_levels.json;." --add-data "willy.chr;." --add-data "audio/*;audio/" willy.py
-          pyinstaller --onefile --add-data "levels.json;." --add-data "original_levels.json;." --add-data "willy.chr;." --add-data "audio/*;audio/" edwilly.py
+          pyinstaller --onefile --noconsole --icon=icon.ico --add-data "levels.json;." --add-data "original_levels.json;." --add-data "willy.chr;." --add-data "audio/*;audio/" --runtime-hook rthooks.py --collect-all pygame willy.py
+          pyinstaller --onefile --noconsole --icon=icon.ico --add-data "levels.json;." --add-data "original_levels.json;." --add-data "willy.chr;." --add-data "audio/*;audio/" --runtime-hook rthooks.py --collect-all pygame edwilly.py
 
       - name: Install WiX Toolset
         run: |
@@ -91,7 +99,7 @@ jobs:
   create-release:
     needs: build-windows-installer
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && startsWith(github.ref, 'refs/tags/v')
+    if: ${{ github.ref == 'refs/heads/main' && contains(github.ref, 'refs/tags/') }}
     steps:
       - uses: actions/checkout@v3
       
