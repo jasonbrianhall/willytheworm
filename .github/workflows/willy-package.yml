@@ -81,26 +81,12 @@ jobs:
                                   Directory="ProgramMenuDir" 
                                   Name="Willy the Worm" 
                                   WorkingDirectory="INSTALLFOLDER"
-                                  Icon="WillyIcon.exe"
+                                  Icon="icon.ico"
                                   IconIndex="0"
                                   Advertise="yes" />
                       </File>
-                      <File Id="EdWillyEXE" Name="edwilly.exe" Source="dist/edwilly.exe">
-                        <Shortcut Id="EdWillyStartMenuShortcut" 
-                                  Directory="ProgramMenuDir" 
-                                  Name="Willy Level Editor" 
-                                  WorkingDirectory="INSTALLFOLDER"
-                                  Icon="EdWillyIcon.exe"
-                                  IconIndex="0"
-                                  Advertise="yes" />
-                      </File>
-                      <File Id="README" Name="README.md" Source="README.md">
-                        <Shortcut Id="ReadmeStartMenuShortcut" 
-                                  Directory="ProgramMenuDir" 
-                                  Name="Willy Documentation" 
-                                  WorkingDirectory="INSTALLFOLDER"
-                                  Advertise="yes" />
-                      </File>
+                      <File Id="EdWillyEXE" Name="edwilly.exe" Source="dist/edwilly.exe"/>
+                      <File Id="README" Name="README.md" Source="README.md"/>
                       <File Id="OriginalLevels" Name="original_levels.json" Source="original_levels.json" />
                       <File Id="Levels" Name="levels.json" Source="levels.json" />
                       <File Id="WIKI" Name="wiki.md" Source="wiki.md" />
