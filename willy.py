@@ -947,6 +947,10 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
     newlevel = False
     jumping = False
     while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()  # Add this line
+                return 0      # Add this line to return a score
         process_events()
         clock.tick(fps)  # limit the frame rate so Willy won't travel as fast (Willy travels at the frame rate)
         if int(score / NEWLIFEPOINTS) > liveadder:
