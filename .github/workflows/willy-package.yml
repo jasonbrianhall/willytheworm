@@ -19,7 +19,7 @@ jobs:
           zip -r willy-the-worm-source.zip . -x '*.git*'
       
       - name: Upload Source Archive
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: source-package
           path: willy-the-worm-source.zip
