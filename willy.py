@@ -33,6 +33,21 @@ screenfillred = 0
 screenfillgreen = 0
 screenfillblue = 255
 
+def running_under_qt():
+    try:
+        from PyQt5.QtWidgets import QApplication
+        return QApplication.instance() is not None
+    except ImportError:
+        return False
+
+# Function to handle events and delays
+def process_events():
+    if running_under_qt():
+        from PyQt5.QtWidgets import QApplication
+        QApplication.processEvents()
+    time.sleep(0.001)  # Tiny delay that's safe for both modes
+
+
 
 
 def game_score(screen, score):
@@ -91,6 +106,8 @@ def game_score(screen, score):
         pass
 
     hiscore_msg = ""
+    process_events()
+
     if score > hiscores["hiscoreP"][9][1]:
         hiscore_msg = "You're an Official Nightcrawler!"
     elif score > hiscores["hiscoreT"][9][1]:
@@ -380,6 +397,7 @@ def intro(screen):
     screen.fill((0, 0, 255))
     exit = False
     while exit == False:
+        process_events()
         datasize = 0
         # font_size = 32
         # fontdata = pygame.font.SysFont("Courier", font_size)
@@ -929,6 +947,7 @@ def game(screen, currentlevel, level, SCALER, wasd=False, flash=True, numberofba
     newlevel = False
     jumping = False
     while running:
+        process_events()
         clock.tick(fps)  # limit the frame rate so Willy won't travel as fast (Willy travels at the frame rate)
         if int(score / NEWLIFEPOINTS) > liveadder:
             numberoflives += 1
