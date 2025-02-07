@@ -109,9 +109,9 @@ jobs:
                 <Directory Id="ProgramMenuFolder">
                   <Directory Id="ApplicationProgramsFolder" Name="Willy the Worm">
                     <Component Id="ApplicationShortcuts" Guid="F8A427D5-9EE6-4B85-A543-E2B8C5D478B1">
-                      <Shortcut Id="WillyStartMenu" Name="Willy the Worm" Target="[INSTALLFOLDER]willy.exe" WorkingDirectory="INSTALLFOLDER" Icon="icon.ico"/>
-                      <Shortcut Id="EdWillyStartMenu" Name="Willy Level Editor" Target="[INSTALLFOLDER]edwilly.exe" WorkingDirectory="INSTALLFOLDER" Icon="icon.ico"/>
-                      <Shortcut Id="WillyControlPanel" Name="Willy Control Panel" Target="[INSTALLFOLDER]willy_qt.exe" WorkingDirectory="INSTALLFOLDER" Icon="icon.ico"/>
+                      <Shortcut Id="WillyStartMenu" Name="Willy the Worm" Target="[INSTALLFOLDER]willy.exe" WorkingDirectory="INSTALLFOLDER" Icon="WillyIcon.exe"/>
+                      <Shortcut Id="EdWillyStartMenu" Name="Willy Level Editor" Target="[INSTALLFOLDER]edwilly.exe" WorkingDirectory="INSTALLFOLDER" Icon="EdWillyIcon.exe"/>
+                      <Shortcut Id="WillyControlPanel" Name="Willy Control Panel" Target="[INSTALLFOLDER]willy_qt.exe" WorkingDirectory="INSTALLFOLDER" Icon="willyqticon.exe"/>
                       <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall"/>
                       <RegistryValue Root="HKCU" Key="Software\WillyTheWorm" Name="installed" Type="integer" Value="1" KeyPath="yes"/>
                     </Component>
@@ -125,7 +125,8 @@ jobs:
               </Feature>
               <Icon Id="WillyIcon.exe" SourceFile="icon.ico" />
               <Icon Id="EdWillyIcon.exe" SourceFile="icon.ico" />
-            </Product>
+              <Icon Id="willyqticon.exe" SourceFile="icon.ico" />
+              </Product>
           </Wix>' > installer.wxs
 
           candle installer.wxs
