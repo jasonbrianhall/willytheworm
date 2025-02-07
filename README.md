@@ -46,6 +46,11 @@ Tweak your Willy experience with these command-line options:
     -h or --help       (Show all options)
 ```
 
+A GUI for the CLI challenged
+```
+./willy_qt.py
+```
+
 ### 🎨 Unleash Your Creativity with the Level Editor!
 
 Think you can create the ultimate Willy challenge? Fire up `edwilly.py` and let your imagination run wild!
@@ -63,9 +68,10 @@ Editor Hotkeys:
 
 Every great level needs:
 1. Willy (of course!)
-2. Two ball pits (the last one placed is where the action starts)
+2. Two or more ball pits (the last one placed is where the action starts).  Balls not getting stuck.
 3. A bell (Willy's ultimate goal!)
 4. Your creative touch of obstacles and challenges!
+5. Winnability.  Make it winnable.
 
 ### 🎵 A Symphony of Nostalgia
 

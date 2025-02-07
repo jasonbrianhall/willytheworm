@@ -55,6 +55,7 @@ jobs:
         run: |
           pyinstaller --onefile --noconsole --icon=icon.ico --add-data "levels.json;." --add-data "original_levels.json;." --add-data "willy.chr;." --add-data "audio/*;audio/" --runtime-hook rthooks.py --collect-all pygame willy.py
           pyinstaller --onefile --noconsole --icon=icon.ico --add-data "levels.json;." --add-data "original_levels.json;." --add-data "willy.chr;." --add-data "audio/*;audio/" --runtime-hook rthooks.py --collect-all pygame edwilly.py
+          pyinstaller --onefile --noconsole --icon=icon.ico --add-data "levels.json;." --add-data "original_levels.json;." --add-data "willy.chr;." --add-data "audio/*;audio/" --runtime-hook rthooks.py --collect-all pygame willy_qt.py
 
       - name: Install WiX Toolset
         run: |
@@ -78,6 +79,7 @@ jobs:
                     <Component Id="MainExecutable" Guid="E2A49E3F-B0A4-45D9-8923-A4A6D3EA2944">
                       <File Id="WillyEXE" Name="willy.exe" Source="dist/willy.exe" KeyPath="yes"/>
                       <File Id="EdWillyEXE" Name="edwilly.exe" Source="dist/edwilly.exe"/>
+                      <File Id="willyqt" Name="willy_qt.exe" Source="dist/willy_qt.exe"/>
                       <File Id="README" Name="README.md" Source="README.md"/>
                       <File Id="OriginalLevels" Name="original_levels.json" Source="original_levels.json" />
                       <File Id="Levels" Name="levels.json" Source="levels.json" />
@@ -89,6 +91,7 @@ jobs:
                       <File Id="ICON_WINDOWS" Name="icon.ico" Source="icon.ico" />
                       <File Id="WILLYPY" Name="willy.py" Source="willy.py" />
                       <File Id="EDWILLYPY" Name="edwilly.py" Source="edwilly.py" />
+                      <File Id="WILLYQTPY" Name="willy_qt.py" Source="willy_qt.py" />
                       <File Id="REQUIREMENTS" Name="requirements.txt" Source="requirements.txt" />
                     </Component>
                     <Directory Id="AudioDir" Name="audio">
@@ -106,8 +109,9 @@ jobs:
                 <Directory Id="ProgramMenuFolder">
                   <Directory Id="ApplicationProgramsFolder" Name="Willy the Worm">
                     <Component Id="ApplicationShortcuts" Guid="F8A427D5-9EE6-4B85-A543-E2B8C5D478B1">
-                      <Shortcut Id="WillyStartMenu" Name="Willy the Worm" Target="[INSTALLFOLDER]willy.exe" WorkingDirectory="INSTALLFOLDER" Icon="WillyIcon.exe"/>
-                      <Shortcut Id="EdWillyStartMenu" Name="Willy Level Editor" Target="[INSTALLFOLDER]edwilly.exe" WorkingDirectory="INSTALLFOLDER" Icon="EdWillyIcon.exe"/>
+                      <Shortcut Id="WillyStartMenu" Name="Willy the Worm" Target="[INSTALLFOLDER]willy.exe" WorkingDirectory="INSTALLFOLDER" Icon="icon.ico"/>
+                      <Shortcut Id="EdWillyStartMenu" Name="Willy Level Editor" Target="[INSTALLFOLDER]edwilly.exe" WorkingDirectory="INSTALLFOLDER" Icon="icon.ico"/>
+                      <Shortcut Id="WillyControlPanel" Name="Willy Control Panel" Target="[INSTALLFOLDER]willy_qt.exe" WorkingDirectory="INSTALLFOLDER" Icon="icon.ico"/>
                       <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall"/>
                       <RegistryValue Root="HKCU" Key="Software\WillyTheWorm" Name="installed" Type="integer" Value="1" KeyPath="yes"/>
                     </Component>
