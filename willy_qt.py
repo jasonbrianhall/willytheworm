@@ -90,23 +90,24 @@ class ScoreBoard(QWidget):
             with open(score_file, 'r') as f:
                 scores = json.load(f)
                 
+            self.scores_label.setStyleSheet("color: rgb(255, 255, 255); background-color: rgb(0, 0, 255)")
+            
             text = "All-time Nightcrawlers\n"
             text += "-" * 30 + "\n"
             for i, (name, score) in enumerate(scores['hiscoreP'][:5]):
                 text += f"{i+1:2d}. {name:15s} {score:5d}\n"
-                
-            text += "\nToday's Best Pinworms\n"
-            text += "-" * 30 + "\n"
-            for i, (name, score) in enumerate(scores['hiscoreT'][:5]):
-                text += f"{i+1:2d}. {name:15s} {score:5d}\n"
-                
+            
+            # Only show daily pinworms if there are scores
+            if any(score > 0 for _, score in scores['hiscoreT']):
+                text += "\nToday's Best Pinworms\n"
+                text += "-" * 30 + "\n"
+                for i, (name, score) in enumerate(scores['hiscoreT'][:5]):
+                    if score > 0:
+                        text += f"{i+1:2d}. {name:15s} {score:5d}\n"
+                    
             self.scores_label.setText(text)
         except:
-            self.scores_label.setText("No high scores yet!")
-
-    def timerEvent(self, event):
-        self.updateScores()
-
+            self.scores_label.setText("No high scores yet!")            
 class WillyWindow(QMainWindow):
     def __init__(self, game):
         super().__init__()
