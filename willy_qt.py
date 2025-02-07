@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 import sys
 import os
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QAction, QMenuBar, QMessageBox
+import json
+from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QAction, 
+                            QMenuBar, QMessageBox, QHBoxLayout, QVBoxLayout, QLabel)
 from PyQt5.QtCore import Qt, QTimer
+from PyQt5.QtGui import QFont
 import pygame
 
 from willy import (loadFont, SCREEN_WIDTH, SCREEN_HEIGHT, CHAR_WIDTH, CHAR_HEIGHT, 
@@ -31,7 +34,10 @@ class WillyGame:
             if event.type == pygame.QUIT:
                 return True
             if event.type == pygame.KEYDOWN:
-                if self.waiting_for_enter and event.key == pygame.K_RETURN:
+                if event.key == pygame.K_LALT and self.game_args['mousesupport']:
+                    pygame.event.set_grab(True)
+                    pygame.mouse.set_visible(False)
+                elif self.waiting_for_enter and event.key == pygame.K_RETURN:
                     self.waiting_for_enter = False
                     self.start_game()
                     
@@ -61,6 +67,46 @@ class WillyGame:
         except Exception as e:
             print(f"Game error: {str(e)}")
 
+class ScoreBoard(QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.initUI()
+        self.startTimer(1000)  # Update every second
+
+    def initUI(self):
+        layout = QVBoxLayout()
+        self.scores_label = QLabel()
+        self.scores_label.setAlignment(Qt.AlignLeft | Qt.AlignTop)
+        self.scores_label.setFont(QFont('Courier', 12))
+        layout.addWidget(self.scores_label)
+        self.setLayout(layout)
+        self.updateScores()
+
+    def updateScores(self):
+        try:
+            home_dir = os.path.expanduser("~")
+            score_file = os.path.join(home_dir, ".willytheworm", "willy.scr")
+            
+            with open(score_file, 'r') as f:
+                scores = json.load(f)
+                
+            text = "All-time Nightcrawlers\n"
+            text += "-" * 30 + "\n"
+            for i, (name, score) in enumerate(scores['hiscoreP'][:5]):
+                text += f"{i+1:2d}. {name:15s} {score:5d}\n"
+                
+            text += "\nToday's Best Pinworms\n"
+            text += "-" * 30 + "\n"
+            for i, (name, score) in enumerate(scores['hiscoreT'][:5]):
+                text += f"{i+1:2d}. {name:15s} {score:5d}\n"
+                
+            self.scores_label.setText(text)
+        except:
+            self.scores_label.setText("No high scores yet!")
+
+    def timerEvent(self, event):
+        self.updateScores()
+
 class WillyWindow(QMainWindow):
     def __init__(self, game):
         super().__init__()
@@ -71,6 +117,25 @@ class WillyWindow(QMainWindow):
     def init_ui(self):
         self.setWindowTitle('Willy the Worm')
         
+        central_widget = QWidget()
+        layout = QHBoxLayout()
+        
+        # Add scoreboard
+        self.scoreboard = ScoreBoard()
+        layout.addWidget(self.scoreboard)
+        
+        # Add Pygame surface
+        pygame_widget = QWidget()
+        pygame_widget.setAttribute(Qt.WA_OpaquePaintEvent)
+        layout.addWidget(pygame_widget)
+        
+        central_widget.setLayout(layout)
+        self.setCentralWidget(central_widget)
+        
+        self.init_menu()
+        self.show()
+
+    def init_menu(self):
         menubar = self.menuBar()
         fileMenu = menubar.addMenu('&File')
         
@@ -110,9 +175,6 @@ class WillyWindow(QMainWindow):
         aboutAction = QAction('&About', self)
         aboutAction.triggered.connect(self.show_about)
         helpMenu.addAction(aboutAction)
-        
-        self.setFixedSize(self.game.game_width, self.game.game_height + menubar.height())
-        self.show()
 
     def init_pygame(self):
         self.timer = QTimer()
