@@ -3,7 +3,7 @@ import sys
 import os
 import json
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QAction, 
-                            QMenuBar, QMessageBox, QHBoxLayout, QVBoxLayout, QLabel)
+                            QMenuBar, QMessageBox, QHBoxLayout, QVBoxLayout, QLabel, QSlider)
 from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtGui import QFont
 import pygame
@@ -117,24 +117,72 @@ class WillyWindow(QMainWindow):
         
     def init_ui(self):
         self.setWindowTitle('Willy the Worm')
-        
+    
         central_widget = QWidget()
         layout = QHBoxLayout()
-        
-        # Add scoreboard
+    
+        # Left side: controls and scoreboard
+        left_panel = QVBoxLayout()
+        controls = self.init_controls()
         self.scoreboard = ScoreBoard()
-        layout.addWidget(self.scoreboard)
-        
+    
+        left_panel.addWidget(controls)
+        left_panel.addWidget(self.scoreboard)
+    
+        left_widget = QWidget()
+        left_widget.setLayout(left_panel)
+        layout.addWidget(left_widget)
+    
         # Add Pygame surface
         pygame_widget = QWidget()
         pygame_widget.setAttribute(Qt.WA_OpaquePaintEvent)
         layout.addWidget(pygame_widget)
-        
+    
         central_widget.setLayout(layout)
         self.setCentralWidget(central_widget)
-        
+    
         self.init_menu()
         self.show()
+
+    def init_controls(self):
+        controls = QWidget()
+        controls_layout = QVBoxLayout()
+    
+        # FPS Slider
+        fps_label = QLabel('Game Speed (FPS): 10')
+        fps_slider = QSlider(Qt.Horizontal)
+        fps_slider.setMinimum(1)
+        fps_slider.setMaximum(60)
+        fps_slider.setValue(10)
+        fps_slider.valueChanged.connect(
+            lambda value: self.update_fps(value, fps_label)
+        )
+    
+        # Balls Slider
+        balls_label = QLabel('Number of Balls: 9')
+        balls_slider = QSlider(Qt.Horizontal)
+        balls_slider.setMinimum(1)
+        balls_slider.setMaximum(20)
+        balls_slider.setValue(9)
+        balls_slider.valueChanged.connect(
+            lambda value: self.update_balls(value, balls_label)
+        )
+    
+        controls_layout.addWidget(fps_label)
+        controls_layout.addWidget(fps_slider)
+        controls_layout.addWidget(balls_label)
+        controls_layout.addWidget(balls_slider)
+        controls.setLayout(controls_layout)
+    
+        return controls
+
+    def update_fps(self, value, label):
+        label.setText(f'Game Speed (FPS): {value}')
+        self.game.game_args['fps'] = value
+
+    def update_balls(self, value, label):
+        label.setText(f'Number of Balls: {value}')
+        self.game.game_args['numberofballs'] = value
 
     def init_menu(self):
         menubar = self.menuBar()
