@@ -3,7 +3,7 @@ import sys
 import os
 import json
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QAction, 
-                            QMenuBar, QMessageBox, QHBoxLayout, QVBoxLayout, QLabel, QSlider)
+                            QMenuBar, QMessageBox, QHBoxLayout, QVBoxLayout, QLabel, QSlider, QFileDialog)
 from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtGui import QFont
 import pygame
@@ -149,7 +149,7 @@ class WillyWindow(QMainWindow):
         controls_layout = QVBoxLayout()
     
         # FPS Slider
-        fps_label = QLabel('Game Speed (FPS): 10')
+        fps_label = QLabel('Game Speed: Default is 10 (Higher value equals faster; only applied on new game)')
         fps_slider = QSlider(Qt.Horizontal)
         fps_slider.setMinimum(1)
         fps_slider.setMaximum(60)
@@ -159,10 +159,10 @@ class WillyWindow(QMainWindow):
         )
     
         # Balls Slider
-        balls_label = QLabel('Number of Balls: 9')
+        balls_label = QLabel('Number of Balls: Default is 9 (only applies on new game)')
         balls_slider = QSlider(Qt.Horizontal)
-        balls_slider.setMinimum(1)
-        balls_slider.setMaximum(20)
+        balls_slider.setMinimum(0)
+        balls_slider.setMaximum(100)
         balls_slider.setValue(9)
         balls_slider.valueChanged.connect(
             lambda value: self.update_balls(value, balls_label)
@@ -193,6 +193,13 @@ class WillyWindow(QMainWindow):
         newGameAction.triggered.connect(self.new_game)
         fileMenu.addAction(newGameAction)
         
+        fileMenu.addSeparator()
+
+        loadLevelsAction = QAction('&Load Levels', self)
+        loadLevelsAction.setShortcut('Ctrl+L')
+        loadLevelsAction.triggered.connect(self.load_levels)
+        fileMenu.addAction(loadLevelsAction)
+    
         fileMenu.addSeparator()
         
         exitAction = QAction('E&xit', self)
@@ -241,6 +248,13 @@ class WillyWindow(QMainWindow):
         if reply == QMessageBox.Yes:
             self.game.game_args['level'] = 1
             self.game.waiting_for_enter = True
+
+    def load_levels(self):
+        filename, _ = QFileDialog.getOpenFileName(self, 'Load Levels', '', 'JSON Files (*.json)')
+        if filename:
+            self.game.game_args['levelFile'] = filename
+            self.game.game_args['level'] = 1  # Reset to first level
+            self.game.waiting_for_enter = True  # Restart game
             
     def toggle_sound(self, checked):
         from willy import soundenabled
