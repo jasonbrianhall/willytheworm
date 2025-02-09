@@ -157,6 +157,8 @@ jobs:
           files: |
             source-package/willy-the-worm-source.zip
             windows-installer/WillyTheWorm.msi
+            dist/willy.exe
+            dist/edwilly.exe
           tag_name: v${{ github.run_number }}
           generate_release_notes: true
         env:
