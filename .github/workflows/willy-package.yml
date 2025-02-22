@@ -69,7 +69,7 @@ jobs:
         run: |
           echo '<?xml version="1.0" encoding="UTF-8"?>
           <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-            <Product Id="*" Name="Willy the Worm" Language="1033" Version="1.0.0" Manufacturer="Jason Hall" UpgradeCode="D0A8E7F1-3B92-4C67-B8E5-1A4F26D95C03">
+            <Product Id="*" Name="Willy the Worm" Language="1033" Version="1.0.0.${{ github.run_number }}" Manufacturer="Jason Hall" UpgradeCode="D0A8E7F1-3B92-4C67-B8E5-1A4F26D95C03">
               <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
               <MajorUpgrade DowngradeErrorMessage="A newer version is already installed." />
               <MediaTemplate EmbedCab="yes" />
