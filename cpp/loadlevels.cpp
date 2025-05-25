@@ -17,12 +17,16 @@ std::string LevelLoader::find_levels_file(const std::string& filename) {
         "/usr/games/willytheworm/data/" + filename
     };
     
+    std::cout << "Searching for levels file: " << filename << std::endl;
     for(const auto& path : possible_paths) {
+        std::cout << "  Checking: " << path << std::endl;
         std::ifstream file(path);
         if(file.good()) {
+            std::cout << "  Found at: " << path << std::endl;
             return path;
         }
     }
+    std::cout << "Could not find levels file in any location" << std::endl;
     return "";
 }
 
@@ -30,8 +34,7 @@ bool LevelLoader::load_levels(const std::string& filename) {
     std::string levels_path = find_levels_file(filename);
     
     if(levels_path.empty()) {
-        std::cout << "Could not find " << filename << ", creating default levels..." << std::endl;
-        create_default_levels();
+        std::cout << "ERROR: Could not find " << filename << std::endl;
         return false;
     }
     
@@ -46,6 +49,10 @@ bool LevelLoader::load_levels(const std::string& filename) {
         buffer << file.rdbuf();
         std::string json_content = buffer.str();
         
+        std::cout << "Successfully read " << json_content.length() << " characters from " << levels_path << std::endl;
+        std::cout << "First 200 characters of JSON content:" << std::endl;
+        std::cout << json_content.substr(0, 200) << "..." << std::endl;
+        
         // Parse JSON content
         if(!parse_json_file(json_content)) {
             throw std::runtime_error("Failed to parse JSON content");
@@ -54,105 +61,25 @@ bool LevelLoader::load_levels(const std::string& filename) {
         // Create backup copy
         original_level_data = level_data;
         
-        std::cout << "Loaded levels from " << levels_path << std::endl;
+        std::cout << "Successfully loaded " << level_data.size() << " entries from " << levels_path << std::endl;
+        std::cout << "Loaded levels:" << std::endl;
+        for(const auto& [level_name, level_content] : level_data) {
+            if(level_name.find("level") != std::string::npos && level_name.find("PIT") == std::string::npos) {
+                std::cout << "  - " << level_name << " (rows: " << level_content.size() << ")" << std::endl;
+            }
+        }
+        
         return true;
         
     } catch(const std::exception& e) {
-        std::cout << "Error loading levels file: " << e.what() << std::endl;
-        std::cout << "Creating default levels..." << std::endl;
-        create_default_levels();
+        std::cout << "ERROR loading levels file: " << e.what() << std::endl;
         return false;
     }
 }
 
 void LevelLoader::create_default_levels() {
-    // Clear existing data
-    level_data.clear();
-    original_level_data.clear();
-    ball_pit_data.clear();
-    
-    // Create level1
-    std::string level_name = "level1";
-    
-    // Initialize empty level
-    for(int row = 0; row < GAME_SCREEN_HEIGHT; row++) {
-        for(int col = 0; col < GAME_SCREEN_WIDTH; col++) {
-            level_data[level_name][std::to_string(row)][std::to_string(col)] = "EMPTY";
-        }
-    }
-    
-    // Bottom platform
-    for(int col = 5; col < 35; col++) {
-        level_data[level_name]["24"][std::to_string(col)] = "PIPE1";
-    }
-    
-    // Some ladders
-    for(int row = 20; row < 25; row++) {
-        level_data[level_name][std::to_string(row)]["10"] = "LADDER";
-        level_data[level_name][std::to_string(row)]["30"] = "LADDER";
-    }
-    
-    // Mid platforms
-    for(int col = 8; col < 15; col++) {
-        level_data[level_name]["20"][std::to_string(col)] = "PIPE1";
-    }
-    for(int col = 25; col < 32; col++) {
-        level_data[level_name]["20"][std::to_string(col)] = "PIPE1";
-    }
-    
-    // Top platforms
-    for(int col = 15; col < 25; col++) {
-        level_data[level_name]["16"][std::to_string(col)] = "PIPE1";
-    }
-    
-    // Add more ladders
-    for(int row = 16; row < 21; row++) {
-        level_data[level_name][std::to_string(row)]["20"] = "LADDER";
-    }
-    
-    // Add some game elements
-    level_data[level_name]["23"]["12"] = "PRESENT";
-    level_data[level_name]["23"]["28"] = "PRESENT";
-    level_data[level_name]["19"]["9"] = "PRESENT";
-    level_data[level_name]["19"]["31"] = "PRESENT";
-    level_data[level_name]["15"]["20"] = "PRESENT";
-    
-    level_data[level_name]["19"]["15"] = "UPSPRING";
-    level_data[level_name]["19"]["25"] = "SIDESPRING";
-    level_data[level_name]["15"]["17"] = "UPSPRING";
-    
-    level_data[level_name]["12"]["20"] = "BELL";  // Goal
-    
-    level_data[level_name]["23"]["18"] = "TACK";  // Danger
-    level_data[level_name]["23"]["22"] = "TACK";  // Danger
-    
-    // Ball pit
-    level_data[level_name]["24"]["20"] = "BALLPIT";
-    
-    // Set Willy's starting position
-    level_data[level_name]["23"]["7"] = "WILLY_RIGHT";
-    
-    // Set up ball pit data
-    ball_pit_data[level_name + "PIT"]["PRIMARYBALLPIT"] = {24, 20};
-    
-    // Create level2 (slightly different)
-    level_name = "level2";
-    
-    // Copy level1 as base
-    level_data[level_name] = level_data["level1"];
-    
-    // Modify some elements for level2
-    level_data[level_name]["15"]["20"] = "TACK";  // Make it harder
-    level_data[level_name]["19"]["20"] = "PRESENT"; // Add present on ladder
-    level_data[level_name]["23"]["15"] = "SIDESPRING"; // Add more springs
-    
-    // Set up ball pit data for level2
-    ball_pit_data[level_name + "PIT"]["PRIMARYBALLPIT"] = {24, 20};
-    
-    // Create backup copy
-    original_level_data = level_data;
-    
-    std::cout << "Created default levels" << std::endl;
+    // This function has been removed as requested
+    std::cout << "ERROR: create_default_levels() called but not implemented" << std::endl;
 }
 
 std::map<std::string, std::map<std::string, std::map<std::string, std::string>>> 
@@ -181,11 +108,20 @@ int LevelLoader::get_max_levels() const {
             max_levels++;
         }
     }
+    std::cout << "get_max_levels() returning: " << max_levels << std::endl;
     return max_levels;
 }
 
 bool LevelLoader::level_exists(const std::string& level_name) const {
-    return level_data.find(level_name) != level_data.end();
+    bool exists = level_data.find(level_name) != level_data.end();
+    std::cout << "Checking if level '" << level_name << "' exists: " << (exists ? "YES" : "NO") << std::endl;
+    if(!exists) {
+        std::cout << "Available levels:" << std::endl;
+        for(const auto& [name, content] : level_data) {
+            std::cout << "  - '" << name << "'" << std::endl;
+        }
+    }
+    return exists;
 }
 
 std::string LevelLoader::get_tile(const std::string& level_name, int row, int col) const {
@@ -284,6 +220,7 @@ std::vector<int> LevelLoader::extract_array_value(const std::string& line) {
 }
 
 bool LevelLoader::parse_json_file(const std::string& content) {
+    std::cout << "=== Starting JSON parsing ===" << std::endl;
     level_data.clear();
     original_level_data.clear();
     ball_pit_data.clear();
@@ -295,10 +232,19 @@ bool LevelLoader::parse_json_file(const std::string& content) {
     bool in_level = false;
     bool in_row = false;
     bool in_pit = false;
+    int line_number = 0;
     
     while(std::getline(stream, line)) {
+        line_number++;
+        std::string original_line = line;
         line = trim(line);
-        if(line.empty() || line[0] == '{' || line[0] == '}') continue;
+        
+        std::cout << "Line " << line_number << ": '" << line << "'" << std::endl;
+        
+        if(line.empty() || line[0] == '{' || line[0] == '}') {
+            std::cout << "  -> Skipping empty/brace line" << std::endl;
+            continue;
+        }
         
         // Check for level start
         if(line.find("\"level") != std::string::npos && line.find(":") != std::string::npos) {
@@ -308,6 +254,9 @@ bool LevelLoader::parse_json_file(const std::string& content) {
                 current_level = line.substr(quote1 + 1, quote2 - quote1 - 1);
                 in_level = true;
                 in_pit = (current_level.find("PIT") != std::string::npos);
+                std::cout << "  -> Found level: '" << current_level << "'" << (in_pit ? " (PIT)" : "") << std::endl;
+            } else {
+                std::cout << "  -> Failed to parse level name from line" << std::endl;
             }
             continue;
         }
@@ -321,6 +270,9 @@ bool LevelLoader::parse_json_file(const std::string& content) {
                 if(quote1 != std::string::npos && quote2 != std::string::npos) {
                     current_row = line.substr(quote1 + 1, quote2 - quote1 - 1);
                     in_row = true;
+                    std::cout << "  -> Found row: '" << current_row << "'" << std::endl;
+                } else {
+                    std::cout << "  -> Failed to parse row from line" << std::endl;
                 }
                 continue;
             }
@@ -334,7 +286,12 @@ bool LevelLoader::parse_json_file(const std::string& content) {
                     std::string tile = extract_string_value(line);
                     if(!tile.empty()) {
                         level_data[current_level][current_row][col] = tile;
+                        std::cout << "  -> Set tile [" << current_level << "][" << current_row << "][" << col << "] = '" << tile << "'" << std::endl;
+                    } else {
+                        std::cout << "  -> Failed to extract tile value from line" << std::endl;
                     }
+                } else {
+                    std::cout << "  -> Failed to parse column from line" << std::endl;
                 }
             }
         } else if(in_pit) {
@@ -343,23 +300,41 @@ bool LevelLoader::parse_json_file(const std::string& content) {
                 auto coords = extract_array_value(line);
                 if(coords.size() >= 2) {
                     ball_pit_data[current_level]["PRIMARYBALLPIT"] = {coords[0], coords[1]};
+                    std::cout << "  -> Set ball pit for " << current_level << " at [" << coords[0] << ", " << coords[1] << "]" << std::endl;
+                } else {
+                    std::cout << "  -> Failed to extract coordinates from ball pit line" << std::endl;
                 }
             }
         }
         
         // Reset states when we encounter closing braces or end sections
         if(line.find("}") != std::string::npos) {
-            in_row = false;
-            if(in_level) {
+            if(in_row) {
+                std::cout << "  -> End of row '" << current_row << "'" << std::endl;
+                in_row = false;
+            } else if(in_level) {
+                std::cout << "  -> End of level '" << current_level << "'" << std::endl;
                 in_level = false;
                 in_pit = false;
             }
         }
     }
     
+    std::cout << "=== JSON parsing complete ===" << std::endl;
+    std::cout << "Parsed " << level_data.size() << " total entries" << std::endl;
+    
+    int level_count = 0;
+    for(const auto& [name, content] : level_data) {
+        if(name.find("level") != std::string::npos && name.find("PIT") == std::string::npos) {
+            level_count++;
+            std::cout << "Level: " << name << " has " << content.size() << " rows" << std::endl;
+        }
+    }
+    std::cout << "Found " << level_count << " actual game levels" << std::endl;
+    
     // Create backup copy
     original_level_data = level_data;
-    return true;
+    return level_count > 0;
 }
 
 bool LevelLoader::save_levels(const std::string& filename) const {
