@@ -110,6 +110,9 @@ public:
     ~WillyGame();
     
 private:
+    std::string continuous_direction;  // For continuous movement
+    bool moving_continuously;
+
     void setup_ui();
     void create_menubar();
     void load_level(const std::string& level_name);  // Replace init_default_level

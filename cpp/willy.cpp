@@ -549,7 +549,7 @@ bool WillyGame::can_move_to(int row, int col) {
     std::string tile = get_tile(row, col);
     return (tile == "EMPTY" || tile == "LADDER" || tile == "PRESENT" || 
             tile == "BELL" || tile == "UPSPRING" || tile == "SIDESPRING" || 
-            tile == "TACK");
+            tile == "TACK" || tile == "BALLPIT");  // Added BALLPIT
 }
 
 bool WillyGame::is_on_solid_ground() {
@@ -560,7 +560,14 @@ bool WillyGame::is_on_solid_ground() {
         return true;
     }
     
+    std::string current_tile = get_tile(y, x);
     std::string below_tile = get_tile(y + 1, x);
+    
+    // Standing on top of a ladder is solid ground
+    if(current_tile == "LADDER" && below_tile != "LADDER") {
+        return true;
+    }
+    
     return (below_tile.substr(0, 4) == "PIPE" || below_tile == "BALLPIT");
 }
 
@@ -608,9 +615,17 @@ void WillyGame::update_willy_movement() {
     std::string current_tile = get_tile(willy_position.first, willy_position.second);
     if(current_tile == "LADDER") {
         if(keys_pressed.count("Up") || keys_pressed.count("w")) {
-            if(can_move_to(willy_position.first - 1, willy_position.second)) {
-                willy_position.first--;
-                willy_velocity.second = 0; // Stop falling when on ladder
+            // Check if there's a ladder above, if not, allow normal movement
+            int target_row = willy_position.first - 1;
+            if(target_row >= 0 && can_move_to(target_row, willy_position.second)) {
+                std::string above_tile = get_tile(target_row, willy_position.second);
+                // Only move up if there's a ladder above, or if it's empty space
+                if(above_tile == "LADDER" || above_tile == "EMPTY" || above_tile == "PRESENT" || 
+                   above_tile == "BELL" || above_tile == "UPSPRING" || above_tile == "SIDESPRING" || 
+                   above_tile == "TACK" || above_tile == "BALLPIT") {
+                    willy_position.first--;
+                    willy_velocity.second = 0; // Stop falling when on ladder
+                }
             }
         } else if(keys_pressed.count("Down") || keys_pressed.count("s")) {
             if(can_move_to(willy_position.first + 1, willy_position.second)) {
@@ -646,6 +661,7 @@ void WillyGame::update_willy_movement() {
         }
     }
 }
+
 void WillyGame::update_balls() {
     if(current_state != GameState::PLAYING) return;
     
@@ -693,7 +709,7 @@ void WillyGame::check_collisions() {
     int x = willy_position.second;
     std::string current_tile = get_tile(y, x);
     
-    // Check ball collisions
+    // Check ball collisions (don't die in ballpits)
     for(const auto& ball : balls) {
         if(ball.row == y && ball.col == x && current_tile != "BALLPIT") {
             die();
@@ -714,8 +730,19 @@ void WillyGame::check_collisions() {
             jump();
         }
     } else if(current_tile == "SIDESPRING") {
-        // Reverse horizontal direction
-        willy_direction = (willy_direction == "RIGHT") ? "LEFT" : "RIGHT";
+        // Reverse continuous direction if moving continuously
+        if(moving_continuously) {
+            if(continuous_direction == "RIGHT") {
+                continuous_direction = "LEFT";
+                willy_direction = "LEFT";
+            } else if(continuous_direction == "LEFT") {
+                continuous_direction = "RIGHT";
+                willy_direction = "RIGHT";
+            }
+        } else {
+            // Just reverse direction without continuous movement
+            willy_direction = (willy_direction == "RIGHT") ? "LEFT" : "RIGHT";
+        }
     }
     
     // Check for jumping over balls (bonus points)
@@ -880,18 +907,8 @@ void WillyGame::draw_game_screen(const Cairo::RefPtr<Cairo::Context>& cr) {
                 int col = std::stoi(col_pair.first);
                 const std::string& tile = col_pair.second;
                 
-                // Skip drawing background tiles where Willy is positioned
+                // Don't render anything where Willy is positioned
                 if(row == willy_position.first && col == willy_position.second) {
-                    // Only draw non-interactive background elements under Willy
-                    if(tile == "BALLPIT") {
-                        int x = col * GAME_CHAR_WIDTH * scale_factor;
-                        int y = row * GAME_CHAR_HEIGHT * scale_factor;
-                        auto sprite = sprite_loader->get_sprite(tile);
-                        if(sprite) {
-                            cr->set_source(sprite, x, y);
-                            cr->paint();
-                        }
-                    }
                     continue;
                 }
                 
@@ -932,7 +949,6 @@ void WillyGame::draw_game_screen(const Cairo::RefPtr<Cairo::Context>& cr) {
         cr->paint();
     }
 }
-
 void WillyGame::draw_game_over_screen(const Cairo::RefPtr<Cairo::Context>& cr) {
     // Create font
     Pango::FontDescription font_desc;
