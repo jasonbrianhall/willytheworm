@@ -15,11 +15,14 @@
 #include <thread>
 #include <set>
 
+// Forward declaration to avoid circular dependency
+class LevelLoader;
+
 // Constants - avoid naming conflicts with system headers
 const int GAME_CHAR_WIDTH = 8;
 const int GAME_CHAR_HEIGHT = 8;
-const int GAME_SCREEN_WIDTH = 40;
-const int GAME_SCREEN_HEIGHT = 26;
+//const int GAME_SCREEN_WIDTH = 40;
+//const int GAME_SCREEN_HEIGHT = 26;
 const int GAME_MAX_WIDTH = 40;
 const int GAME_MAX_HEIGHT = 25;
 const int GAME_NEWLIFEPOINTS = 2000;
@@ -50,9 +53,6 @@ public:
     std::string find_chr_file();
     void load_sprites();
     void load_chr_file(const std::string& path);
-    void load_old_format(const std::vector<uint8_t>& data);
-    Cairo::RefPtr<Cairo::ImageSurface> create_sprite_from_bitmap(
-        const std::vector<uint8_t>& data, int char_index);
     void create_fallback_sprites();
     Cairo::RefPtr<Cairo::ImageSurface> create_willy_sprite(bool facing_right);
     Cairo::RefPtr<Cairo::ImageSurface> create_colored_rect(double r, double g, double b);
@@ -73,6 +73,7 @@ private:
     Gtk::Label status_bar;
     
     std::unique_ptr<SpriteLoader> sprite_loader;
+    std::unique_ptr<LevelLoader> level_loader;  // Add level loader
     
     // Game state
     GameState current_state;
@@ -88,8 +89,7 @@ private:
     int fps;
     int frame_count;
     
-    // Level data structure
-    std::map<std::string, std::map<std::string, std::map<std::string, std::string>>> level_data;
+    // Level data - now using LevelLoader's data structure
     std::string current_level;
     std::vector<Ball> balls;
     
@@ -109,7 +109,7 @@ public:
 private:
     void setup_ui();
     void create_menubar();
-    void init_default_level();
+    void load_level(const std::string& level_name);  // Replace init_default_level
     bool on_key_press(GdkEventKey* event);
     bool on_key_release(GdkEventKey* event);
     void start_game();

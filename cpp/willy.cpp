@@ -1,4 +1,5 @@
 #include "willy.h"
+#include "loadlevels.h"
 
 // Ball implementation
 Ball::Ball(int r, int c) : row(r), col(c), direction("") {}
@@ -65,60 +66,8 @@ void SpriteLoader::load_chr_file(const std::string& path) {
         throw std::runtime_error("Cannot open file");
     }
     
-    // Try to read as old format (8x8 bitmap)
-    file.seekg(0, std::ios::end);
-    size_t file_size = file.tellg();
-    file.seekg(0, std::ios::beg);
-    
-    std::vector<uint8_t> data(file_size);
-    file.read(reinterpret_cast<char*>(data.data()), file_size);
-    
-    load_old_format(data);
-}
-
-void SpriteLoader::load_old_format(const std::vector<uint8_t>& data) {
-    int num_chars = data.size() / 8;
-    
-    for(int i = 0; i < num_chars; i++) {
-        auto it = named_parts.find(std::to_string(i));
-        if(it != named_parts.end()) {
-            try {
-                auto surface = create_sprite_from_bitmap(data, i);
-                sprites[it->second] = surface;
-            } catch(const std::exception& e) {
-                std::cout << "Error creating sprite " << i << ": " << e.what() << std::endl;
-            }
-        }
-    }
-}
-
-Cairo::RefPtr<Cairo::ImageSurface> SpriteLoader::create_sprite_from_bitmap(
-    const std::vector<uint8_t>& data, int char_index) {
-    
-    int size = GAME_CHAR_WIDTH * scale_factor;
-    auto surface = Cairo::ImageSurface::create(Cairo::FORMAT_ARGB32, size, size);
-    auto ctx = Cairo::Context::create(surface);
-    
-    // Clear to transparent
-    ctx->set_operator(Cairo::OPERATOR_CLEAR);
-    ctx->paint();
-    ctx->set_operator(Cairo::OPERATOR_OVER);
-    
-    // Extract bits and draw pixels
-    for(int row = 0; row < 8; row++) {
-        uint8_t byte = data[char_index * 8 + row];
-        for(int col = 0; col < 8; col++) {
-            int bit = (byte >> (7 - col)) & 1;
-            if(bit) {
-                ctx->set_source_rgba(1.0, 1.0, 1.0, 1.0); // White pixel
-                ctx->rectangle(col * scale_factor, row * scale_factor, 
-                             scale_factor, scale_factor);
-                ctx->fill();
-            }
-        }
-    }
-    
-    return surface;
+    // For now, just create fallback sprites since we don't have a specific .chr format
+    std::cout << "Found .chr file but using fallback sprites for now" << std::endl;
 }
 
 void SpriteLoader::create_fallback_sprites() {
@@ -316,8 +265,12 @@ WillyGame::WillyGame() :
         GAME_SCREEN_HEIGHT * GAME_CHAR_HEIGHT * scale_factor + 100
     );
     
-    // Initialize sprite loader
+    // Initialize sprite loader and level loader
     sprite_loader = std::make_unique<SpriteLoader>(scale_factor);
+    level_loader = std::make_unique<LevelLoader>();
+    
+    // Load levels from file or create defaults
+    level_loader->load_levels("levels.json");
     
     // Initialize intro text
     intro_text = {
@@ -414,71 +367,28 @@ void WillyGame::create_menubar() {
     menubar.append(*game_item);
 }
 
-void WillyGame::init_default_level() {
-    // Initialize empty level with proper nested structure
-    for(int row = 0; row < GAME_SCREEN_HEIGHT; row++) {
-        for(int col = 0; col < GAME_SCREEN_WIDTH; col++) {
-            level_data[current_level][std::to_string(row)][std::to_string(col)] = "EMPTY";
-        }
+void WillyGame::load_level(const std::string& level_name) {
+    current_level = level_name;
+    
+    // Check if level exists
+    if(!level_loader->level_exists(level_name)) {
+        std::cout << "Level " << level_name << " does not exist!" << std::endl;
+        return;
     }
     
-    // Add some basic level elements
-    // Bottom platform
-    for(int col = 5; col < 35; col++) {
-        level_data[current_level]["24"][std::to_string(col)] = "PIPE1";
-    }
+    // Get Willy's starting position from the level
+    willy_position = level_loader->get_willy_start_position(level_name);
     
-    // Some ladders
-    for(int row = 20; row < 25; row++) {
-        level_data[current_level][std::to_string(row)]["10"] = "LADDER";
-        level_data[current_level][std::to_string(row)]["30"] = "LADDER";
-    }
-    
-    // Mid platforms
-    for(int col = 8; col < 15; col++) {
-        level_data[current_level]["20"][std::to_string(col)] = "PIPE1";
-    }
-    for(int col = 25; col < 32; col++) {
-        level_data[current_level]["20"][std::to_string(col)] = "PIPE1";
-    }
-    
-    // Top platforms
-    for(int col = 15; col < 25; col++) {
-        level_data[current_level]["16"][std::to_string(col)] = "PIPE1";
-    }
-    
-    // Add more ladders
-    for(int row = 16; row < 21; row++) {
-        level_data[current_level][std::to_string(row)]["20"] = "LADDER";
-    }
-    
-    // Add some game elements
-    level_data[current_level]["23"]["12"] = "PRESENT";
-    level_data[current_level]["23"]["28"] = "PRESENT";
-    level_data[current_level]["19"]["9"] = "PRESENT";
-    level_data[current_level]["19"]["31"] = "PRESENT";
-    level_data[current_level]["15"]["20"] = "PRESENT";
-    
-    level_data[current_level]["19"]["15"] = "UPSPRING";
-    level_data[current_level]["19"]["25"] = "SIDESPRING";
-    level_data[current_level]["15"]["17"] = "UPSPRING";
-    
-    level_data[current_level]["12"]["20"] = "BELL";  // Goal
-    
-    level_data[current_level]["23"]["18"] = "TACK";  // Danger
-    level_data[current_level]["23"]["22"] = "TACK";  // Danger
-    
-    // Ball pit
-    level_data[current_level]["24"]["20"] = "BALLPIT";
-    
-    // Set Willy's starting position
-    willy_position = {23, 7};
-    
-    // Initialize balls
+    // Initialize balls at the ball pit position
     balls.clear();
+    std::pair<int, int> ball_pit_pos = level_loader->get_ball_pit_position(level_name);
     for(int i = 0; i < 6; i++) {
-        balls.emplace_back(24, 20);
+        balls.emplace_back(ball_pit_pos.first, ball_pit_pos.second);
     }
+    
+    std::cout << "Loaded level: " << level_name << std::endl;
+    std::cout << "Willy starts at: (" << willy_position.first << ", " << willy_position.second << ")" << std::endl;
+    std::cout << "Ball pit at: (" << ball_pit_pos.first << ", " << ball_pit_pos.second << ")" << std::endl;
 }
 
 bool WillyGame::on_key_press(GdkEventKey* event) {
@@ -525,7 +435,10 @@ void WillyGame::start_game() {
     lives = 5;
     bonus = 1000;
     frame_count = 0;
-    init_default_level();
+    
+    // Load the first level using the level loader
+    load_level("level1");
+    
     update_status_bar();
 }
 
@@ -541,25 +454,11 @@ void WillyGame::jump() {
 }
 
 std::string WillyGame::get_tile(int row, int col) {
-    if(row >= 0 && row < GAME_SCREEN_HEIGHT && col >= 0 && col < GAME_SCREEN_WIDTH) {
-        auto level_it = level_data.find(current_level);
-        if(level_it != level_data.end()) {
-            auto row_it = level_it->second.find(std::to_string(row));
-            if(row_it != level_it->second.end()) {
-                auto col_it = row_it->second.find(std::to_string(col));
-                if(col_it != row_it->second.end()) {
-                    return col_it->second;
-                }
-            }
-        }
-    }
-    return "EMPTY";
+    return level_loader->get_tile(current_level, row, col);
 }
 
 void WillyGame::set_tile(int row, int col, const std::string& tile) {
-    if(row >= 0 && row < GAME_SCREEN_HEIGHT && col >= 0 && col < GAME_SCREEN_WIDTH) {
-        level_data[current_level][std::to_string(row)][std::to_string(col)] = tile;
-    }
+    level_loader->set_tile(current_level, row, col, tile);
 }
 
 bool WillyGame::can_move_to(int row, int col) {
@@ -744,27 +643,34 @@ void WillyGame::die() {
 void WillyGame::complete_level() {
     score += bonus;
     level++;
-    // For now, just reset the same level with more difficulty
-    reset_level();
-    // Could load new levels here if we had level files
+    
+    // Try to load next level
+    std::string next_level = "level" + std::to_string(level);
+    if(level_loader->level_exists(next_level)) {
+        load_level(next_level);
+    } else {
+        // No more levels, restart from level 1 with increased difficulty
+        level = 1;
+        load_level("level1");
+    }
+    
+    // Reset game state for new level
+    bonus = 1000;
+    frame_count = 0;
 }
 
 void WillyGame::reset_level() {
-    willy_position = {23, 7};
+    // Reset to original level state
+    level_loader->reset_levels();
+    
+    // Reload current level
+    load_level(current_level);
+    
+    // Reset game state
     willy_velocity = {0, 0};
     jumping = false;
     bonus = 1000;
     frame_count = 0;
-    
-    // Reset balls
-    for(auto& ball : balls) {
-        ball.row = 24;
-        ball.col = 20;
-        ball.direction = "";
-    }
-    
-    // Restore presents
-    init_default_level();
 }
 
 void WillyGame::game_over() {
@@ -858,20 +764,26 @@ void WillyGame::draw_intro_screen(const Cairo::RefPtr<Cairo::Context>& cr) {
 }
 
 void WillyGame::draw_game_screen(const Cairo::RefPtr<Cairo::Context>& cr) {
-    // Draw level tiles
-    for(const auto& row_pair : level_data[current_level]) {
-        int row = std::stoi(row_pair.first);
-        for(const auto& col_pair : row_pair.second) {
-            int col = std::stoi(col_pair.first);
-            const std::string& tile = col_pair.second;
-            
-            if(tile != "EMPTY") {
-                int x = col * GAME_CHAR_WIDTH * scale_factor;
-                int y = row * GAME_CHAR_HEIGHT * scale_factor;
-                auto sprite = sprite_loader->get_sprite(tile);
-                if(sprite) {
-                    cr->set_source(sprite, x, y);
-                    cr->paint();
+    // Get level data from level loader
+    auto level_data = level_loader->get_level_data();
+    auto current_level_data = level_data.find(current_level);
+    
+    if(current_level_data != level_data.end()) {
+        // Draw level tiles
+        for(const auto& row_pair : current_level_data->second) {
+            int row = std::stoi(row_pair.first);
+            for(const auto& col_pair : row_pair.second) {
+                int col = std::stoi(col_pair.first);
+                const std::string& tile = col_pair.second;
+                
+                if(tile != "EMPTY" && tile.find("WILLY") == std::string::npos) {
+                    int x = col * GAME_CHAR_WIDTH * scale_factor;
+                    int y = row * GAME_CHAR_HEIGHT * scale_factor;
+                    auto sprite = sprite_loader->get_sprite(tile);
+                    if(sprite) {
+                        cr->set_source(sprite, x, y);
+                        cr->paint();
+                    }
                 }
             }
         }

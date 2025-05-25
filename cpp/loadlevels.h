@@ -9,7 +9,7 @@
 #include <fstream>
 #include <iostream>
 
-// Game constants (should match willy.h)
+// Game constants
 const int GAME_SCREEN_WIDTH = 40;
 const int GAME_SCREEN_HEIGHT = 26;
 
