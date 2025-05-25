@@ -53,6 +53,9 @@ public:
     std::string find_chr_file();
     void load_sprites();
     void load_chr_file(const std::string& path);
+    void load_old_format(const std::vector<uint8_t>& data);
+    Cairo::RefPtr<Cairo::ImageSurface> create_sprite_from_bitmap(
+        const std::vector<uint8_t>& data, int char_index);
     void create_fallback_sprites();
     Cairo::RefPtr<Cairo::ImageSurface> create_willy_sprite(bool facing_right);
     Cairo::RefPtr<Cairo::ImageSurface> create_colored_rect(double r, double g, double b);

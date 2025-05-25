@@ -1,5 +1,6 @@
 #include "willy.h"
 #include "loadlevels.h"
+#include "loadlevels.h"
 
 // Ball implementation
 Ball::Ball(int r, int c) : row(r), col(c), direction("") {}
@@ -66,8 +67,60 @@ void SpriteLoader::load_chr_file(const std::string& path) {
         throw std::runtime_error("Cannot open file");
     }
     
-    // For now, just create fallback sprites since we don't have a specific .chr format
-    std::cout << "Found .chr file but using fallback sprites for now" << std::endl;
+    // Read as 8x8 bitmap format
+    file.seekg(0, std::ios::end);
+    size_t file_size = file.tellg();
+    file.seekg(0, std::ios::beg);
+    
+    std::vector<uint8_t> data(file_size);
+    file.read(reinterpret_cast<char*>(data.data()), file_size);
+    
+    load_old_format(data);
+}
+
+void SpriteLoader::load_old_format(const std::vector<uint8_t>& data) {
+    int num_chars = data.size() / 8;
+    
+    for(int i = 0; i < num_chars; i++) {
+        auto it = named_parts.find(std::to_string(i));
+        if(it != named_parts.end()) {
+            try {
+                auto surface = create_sprite_from_bitmap(data, i);
+                sprites[it->second] = surface;
+            } catch(const std::exception& e) {
+                std::cout << "Error creating sprite " << i << ": " << e.what() << std::endl;
+            }
+        }
+    }
+}
+
+Cairo::RefPtr<Cairo::ImageSurface> SpriteLoader::create_sprite_from_bitmap(
+    const std::vector<uint8_t>& data, int char_index) {
+    
+    int size = GAME_CHAR_WIDTH * scale_factor;
+    auto surface = Cairo::ImageSurface::create(Cairo::FORMAT_ARGB32, size, size);
+    auto ctx = Cairo::Context::create(surface);
+    
+    // Clear to transparent
+    ctx->set_operator(Cairo::OPERATOR_CLEAR);
+    ctx->paint();
+    ctx->set_operator(Cairo::OPERATOR_OVER);
+    
+    // Extract bits and draw pixels
+    for(int row = 0; row < 8; row++) {
+        uint8_t byte = data[char_index * 8 + row];
+        for(int col = 0; col < 8; col++) {
+            int bit = (byte >> (7 - col)) & 1;
+            if(bit) {
+                ctx->set_source_rgba(1.0, 1.0, 1.0, 1.0); // White pixel
+                ctx->rectangle(col * scale_factor, row * scale_factor, 
+                             scale_factor, scale_factor);
+                ctx->fill();
+            }
+        }
+    }
+    
+    return surface;
 }
 
 void SpriteLoader::create_fallback_sprites() {
@@ -315,6 +368,9 @@ WillyGame::WillyGame() :
         sigc::mem_fun(*this, &WillyGame::game_tick), 1000 / fps);
     
     show_all_children();
+    
+    // Give focus to the drawing area so it can receive keyboard events
+    drawing_area.grab_focus();
 }
 
 WillyGame::~WillyGame() {
@@ -335,18 +391,20 @@ void WillyGame::setup_ui() {
     );
     drawing_area.signal_draw().connect(
         sigc::mem_fun(*this, &WillyGame::on_draw));
+    
+    // Make drawing area focusable and connect key events to it
+    drawing_area.set_can_focus(true);
+    drawing_area.add_events(Gdk::KEY_PRESS_MASK | Gdk::KEY_RELEASE_MASK);
+    drawing_area.signal_key_press_event().connect(
+        sigc::mem_fun(*this, &WillyGame::on_key_press));
+    drawing_area.signal_key_release_event().connect(
+        sigc::mem_fun(*this, &WillyGame::on_key_release));
+    
     vbox.pack_start(drawing_area, Gtk::PACK_EXPAND_WIDGET);
     
     // Status bar
     update_status_bar();
     vbox.pack_start(status_bar, Gtk::PACK_SHRINK);
-    
-    // Key events
-    set_can_focus(true);
-    signal_key_press_event().connect(
-        sigc::mem_fun(*this, &WillyGame::on_key_press));
-    signal_key_release_event().connect(
-        sigc::mem_fun(*this, &WillyGame::on_key_release));
 }
 
 void WillyGame::create_menubar() {
@@ -393,6 +451,7 @@ void WillyGame::load_level(const std::string& level_name) {
 
 bool WillyGame::on_key_press(GdkEventKey* event) {
     std::string keyname = gdk_keyval_name(event->keyval);
+    std::cout << "Key pressed: " << keyname << std::endl;  // Debug print
     keys_pressed.insert(keyname);
     
     if(keyname == "Escape") {
@@ -406,6 +465,7 @@ bool WillyGame::on_key_press(GdkEventKey* event) {
     } else if(current_state == GameState::INTRO) {
         // Fix: Check for both "Return" and "Enter"
         if(keyname == "Return" || keyname == "Enter" || keyname == "KP_Enter") {
+            std::cout << "Starting game..." << std::endl;  // Debug print
             start_game();
         }
     } else if(current_state == GameState::PLAYING) {
