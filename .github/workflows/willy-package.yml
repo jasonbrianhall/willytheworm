@@ -5,14 +5,41 @@ on:
     branches:
       - main
       - dev
+    paths:
+      - '**.py'
+      - '**.json'
+      - '**.md'
+      - '**.txt'
+      - '**.yml'
+      - '**.yaml'
+      - 'audio/**'
+  pull_request:
+    branches:
+      - main
+      - dev
+    paths:
+      - '**.py'
+      - '**.json'
+      - '**.md'
+      - '**.txt'
+      - '**.yml'
+      - '**.yaml'
+      - 'audio/**'
+  workflow_dispatch:
+
+env:
+  PRODUCT_VERSION: "1.0.${{ github.run_number }}"
+  UPGRADE_CODE: "D0A8E7F1-3B92-4C67-B8E5-1A4F26D95C03"
 
 jobs:
   create-source-release:
     permissions:
-      contents: write # Required for creating releases
+      contents: write
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ env.PRODUCT_VERSION }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       
       - name: Create Source Archive
         run: |
@@ -27,8 +54,10 @@ jobs:
   build-windows-installer:
     runs-on: windows-latest
     needs: create-source-release
+    permissions:
+      contents: write
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -57,43 +86,159 @@ jobs:
           pyinstaller --onefile --noconsole --icon=icon.ico --add-data "levels.json;." --add-data "original_levels.json;." --add-data "willy.chr;." --add-data "audio/*;audio/" --runtime-hook rthooks.py --collect-all pygame edwilly.py
           pyinstaller --onefile --noconsole --icon=icon.ico --add-data "levels.json;." --add-data "original_levels.json;." --add-data "willy.chr;." --add-data "audio/*;audio/" --runtime-hook rthooks.py --collect-all pygame willy_qt.py
 
+      - name: Prepare Build Artifacts
+        run: |
+          # Create build directory structure
+          New-Item -ItemType Directory -Force -Path "build/windows"
+          
+          # Copy executables
+          Copy-Item "dist/willy.exe" "build/windows/"
+          Copy-Item "dist/edwilly.exe" "build/windows/"
+          Copy-Item "dist/willy_qt.exe" "build/windows/"
+          
+          # Copy resources
+          Copy-Item "README.md" "build/windows/"
+          Copy-Item "LICENSE.md" "build/windows/"
+          Copy-Item "contribution.md" "build/windows/"
+          Copy-Item "wiki.md" "build/windows/"
+          Copy-Item "levels.json" "build/windows/"
+          Copy-Item "original_levels.json" "build/windows/"
+          Copy-Item "willy.chr" "build/windows/"
+          Copy-Item "icon.ico" "build/windows/"
+          Copy-Item "icon.png" "build/windows/"
+          Copy-Item "willy.py" "build/windows/"
+          Copy-Item "edwilly.py" "build/windows/"
+          Copy-Item "willy_qt.py" "build/windows/"
+          Copy-Item "requirements.txt" "build/windows/"
+          
+          # Copy audio directory
+          Copy-Item "audio" "build/windows/" -Recurse
+          
+          # Create portable ZIP
+          Compress-Archive -Path "build/windows/*" -DestinationPath "WillyTheWorm-Portable.zip"
+
       - name: Install WiX Toolset
         run: |
-          mkdir wix
-          cd wix
-          Invoke-WebRequest -Uri "https://github.com/wixtoolset/wix3/releases/download/wix3112rtm/wix311-binaries.zip" -OutFile "wix311-binaries.zip"
-          Expand-Archive wix311-binaries.zip -DestinationPath .
-          echo "$pwd" | Out-File -FilePath $env:GITHUB_PATH -Append
+          # Download and install WiX Toolset v3
+          Invoke-WebRequest -Uri "https://github.com/wixtoolset/wix3/releases/download/wix3112rtm/wix311-binaries.zip" -OutFile "wix.zip"
+          Expand-Archive -Path "wix.zip" -DestinationPath "wix"
+          echo "$env:GITHUB_WORKSPACE\wix" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
-      - name: Create MSI Installer
+      - name: Create MIT License File
         run: |
-          echo '<?xml version="1.0" encoding="UTF-8"?>
+          @"
+          MIT License
+          
+          Copyright (c) 2025 Jason Hall
+          
+          Permission is hereby granted, free of charge, to any person obtaining a copy
+          of this software and associated documentation files (the "Software"), to deal
+          in the Software without restriction, including without limitation the rights
+          to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+          copies of the Software, and to permit persons to whom the Software is
+          furnished to do so, subject to the following conditions:
+          
+          The above copyright notice and this permission notice shall be included in all
+          copies or substantial portions of the Software.
+          
+          THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+          IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+          FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+          AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+          LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+          OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+          SOFTWARE.
+          "@ | Out-File -FilePath "build\windows\LICENSE.txt" -Encoding UTF8
+
+      - name: Generate Advanced MSI Installer
+        working-directory: build/windows
+        run: |
+          # Create advanced WXS installer
+          @"
+          <?xml version="1.0" encoding="UTF-8"?>
           <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-            <Product Id="*" Name="Willy the Worm" Language="1033" Version="1.0.0.${{ github.run_number }}" Manufacturer="Jason Hall" UpgradeCode="D0A8E7F1-3B92-4C67-B8E5-1A4F26D95C03">
-              <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
-              <MajorUpgrade DowngradeErrorMessage="A newer version is already installed." />
-              <MediaTemplate EmbedCab="yes" />
+            
+            <Product Id="*" 
+                     Name="Willy the Worm" 
+                     Language="1033" 
+                     Version="${{ needs.create-source-release.outputs.version }}" 
+                     Manufacturer="Jason Hall" 
+                     UpgradeCode="${{ env.UPGRADE_CODE }}"> 
+              
+              <Package InstallerVersion="500" 
+                       Compressed="yes" 
+                       InstallScope="perMachine" 
+                       Description="Willy the Worm - Classic Platform Game Collection"
+                       Comments="Built with GitHub Actions"
+                       Manufacturer="Jason Hall" />
+              
+              <!-- Major upgrade configuration -->
+              <MajorUpgrade 
+                DowngradeErrorMessage="A newer version of Willy the Worm is already installed. Please uninstall it first." 
+                Schedule="afterInstallInitialize" />
+              
+              <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
+              
+              <!-- License agreement -->
+              <WixVariable Id="WixUILicenseRtf" Value="License.rtf" />
+              
+              <!-- Custom properties -->
+              <Property Id="ARPPRODUCTICON" Value="WillyIcon" />
+              <Property Id="ARPURLINFOABOUT" Value="https://github.com/yourusername/willy-the-worm" />
+              <Property Id="ARPNOREPAIR" Value="yes" />
+              <Property Id="ARPNOMODIFY" Value="yes" />
+              <Property Id="ARPHELPLINK" Value="https://github.com/yourusername/willy-the-worm/issues" />
+              
+              <!-- Installation scope choice -->
+              <Property Id="ApplicationFolderName" Value="Willy the Worm" />
+              <Property Id="WixAppFolder" Value="WixPerMachineFolder" />
+              <WixVariable Id="WixUISupportPerUser" Value="1" />
+              <WixVariable Id="WixUISupportPerMachine" Value="1" />
+              
               <Directory Id="TARGETDIR" Name="SourceDir">
+                <!-- Program Files installation -->
                 <Directory Id="ProgramFilesFolder">
-                  <Directory Id="INSTALLFOLDER" Name="Willy the Worm">
-                    <Component Id="MainExecutable" Guid="E2A49E3F-B0A4-45D9-8923-A4A6D3EA2944">
-                      <File Id="WillyEXE" Name="willy.exe" Source="dist/willy.exe" KeyPath="yes"/>
-                      <File Id="EdWillyEXE" Name="edwilly.exe" Source="dist/edwilly.exe"/>
-                      <File Id="willyqt" Name="willy_qt.exe" Source="dist/willy_qt.exe"/>
+                  <Directory Id="INSTALLFOLDER" Name="!(bind.Property.ApplicationFolderName)">
+                    
+                    <!-- Main application component -->
+                    <Component Id="MainExecutable" 
+                             Guid="E2A49E3F-B0A4-45D9-8923-A4A6D3EA2944"
+                             Win64="no">
+                      <File Id="WillyEXE" 
+                            Name="willy.exe" 
+                            Source="willy.exe" 
+                            KeyPath="yes">
+                      </File>
+                      
+                      <!-- Game executables -->
+                      <File Id="EdWillyEXE" Name="edwilly.exe" Source="edwilly.exe"/>
+                      <File Id="WillyQtEXE" Name="willy_qt.exe" Source="willy_qt.exe"/>
+                      
+                      <!-- Application files -->
                       <File Id="README" Name="README.md" Source="README.md"/>
-                      <File Id="OriginalLevels" Name="original_levels.json" Source="original_levels.json" />
-                      <File Id="Levels" Name="levels.json" Source="levels.json" />
-                      <File Id="WIKI" Name="wiki.md" Source="wiki.md" />
-                      <File Id="CHARACTERS" Name="willy.chr" Source="willy.chr" />
-                      <File Id="LICENSE" Name="LICENSE.md" Source="LICENSE.md" />
-                      <File Id="CONTRIBUTION" Name="contribution.md" Source="contribution.md" />
-                      <File Id="ICON" Name="icon.png" Source="icon.png" />
-                      <File Id="ICON_WINDOWS" Name="icon.ico" Source="icon.ico" />
-                      <File Id="WILLYPY" Name="willy.py" Source="willy.py" />
-                      <File Id="EDWILLYPY" Name="edwilly.py" Source="edwilly.py" />
-                      <File Id="WILLYQTPY" Name="willy_qt.py" Source="willy_qt.py" />
-                      <File Id="REQUIREMENTS" Name="requirements.txt" Source="requirements.txt" />
+                      <File Id="LICENSE_MD" Name="LICENSE.md" Source="LICENSE.md"/>
+                      <File Id="LICENSE_TXT" Name="LICENSE.txt" Source="LICENSE.txt"/>
+                      <File Id="CONTRIBUTION" Name="contribution.md" Source="contribution.md"/>
+                      <File Id="WIKI" Name="wiki.md" Source="wiki.md"/>
+                      <File Id="Levels" Name="levels.json" Source="levels.json"/>
+                      <File Id="OriginalLevels" Name="original_levels.json" Source="original_levels.json"/>
+                      <File Id="Characters" Name="willy.chr" Source="willy.chr"/>
+                      <File Id="IconICO" Name="icon.ico" Source="icon.ico"/>
+                      <File Id="IconPNG" Name="icon.png" Source="icon.png"/>
+                      <File Id="WillyPY" Name="willy.py" Source="willy.py"/>
+                      <File Id="EdWillyPY" Name="edwilly.py" Source="edwilly.py"/>
+                      <File Id="WillyQtPY" Name="willy_qt.py" Source="willy_qt.py"/>
+                      <File Id="Requirements" Name="requirements.txt" Source="requirements.txt"/>
+                      
+                      <!-- Registry entries for uninstall info -->
+                      <RegistryKey Root="HKLM" Key="SOFTWARE\Willy the Worm">
+                        <RegistryValue Type="string" Name="InstallPath" Value="[INSTALLFOLDER]" />
+                        <RegistryValue Type="string" Name="Version" Value="${{ needs.create-source-release.outputs.version }}" />
+                        <RegistryValue Type="string" Name="Publisher" Value="Jason Hall" />
+                      </RegistryKey>
                     </Component>
+                    
+                    <!-- Audio files component -->
                     <Directory Id="AudioDir" Name="audio">
                       <Component Id="AudioFiles" Guid="7B9DD5C8-2C1E-4B7F-9D47-F5A4D653809C">
                         <File Id="Bell" Name="bell.mp3" Source="audio/bell.mp3" />
@@ -102,62 +247,292 @@ jobs:
                         <File Id="Ladder" Name="ladder.mp3" Source="audio/ladder.mp3" />
                         <File Id="Present" Name="present.mp3" Source="audio/present.mp3" />
                         <File Id="Tack" Name="tack.mp3" Source="audio/tack.mp3" />
+                        <RemoveFolder Id="RemoveAudioDir" On="uninstall" />
+                        <RegistryValue Root="HKCU" Key="Software\WillyTheWorm\Components" 
+                                     Type="integer" Name="Audio" Value="1" KeyPath="yes"/>
                       </Component>
                     </Directory>
                   </Directory>
-                </Directory>      
+                </Directory>
+                
+                <!-- Start Menu shortcuts -->
                 <Directory Id="ProgramMenuFolder">
                   <Directory Id="ApplicationProgramsFolder" Name="Willy the Worm">
                     <Component Id="ApplicationShortcuts" Guid="F8A427D5-9EE6-4B85-A543-E2B8C5D478B1">
-                      <Shortcut Id="WillyStartMenu" Name="Willy the Worm" Target="[INSTALLFOLDER]willy.exe" WorkingDirectory="INSTALLFOLDER" Icon="WillyIcon.exe"/>
-                      <Shortcut Id="EdWillyStartMenu" Name="Willy Level Editor" Target="[INSTALLFOLDER]edwilly.exe" WorkingDirectory="INSTALLFOLDER" Icon="EdWillyIcon.exe"/>
-                      <Shortcut Id="WillyControlPanel" Name="Willy Control Panel" Target="[INSTALLFOLDER]willy_qt.exe" WorkingDirectory="INSTALLFOLDER" Icon="willyqticon.exe"/>
+                      <Shortcut Id="WillyStartMenu" 
+                               Name="Willy the Worm" 
+                               Target="[INSTALLFOLDER]willy.exe" 
+                               WorkingDirectory="INSTALLFOLDER"
+                               Description="Play Willy the Worm Platform Game"
+                               Icon="WillyIcon"/>
+                      <Shortcut Id="EdWillyStartMenu" 
+                               Name="Willy Level Editor" 
+                               Target="[INSTALLFOLDER]edwilly.exe" 
+                               WorkingDirectory="INSTALLFOLDER"
+                               Description="Create and Edit Willy the Worm Levels"
+                               Icon="EdWillyIcon"/>
+                      <Shortcut Id="WillyControlPanel" 
+                               Name="Willy Control Panel" 
+                               Target="[INSTALLFOLDER]willy_qt.exe" 
+                               WorkingDirectory="INSTALLFOLDER"
+                               Description="Willy the Worm Game Settings"
+                               Icon="WillyQtIcon"/>
+                      <Shortcut Id="UninstallShortcut"
+                               Name="Uninstall Willy the Worm"
+                               Target="[SystemFolder]msiexec.exe"
+                               Arguments="/x [ProductCode]"
+                               Description="Uninstall Willy the Worm" />
                       <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall"/>
-                      <RegistryValue Root="HKCU" Key="Software\WillyTheWorm" Name="installed" Type="integer" Value="1" KeyPath="yes"/>
+                      <RegistryValue Root="HKCU" Key="Software\WillyTheWorm\Shortcuts" 
+                                   Name="StartMenu" Type="integer" Value="1" KeyPath="yes"/>
                     </Component>
                   </Directory>
                 </Directory>
+                
+                <!-- Desktop shortcuts (optional) -->
+                <Directory Id="DesktopFolder" Name="Desktop">
+                  <Component Id="WillyDesktopShortcut" Guid="A8B9C2D3-E4F5-6789-A012-B3C4D5E6F789">
+                    <Condition>DESKTOP_SHORTCUT</Condition>
+                    <Shortcut Id="WillyDesktopShortcut" 
+                             Name="Willy the Worm" 
+                             Target="[INSTALLFOLDER]willy.exe"
+                             WorkingDirectory="INSTALLFOLDER"
+                             Description="Play Willy the Worm Platform Game"
+                             Icon="WillyIcon"/>
+                    <RegistryValue Root="HKCU" Key="Software\WillyTheWorm\Shortcuts" 
+                                 Name="WillyDesktop" Type="integer" Value="1" KeyPath="yes"/>
+                  </Component>
+                  
+                  <Component Id="EditorDesktopShortcut" Guid="B9C0D1E2-F3A4-5678-9012-C3D4E5F6A789">
+                    <Condition>DESKTOP_SHORTCUT</Condition>
+                    <Shortcut Id="EditorDesktopShortcut" 
+                             Name="Willy Level Editor" 
+                             Target="[INSTALLFOLDER]edwilly.exe"
+                             WorkingDirectory="INSTALLFOLDER"
+                             Description="Create and Edit Willy the Worm Levels"
+                             Icon="EdWillyIcon"/>
+                    <RegistryValue Root="HKCU" Key="Software\WillyTheWorm\Shortcuts" 
+                                 Name="EditorDesktop" Type="integer" Value="1" KeyPath="yes"/>
+                  </Component>
+                  
+                  <Component Id="ControlPanelDesktopShortcut" Guid="C0D1E2F3-A4B5-6789-0123-D4E5F6A7B890">
+                    <Condition>DESKTOP_SHORTCUT</Condition>
+                    <Shortcut Id="ControlPanelDesktopShortcut" 
+                             Name="Willy Control Panel" 
+                             Target="[INSTALLFOLDER]willy_qt.exe"
+                             WorkingDirectory="INSTALLFOLDER"
+                             Description="Willy the Worm Game Settings"
+                             Icon="WillyQtIcon"/>
+                    <RegistryValue Root="HKCU" Key="Software\WillyTheWorm\Shortcuts" 
+                                 Name="ControlPanelDesktop" Type="integer" Value="1" KeyPath="yes"/>
+                  </Component>
+                </Directory>
               </Directory>
-              <Feature Id="ProductFeature" Title="WillyTheWorm" Level="1">
+              
+              <!-- Feature definitions -->
+              <Feature Id="ProductFeature" 
+                       Title="Willy the Worm" 
+                       Description="Classic platform game with level editor and control panel."
+                       Level="1" 
+                       ConfigurableDirectory="INSTALLFOLDER"
+                       AllowAdvertise="no">
                 <ComponentRef Id="MainExecutable" />
                 <ComponentRef Id="AudioFiles" />
                 <ComponentRef Id="ApplicationShortcuts" />
               </Feature>
-              <Icon Id="WillyIcon.exe" SourceFile="icon.ico" />
-              <Icon Id="EdWillyIcon.exe" SourceFile="icon.ico" />
-              <Icon Id="willyqticon.exe" SourceFile="icon.ico" />
-              </Product>
-          </Wix>' > installer.wxs
+              
+              <Feature Id="DesktopShortcutFeature" 
+                       Title="Desktop Shortcuts" 
+                       Description="Create shortcuts on the desktop for game, editor, and control panel."
+                       Level="1000">
+                <ComponentRef Id="WillyDesktopShortcut" />
+                <ComponentRef Id="EditorDesktopShortcut" />
+                <ComponentRef Id="ControlPanelDesktopShortcut" />
+              </Feature>
+              
+              <!-- Application icons -->
+              <Icon Id="WillyIcon" SourceFile="icon.ico"/>
+              <Icon Id="EdWillyIcon" SourceFile="icon.ico"/>
+              <Icon Id="WillyQtIcon" SourceFile="icon.ico"/>
+              
+              <!-- Custom actions for cleanup -->
+              <CustomAction Id="CleanupRegistryOnUninstall" 
+                           Script="vbscript"
+                           Execute="deferred"
+                           Impersonate="no">
+                <![CDATA[
+                  On Error Resume Next
+                  Set shell = CreateObject("WScript.Shell")
+                  shell.RegDelete "HKLM\SOFTWARE\Willy the Worm\"
+                  shell.RegDelete "HKCU\Software\WillyTheWorm\"
+                ]]>
+              </CustomAction>
+              
+              <InstallExecuteSequence>
+                <Custom Action="CleanupRegistryOnUninstall" Before="RemoveFiles">
+                  REMOVE="ALL"
+                </Custom>
+              </InstallExecuteSequence>
+              
+              <!-- UI Configuration -->
+              <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
+              <Property Id="DESKTOP_SHORTCUT" Value="1" />
+              
+              <UIRef Id="WixUI_FeatureTree" />
+              <UIRef Id="WixUI_ErrorProgressText" />
+              
+            </Product>
+          </Wix>
+          "@ | Out-File -FilePath "installer.wxs" -Encoding UTF8
 
-          candle installer.wxs
-          light installer.wixobj -out WillyTheWorm.msi
+      - name: Create License RTF for Installer
+        working-directory: build/windows
+        run: |
+          @"
+          {\rtf1\ansi\deff0 {\fonttbl {\f0 Times New Roman;}}
+          \f0\fs24
+          MIT License\par
+          \par
+          Copyright (c) 2025 Jason Hall\par
+          \par
+          Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:\par
+          \par
+          The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.\par
+          \par
+          THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\par
+          }
+          "@ | Out-File -FilePath "License.rtf" -Encoding UTF8
 
-      - name: Save Installer Path
-        id: save_path
-        run: echo "path=WillyTheWorm.msi" >> $GITHUB_OUTPUT
-      
-      - name: Upload Installer
+      - name: Build MSI Installer
+        working-directory: build/windows
+        run: |
+          # Debug: Show current directory and files
+          Write-Host "=== DEBUG: Current directory ==="
+          Get-Location
+          Write-Host "=== DEBUG: Files in current directory ==="
+          Get-ChildItem
+          
+          # Compile the installer
+          Write-Host "=== Building MSI installer ==="
+          & candle.exe installer.wxs
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "Candle compilation failed with exit code $LASTEXITCODE"
+            exit 1
+          }
+          
+          Write-Host "=== DEBUG: Files after candle ==="
+          Get-ChildItem
+          
+          & light.exe -ext WixUIExtension installer.wixobj -o "WillyTheWorm.msi"
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "Light linking failed with exit code $LASTEXITCODE"
+            exit 1
+          }
+          
+          Write-Host "=== DEBUG: Files after light ==="
+          Get-ChildItem
+          
+          # Verify MSI was created
+          if (Test-Path "WillyTheWorm.msi") {
+            Write-Host "✅ MSI installer created successfully: WillyTheWorm.msi"
+            $msiSize = (Get-Item "WillyTheWorm.msi").Length
+            Write-Host "MSI file size: $msiSize bytes"
+          } else {
+            Write-Error "❌ MSI file was not created!"
+            exit 1
+          }
+
+      - name: Upload MSI Installer
         uses: actions/upload-artifact@v4
         with:
-          name: windows-installer
-          path: WillyTheWorm.msi
+          name: WillyTheWorm.msi
+          path: build/windows/WillyTheWorm.msi
+
+      - name: Upload Portable ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: WillyTheWorm-Portable.zip
+          path: WillyTheWorm-Portable.zip
 
   create-release:
     needs: [create-source-release, build-windows-installer]
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    if: github.ref == 'refs/heads/main'
+    if: github.event_name == 'push'
+    
     steps:
-      - name: Download All Artifacts
-        uses: actions/download-artifact@v4
-        
-      - uses: softprops/action-gh-release@v1
-        with:
-          files: |
-            source-package/willy-the-worm-source.zip
-            windows-installer/WillyTheWorm.msi
-          tag_name: v${{ github.run_number }}
-          generate_release_notes: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Download MSI Artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: WillyTheWorm.msi
+        path: release
+
+    - name: Download Portable Artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: WillyTheWorm-Portable.zip
+        path: release
+
+    - name: Download Source Artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: source-package
+        path: release
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v2
+      with:
+        files: |
+          release/WillyTheWorm.msi
+          release/WillyTheWorm-Portable.zip
+          release/willy-the-worm-source.zip
+        tag_name: ${{ github.ref == 'refs/heads/main' && format('v{0}', github.run_number) || format('dev-v{0}', github.run_number) }}
+        name: ${{ github.ref == 'refs/heads/main' && format('Release v{0}', github.run_number) || format('Dev Build v{0}', github.run_number) }}
+        draft: false
+        prerelease: ${{ github.ref != 'refs/heads/main' }}
+        make_latest: ${{ github.ref == 'refs/heads/main' }}
+        body: |
+          ## ${{ github.ref == 'refs/heads/main' && 'Stable Release' || 'Development Build' }}
+          
+          **Version:** ${{ needs.create-source-release.outputs.version }}  
+          **Commit:** ${{ github.sha }}  
+          **Build:** #${{ github.run_number }}  
+          
+          ### 🐛 Willy the Worm
+          Classic platform game collection with level editor and control panel.
+          
+          ### 📦 Downloads
+          - **WillyTheWorm.msi** - Windows installer with uninstall support
+          - **WillyTheWorm-Portable.zip** - Portable version (no installation required)
+          - **willy-the-worm-source.zip** - Source code archive
+          
+          ### 🎮 Applications Included
+          - 🐛 **Willy the Worm** - The classic platform game
+          - ✏️ **Willy Level Editor** - Create and edit custom levels
+          - ⚙️ **Willy Control Panel** - Game settings and configuration
+          
+          ### ✨ Installer Features
+          - ✅ User/Machine installation scope choice
+          - ✅ Custom installation directory
+          - ✅ Start menu shortcuts for all applications with individual descriptions
+          - ✅ Optional desktop shortcuts for game, editor, and control panel
+          - ✅ Proper uninstall support with registry cleanup
+          - ✅ MIT License agreement
+          - ✅ Add/Remove Programs integration
+          - ✅ Uninstall shortcut in Start Menu
+          - ✅ Audio files properly organized
+          
+          ### 🛠️ Technical Details
+          - Built with: Python 3.10 + PyInstaller
+          - MSI compiled on: Windows Latest
+          - All dependencies bundled
+          - Sound effects and game assets included
+          - Level files and character data included
+          - Source code included for developers
+          
+          ### 🎵 Audio Files Included
+          - Bell, Boop, Jump, Ladder, Present, and Tack sound effects
+          
+          ---
+          *Built with ❤️ using GitHub Actions*
