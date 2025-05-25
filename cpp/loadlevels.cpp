@@ -246,52 +246,91 @@ bool LevelLoader::parse_json_file(const std::string& content) {
             continue;
         }
         
-        // Check for level start
-        if(line.find("\"level") != std::string::npos && line.find(":") != std::string::npos) {
-            size_t quote1 = line.find('"');
-            size_t quote2 = line.find('"', quote1 + 1);
-            if(quote1 != std::string::npos && quote2 != std::string::npos) {
-                current_level = line.substr(quote1 + 1, quote2 - quote1 - 1);
-                in_level = true;
-                in_pit = (current_level.find("PIT") != std::string::npos);
-                std::cout << "  -> Found level: '" << current_level << "'" << (in_pit ? " (PIT)" : "") << std::endl;
+        // Check for level start - handle case where opening quote was trimmed
+        if((line.find("level") != std::string::npos || line.find("\"level") != std::string::npos) && line.find(":") != std::string::npos) {
+            size_t level_pos = line.find("level");
+            if(level_pos != std::string::npos) {
+                // Find the end of the level name (before the quote and colon)
+                size_t end_pos = line.find("\":", level_pos);
+                if(end_pos == std::string::npos) {
+                    end_pos = line.find(":", level_pos);
+                }
+                if(end_pos != std::string::npos) {
+                    current_level = line.substr(level_pos, end_pos - level_pos);
+                    in_level = true;
+                    in_pit = (current_level.find("PIT") != std::string::npos);
+                    std::cout << "  -> Found level: '" << current_level << "'" << (in_pit ? " (PIT)" : "") << std::endl;
+                } else {
+                    std::cout << "  -> Failed to parse level name from line (no colon found)" << std::endl;
+                }
             } else {
-                std::cout << "  -> Failed to parse level name from line" << std::endl;
+                std::cout << "  -> Failed to find 'level' in line" << std::endl;
             }
             continue;
         }
         
         if(in_level && !in_pit) {
-            // Check for row start
-            if(line.find("\"") != std::string::npos && line.find(":") != std::string::npos && 
-               line.find("EMPTY") == std::string::npos && line.find("PIPE") == std::string::npos) {
-                size_t quote1 = line.find('"');
-                size_t quote2 = line.find('"', quote1 + 1);
-                if(quote1 != std::string::npos && quote2 != std::string::npos) {
-                    current_row = line.substr(quote1 + 1, quote2 - quote1 - 1);
-                    in_row = true;
-                    std::cout << "  -> Found row: '" << current_row << "'" << std::endl;
-                } else {
-                    std::cout << "  -> Failed to parse row from line" << std::endl;
+            // Check for row start - lines that end with ": {" and contain only digits before the quote
+            if(line.find(":") != std::string::npos && line.find("{") != std::string::npos && 
+               line.find("EMPTY") == std::string::npos && line.find("PIPE") == std::string::npos &&
+               line.find("LADDER") == std::string::npos && line.find("PRESENT") == std::string::npos &&
+               line.find("BELL") == std::string::npos && line.find("WILLY") == std::string::npos &&
+               line.find("BALLPIT") == std::string::npos && line.find("UPSPRING") == std::string::npos) {
+                
+                size_t colon_pos = line.find(":");
+                if(colon_pos != std::string::npos) {
+                    // Extract everything before the colon, removing quotes
+                    std::string row_candidate = line.substr(0, colon_pos);
+                    // Remove quotes if present
+                    if(!row_candidate.empty() && row_candidate.back() == '"') {
+                        row_candidate.pop_back();
+                    }
+                    if(!row_candidate.empty() && row_candidate.front() == '"') {
+                        row_candidate = row_candidate.substr(1);
+                    }
+                    
+                    // Check if it's all digits (valid row number)
+                    bool all_digits = !row_candidate.empty() && std::all_of(row_candidate.begin(), row_candidate.end(), ::isdigit);
+                    if(all_digits) {
+                        current_row = row_candidate;
+                        in_row = true;
+                        std::cout << "  -> Found row: '" << current_row << "'" << std::endl;
+                        continue;
+                    }
                 }
-                continue;
+                std::cout << "  -> Not a row start line" << std::endl;
             }
             
-            // Parse tile data
-            if(in_row && line.find("\"") != std::string::npos && line.find(":") != std::string::npos) {
-                size_t quote1 = line.find('"');
-                size_t quote2 = line.find('"', quote1 + 1);
-                if(quote1 != std::string::npos && quote2 != std::string::npos) {
-                    std::string col = line.substr(quote1 + 1, quote2 - quote1 - 1);
+            // Parse tile data - lines with quotes, colon, and tile values
+            if(in_row && line.find(":") != std::string::npos && 
+               (line.find("EMPTY") != std::string::npos || line.find("PIPE") != std::string::npos ||
+                line.find("LADDER") != std::string::npos || line.find("PRESENT") != std::string::npos ||
+                line.find("BELL") != std::string::npos || line.find("WILLY") != std::string::npos ||
+                line.find("BALLPIT") != std::string::npos || line.find("UPSPRING") != std::string::npos ||
+                line.find("SIDESPRING") != std::string::npos || line.find("TACK") != std::string::npos ||
+                line.find("BALL") != std::string::npos)) {
+                
+                size_t colon_pos = line.find(":");
+                if(colon_pos != std::string::npos) {
+                    // Extract column number (everything before colon)
+                    std::string col_candidate = line.substr(0, colon_pos);
+                    // Remove quotes
+                    if(!col_candidate.empty() && col_candidate.back() == '"') {
+                        col_candidate.pop_back();
+                    }
+                    if(!col_candidate.empty() && col_candidate.front() == '"') {
+                        col_candidate = col_candidate.substr(1);
+                    }
+                    
                     std::string tile = extract_string_value(line);
-                    if(!tile.empty()) {
-                        level_data[current_level][current_row][col] = tile;
-                        std::cout << "  -> Set tile [" << current_level << "][" << current_row << "][" << col << "] = '" << tile << "'" << std::endl;
+                    if(!tile.empty() && !col_candidate.empty()) {
+                        level_data[current_level][current_row][col_candidate] = tile;
+                        std::cout << "  -> Set tile [" << current_level << "][" << current_row << "][" << col_candidate << "] = '" << tile << "'" << std::endl;
                     } else {
-                        std::cout << "  -> Failed to extract tile value from line" << std::endl;
+                        std::cout << "  -> Failed to extract tile value or column from line" << std::endl;
                     }
                 } else {
-                    std::cout << "  -> Failed to parse column from line" << std::endl;
+                    std::cout << "  -> No colon found in tile line" << std::endl;
                 }
             }
         } else if(in_pit) {
