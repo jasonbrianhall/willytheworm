@@ -11,7 +11,7 @@
 
 // Game constants
 const int GAME_SCREEN_WIDTH = 40;
-const int GAME_SCREEN_HEIGHT = 25;
+const int GAME_SCREEN_HEIGHT = 30;
 
 class LevelLoader {
 private:

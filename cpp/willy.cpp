@@ -472,20 +472,20 @@ bool WillyGame::on_key_press(GdkEventKey* event) {
     } else if(current_state == GameState::PLAYING) {
         if(keyname == "space") {
             jump();
-            moving_continuously = false; // Stop continuous movement when jumping
-            continuous_direction = "";
-        } else if(keyname == "Left" || keyname == "a") {
+        } else if(keyname == "Left") {
             continuous_direction = "LEFT";
             moving_continuously = true;
             willy_direction = "LEFT";
-        } else if(keyname == "Right" || keyname == "d") {
+        } else if(keyname == "Right") {
             continuous_direction = "RIGHT";
             moving_continuously = true;
             willy_direction = "RIGHT";
-        } else if(keyname == "Up" || keyname == "w" || keyname == "Down" || keyname == "s") {
-            // Ladder movement stops continuous horizontal movement
-            moving_continuously = false;
-            continuous_direction = "";
+        } else if(keyname == "Up") {
+            up_pressed = true;
+            // Don't stop horizontal movement - let update_willy_movement handle it
+        } else if(keyname == "Down") {
+            down_pressed = true;
+            // Don't stop horizontal movement - let update_willy_movement handle it
         } else {
             // Any other key stops movement
             moving_continuously = false;
@@ -503,6 +503,14 @@ bool WillyGame::on_key_press(GdkEventKey* event) {
 bool WillyGame::on_key_release(GdkEventKey* event) {
     std::string keyname = gdk_keyval_name(event->keyval);
     keys_pressed.erase(keyname);
+    
+    // Track up/down key releases
+    if(keyname == "Up") {
+        up_pressed = false;
+    } else if(keyname == "Down") {
+        down_pressed = false;
+    }
+    
     return true;
 }
 
@@ -515,6 +523,8 @@ void WillyGame::start_game() {
     frame_count = 0;
     continuous_direction = "";
     moving_continuously = false;
+    up_pressed = false;
+    down_pressed = false;
     
     // Load the first level using the level loader
     load_level("level1");
@@ -574,69 +584,108 @@ bool WillyGame::is_on_solid_ground() {
 void WillyGame::update_willy_movement() {
     if(current_state != GameState::PLAYING) return;
     
-    // Handle continuous horizontal movement first
-    if(moving_continuously && !continuous_direction.empty()) {
-        if(continuous_direction == "LEFT") {
-            willy_direction = "LEFT";
-            if(can_move_to(willy_position.first, willy_position.second - 1)) {
-                willy_position.second--;
-            } else {
-                // Hit something, stop continuous movement
+    std::string current_tile = get_tile(willy_position.first, willy_position.second);
+    bool on_ladder = (current_tile == "LADDER");
+    
+    // Handle ladder movement when on a ladder AND up/down was pressed
+    bool moved_on_ladder = false;
+    if(on_ladder) {
+        if(up_pressed) {
+            int target_row = willy_position.first - 1;
+            if(target_row >= 0) {
+                std::string above_tile = get_tile(target_row, willy_position.second);
+                // Can move up if there's a ladder above OR if it's a valid tile to move to
+                // But DON'T move above the top of a ladder sequence
+                if(above_tile == "LADDER") {
+                    // There's a ladder above, safe to move up
+                    if(can_move_to(target_row, willy_position.second)) {
+                        willy_position.first--;
+                        willy_velocity.second = 0;
+                        moved_on_ladder = true;
+                        // Stop horizontal movement when actively climbing
+                        moving_continuously = false;
+                        continuous_direction = "";
+                    }
+                } else if(can_move_to(target_row, willy_position.second) && 
+                         (above_tile == "EMPTY" || above_tile == "PRESENT" || 
+                          above_tile == "BELL" || above_tile == "UPSPRING" || 
+                          above_tile == "SIDESPRING" || above_tile == "TACK" || 
+                          above_tile == "BALLPIT")) {
+                    // Can move to this tile, but this ends ladder climbing
+                    willy_position.first--;
+                    willy_velocity.second = 0;
+                    moved_on_ladder = true;
+                    // Stop horizontal movement when leaving ladder
+                    moving_continuously = false;
+                    continuous_direction = "";
+                    // Clear up_pressed since we're leaving the ladder
+                    up_pressed = false;
+                }
+                // If above_tile is a wall/pipe, don't move up at all
+            }
+        } else if(down_pressed) {
+            int target_row = willy_position.first + 1;
+            if(target_row < GAME_SCREEN_HEIGHT && can_move_to(target_row, willy_position.second)) {
+                willy_position.first++;
+                willy_velocity.second = 0;
+                moved_on_ladder = true;
+                // Stop horizontal movement when actively climbing
                 moving_continuously = false;
                 continuous_direction = "";
-            }
-        } else if(continuous_direction == "RIGHT") {
-            willy_direction = "RIGHT";
-            if(can_move_to(willy_position.first, willy_position.second + 1)) {
-                willy_position.second++;
-            } else {
-                // Hit something, stop continuous movement
-                moving_continuously = false;
-                continuous_direction = "";
-            }
-        }
-    }
-    // Handle non-continuous movement (when not moving continuously)
-    else if(!moving_continuously) {
-        if(keys_pressed.count("Left") || keys_pressed.count("a")) {
-            willy_direction = "LEFT";
-            if(can_move_to(willy_position.first, willy_position.second - 1)) {
-                willy_position.second--;
-            }
-        } else if(keys_pressed.count("Right") || keys_pressed.count("d")) {
-            willy_direction = "RIGHT";
-            if(can_move_to(willy_position.first, willy_position.second + 1)) {
-                willy_position.second++;
             }
         }
     }
     
-    // Handle ladder movement (works regardless of continuous movement)
-    std::string current_tile = get_tile(willy_position.first, willy_position.second);
-    if(current_tile == "LADDER") {
-        if(keys_pressed.count("Up") || keys_pressed.count("w")) {
-            // Check if there's a ladder above, if not, allow normal movement
-            int target_row = willy_position.first - 1;
-            if(target_row >= 0 && can_move_to(target_row, willy_position.second)) {
-                std::string above_tile = get_tile(target_row, willy_position.second);
-                // Only move up if there's a ladder above, or if it's empty space
-                if(above_tile == "LADDER" || above_tile == "EMPTY" || above_tile == "PRESENT" || 
-                   above_tile == "BELL" || above_tile == "UPSPRING" || above_tile == "SIDESPRING" || 
-                   above_tile == "TACK" || above_tile == "BALLPIT") {
-                    willy_position.first--;
-                    willy_velocity.second = 0; // Stop falling when on ladder
+    // Handle horizontal movement (only if we didn't just move on ladder)
+    if(!moved_on_ladder) {
+        if(moving_continuously && !continuous_direction.empty()) {
+            bool hit_obstacle = false;
+            
+            if(continuous_direction == "LEFT") {
+                if(can_move_to(willy_position.first, willy_position.second - 1)) {
+                    willy_position.second--;
+                } else {
+                    hit_obstacle = true;
+                }
+            } else if(continuous_direction == "RIGHT") {
+                if(can_move_to(willy_position.first, willy_position.second + 1)) {
+                    willy_position.second++;
+                } else {
+                    hit_obstacle = true;
                 }
             }
-        } else if(keys_pressed.count("Down") || keys_pressed.count("s")) {
-            if(can_move_to(willy_position.first + 1, willy_position.second)) {
-                willy_position.first++;
-                willy_velocity.second = 0; // Stop falling when on ladder
+            
+            // If we hit an obstacle, stop continuous movement
+            if(hit_obstacle) {
+                moving_continuously = false;
+                continuous_direction = "";
+            }
+            
+            // Check if we just moved onto a ladder and up/down is pressed
+            std::string new_tile = get_tile(willy_position.first, willy_position.second);
+            if(new_tile == "LADDER" && (up_pressed || down_pressed)) {
+                // We just hit a ladder and want to climb - this will be handled next frame
+                // The movement logic above will handle stopping horizontal movement
+            }
+        }
+        // Handle discrete movement (when not moving continuously)
+        else if(!moving_continuously) {
+            if(keys_pressed.count("Left")) {
+                willy_direction = "LEFT";
+                if(can_move_to(willy_position.first, willy_position.second - 1)) {
+                    willy_position.second--;
+                }
+            } else if(keys_pressed.count("Right")) {
+                willy_direction = "RIGHT";
+                if(can_move_to(willy_position.first, willy_position.second + 1)) {
+                    willy_position.second++;
+                }
             }
         }
     }
     
-    // Handle gravity and jumping
-    if(current_tile != "LADDER") {
+    // Handle gravity and jumping (but NOT when on a ladder)
+    if(!on_ladder) {
         // Apply gravity if not on solid ground
         if(!is_on_solid_ground()) {
             willy_velocity.second += 1; // Gravity
@@ -646,19 +695,23 @@ void WillyGame::update_willy_movement() {
                 jumping = false;
             }
         }
-    }
-    
-    // Apply vertical velocity
-    if(willy_velocity.second != 0) {
-        int new_y = willy_position.first + (willy_velocity.second > 0 ? 1 : -1);
-        if(can_move_to(new_y, willy_position.second)) {
-            willy_position.first = new_y;
-        }
         
-        // Reduce upward velocity
-        if(willy_velocity.second < 0) {
-            willy_velocity.second++;
+        // Apply vertical velocity
+        if(willy_velocity.second != 0) {
+            int new_y = willy_position.first + (willy_velocity.second > 0 ? 1 : -1);
+            if(can_move_to(new_y, willy_position.second)) {
+                willy_position.first = new_y;
+            }
+            
+            // Reduce upward velocity
+            if(willy_velocity.second < 0) {
+                willy_velocity.second++;
+            }
         }
+    } else {
+        // On ladder - stop all vertical velocity and jumping
+        willy_velocity.second = 0;
+        jumping = false;
     }
 }
 
@@ -803,7 +856,11 @@ void WillyGame::reset_level() {
     frame_count = 0;
     continuous_direction = "";
     moving_continuously = false;
+    up_pressed = false;
+    down_pressed = false;
 }
+
+
 void WillyGame::game_over() {
     current_state = GameState::GAME_OVER;
 }
