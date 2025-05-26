@@ -312,22 +312,23 @@ WillyGame::WillyGame() :
     current_level("level1"),
     continuous_direction(""),
     moving_continuously(false),
+    up_pressed(false),
+    down_pressed(false),
     gen(rd()) {
     
     set_title("Willy the Worm - C++ GTK Edition");
+    
+    int status_bar_height = 40;
     set_default_size(
         GAME_SCREEN_WIDTH * GAME_CHAR_WIDTH * scale_factor,
-        GAME_SCREEN_HEIGHT * GAME_CHAR_HEIGHT * scale_factor + 100
+        GAME_SCREEN_HEIGHT * GAME_CHAR_HEIGHT * scale_factor + 100 + status_bar_height
     );
     
-    // Initialize sprite loader and level loader
     sprite_loader = std::make_unique<SpriteLoader>(scale_factor);
     level_loader = std::make_unique<LevelLoader>();
     
-    // Load levels from file or create defaults
     level_loader->load_levels("levels.json");
     
-    // Initialize intro text
     intro_text = {
         "Willy the Worm",
         "",
@@ -359,19 +360,13 @@ WillyGame::WillyGame() :
         "Press Enter to Continue"
     };
     
-    // Setup UI
     setup_ui();
-    
-    // Start in intro state
     current_state = GameState::INTRO;
     
-    // Setup timer
     timer_connection = Glib::signal_timeout().connect(
         sigc::mem_fun(*this, &WillyGame::game_tick), 1000 / fps);
     
     show_all_children();
-    
-    // Give focus to the drawing area so it can receive keyboard events
     drawing_area.grab_focus();
 }
 
@@ -382,11 +377,9 @@ WillyGame::~WillyGame() {
 void WillyGame::setup_ui() {
     add(vbox);
     
-    // Create menu
     create_menubar();
     vbox.pack_start(menubar, Gtk::PACK_SHRINK);
     
-    // Setup drawing area
     drawing_area.set_size_request(
         GAME_SCREEN_WIDTH * GAME_CHAR_WIDTH * scale_factor,
         GAME_SCREEN_HEIGHT * GAME_CHAR_HEIGHT * scale_factor
@@ -394,7 +387,6 @@ void WillyGame::setup_ui() {
     drawing_area.signal_draw().connect(
         sigc::mem_fun(*this, &WillyGame::on_draw));
     
-    // Make drawing area focusable and connect key events to it
     drawing_area.set_can_focus(true);
     drawing_area.add_events(Gdk::KEY_PRESS_MASK | Gdk::KEY_RELEASE_MASK);
     drawing_area.signal_key_press_event().connect(
@@ -404,10 +396,10 @@ void WillyGame::setup_ui() {
     
     vbox.pack_start(drawing_area, Gtk::PACK_EXPAND_WIDGET);
     
-    // Status bar
     update_status_bar();
     vbox.pack_start(status_bar, Gtk::PACK_SHRINK);
 }
+
 
 void WillyGame::create_menubar() {
     auto game_menu = Gtk::manage(new Gtk::Menu());
@@ -482,12 +474,9 @@ bool WillyGame::on_key_press(GdkEventKey* event) {
             willy_direction = "RIGHT";
         } else if(keyname == "Up") {
             up_pressed = true;
-            // Don't stop horizontal movement - let update_willy_movement handle it
         } else if(keyname == "Down") {
             down_pressed = true;
-            // Don't stop horizontal movement - let update_willy_movement handle it
         } else {
-            // Any other key stops movement
             moving_continuously = false;
             continuous_direction = "";
         }
@@ -504,7 +493,6 @@ bool WillyGame::on_key_release(GdkEventKey* event) {
     std::string keyname = gdk_keyval_name(event->keyval);
     keys_pressed.erase(keyname);
     
-    // Track up/down key releases
     if(keyname == "Up") {
         up_pressed = false;
     } else if(keyname == "Down") {
@@ -526,9 +514,7 @@ void WillyGame::start_game() {
     up_pressed = false;
     down_pressed = false;
     
-    // Load the first level using the level loader
     load_level("level1");
-    
     update_status_bar();
 }
 
@@ -573,70 +559,65 @@ bool WillyGame::is_on_solid_ground() {
     std::string current_tile = get_tile(y, x);
     std::string below_tile = get_tile(y + 1, x);
     
-    // Standing on top of a ladder is solid ground
-    if(current_tile == "LADDER" && below_tile != "LADDER") {
+    if(current_tile == "LADDER") {
         return true;
     }
     
     return (below_tile.substr(0, 4) == "PIPE" || below_tile == "BALLPIT");
 }
 
+
 void WillyGame::update_willy_movement() {
     if(current_state != GameState::PLAYING) return;
     
     std::string current_tile = get_tile(willy_position.first, willy_position.second);
     bool on_ladder = (current_tile == "LADDER");
-    
-    // Handle ladder movement when on a ladder AND up/down was pressed
     bool moved_on_ladder = false;
-    if(on_ladder) {
-        if(up_pressed) {
-            int target_row = willy_position.first - 1;
-            if(target_row >= 0) {
-                std::string above_tile = get_tile(target_row, willy_position.second);
-                // Can move up if there's a ladder above OR if it's a valid tile to move to
-                // But DON'T move above the top of a ladder sequence
-                if(above_tile == "LADDER") {
-                    // There's a ladder above, safe to move up
-                    if(can_move_to(target_row, willy_position.second)) {
-                        willy_position.first--;
-                        willy_velocity.second = 0;
-                        moved_on_ladder = true;
-                        // Stop horizontal movement when actively climbing
-                        moving_continuously = false;
-                        continuous_direction = "";
-                    }
-                } else if(can_move_to(target_row, willy_position.second) && 
-                         (above_tile == "EMPTY" || above_tile == "PRESENT" || 
-                          above_tile == "BELL" || above_tile == "UPSPRING" || 
-                          above_tile == "SIDESPRING" || above_tile == "TACK" || 
-                          above_tile == "BALLPIT")) {
-                    // Can move to this tile, but this ends ladder climbing
-                    willy_position.first--;
-                    willy_velocity.second = 0;
-                    moved_on_ladder = true;
-                    // Stop horizontal movement when leaving ladder
-                    moving_continuously = false;
-                    continuous_direction = "";
-                    // Clear up_pressed since we're leaving the ladder
-                    up_pressed = false;
-                }
-                // If above_tile is a wall/pipe, don't move up at all
-            }
-        } else if(down_pressed) {
-            int target_row = willy_position.first + 1;
-            if(target_row < GAME_SCREEN_HEIGHT && can_move_to(target_row, willy_position.second)) {
-                willy_position.first++;
+    
+    if(up_pressed) {
+        int target_row = willy_position.first - 1;
+        if(target_row >= 0) {
+            std::string above_tile = get_tile(target_row, willy_position.second);
+            
+            if(on_ladder && above_tile == "LADDER" && can_move_to(target_row, willy_position.second)) {
+                willy_position.first--;
                 willy_velocity.second = 0;
                 moved_on_ladder = true;
-                // Stop horizontal movement when actively climbing
+                moving_continuously = false;
+                continuous_direction = "";
+            }
+            else if(!on_ladder && above_tile == "LADDER" && can_move_to(target_row, willy_position.second)) {
+                willy_position.first--;
+                willy_velocity.second = 0;
+                moved_on_ladder = true;
                 moving_continuously = false;
                 continuous_direction = "";
             }
         }
     }
     
-    // Handle horizontal movement (only if we didn't just move on ladder)
+    if(down_pressed && !moved_on_ladder) {
+        int target_row = willy_position.first + 1;
+        if(target_row < GAME_SCREEN_HEIGHT) {
+            std::string below_tile = get_tile(target_row, willy_position.second);
+            
+            if(on_ladder && can_move_to(target_row, willy_position.second)) {
+                willy_position.first++;
+                willy_velocity.second = 0;
+                moved_on_ladder = true;
+                moving_continuously = false;
+                continuous_direction = "";
+            }
+            else if(!on_ladder && below_tile == "LADDER" && can_move_to(target_row, willy_position.second)) {
+                willy_position.first++;
+                willy_velocity.second = 0;
+                moved_on_ladder = true;
+                moving_continuously = false;
+                continuous_direction = "";
+            }
+        }
+    }
+    
     if(!moved_on_ladder) {
         if(moving_continuously && !continuous_direction.empty()) {
             bool hit_obstacle = false;
@@ -655,20 +636,11 @@ void WillyGame::update_willy_movement() {
                 }
             }
             
-            // If we hit an obstacle, stop continuous movement
             if(hit_obstacle) {
                 moving_continuously = false;
                 continuous_direction = "";
             }
-            
-            // Check if we just moved onto a ladder and up/down is pressed
-            std::string new_tile = get_tile(willy_position.first, willy_position.second);
-            if(new_tile == "LADDER" && (up_pressed || down_pressed)) {
-                // We just hit a ladder and want to climb - this will be handled next frame
-                // The movement logic above will handle stopping horizontal movement
-            }
         }
-        // Handle discrete movement (when not moving continuously)
         else if(!moving_continuously) {
             if(keys_pressed.count("Left")) {
                 willy_direction = "LEFT";
@@ -684,32 +656,30 @@ void WillyGame::update_willy_movement() {
         }
     }
     
-    // Handle gravity and jumping (but NOT when on a ladder)
+    current_tile = get_tile(willy_position.first, willy_position.second);
+    on_ladder = (current_tile == "LADDER");
+    
     if(!on_ladder) {
-        // Apply gravity if not on solid ground
         if(!is_on_solid_ground()) {
-            willy_velocity.second += 1; // Gravity
+            willy_velocity.second += 1;
         } else {
             if(willy_velocity.second > 0) {
-                willy_velocity.second = 0; // Stop falling when hitting ground
+                willy_velocity.second = 0;
                 jumping = false;
             }
         }
         
-        // Apply vertical velocity
         if(willy_velocity.second != 0) {
             int new_y = willy_position.first + (willy_velocity.second > 0 ? 1 : -1);
             if(can_move_to(new_y, willy_position.second)) {
                 willy_position.first = new_y;
             }
             
-            // Reduce upward velocity
             if(willy_velocity.second < 0) {
                 willy_velocity.second++;
             }
         }
     } else {
-        // On ladder - stop all vertical velocity and jumping
         willy_velocity.second = 0;
         jumping = false;
     }
@@ -843,13 +813,9 @@ void WillyGame::complete_level() {
 }
 
 void WillyGame::reset_level() {
-    // Reset to original level state
     level_loader->reset_levels();
-    
-    // Reload current level
     load_level(current_level);
     
-    // Reset game state
     willy_velocity = {0, 0};
     jumping = false;
     bonus = 1000;
@@ -875,10 +841,10 @@ void WillyGame::quit_game() {
 
 void WillyGame::update_status_bar() {
     if(current_state == GameState::PLAYING) {
-        std::string status_text = "Score: " + std::to_string(score) + 
-                                " | Bonus: " + std::to_string(bonus) + 
-                                " | Level: " + std::to_string(level) + 
-                                " | Lives: " + std::to_string(lives);
+        std::string status_text = "SCORE: " + std::to_string(score) + 
+                                "    BONUS: " + std::to_string(bonus) + 
+                                "    Level: " + std::to_string(level) + 
+                                "    Willy the Worms Left: " + std::to_string(lives);
         status_bar.set_text(status_text);
     } else {
         status_bar.set_text("Willy the Worm - C++ GTK Edition");
@@ -952,19 +918,16 @@ void WillyGame::draw_intro_screen(const Cairo::RefPtr<Cairo::Context>& cr) {
 }
 
 void WillyGame::draw_game_screen(const Cairo::RefPtr<Cairo::Context>& cr) {
-    // Get level data from level loader
     auto level_data = level_loader->get_level_data();
     auto current_level_data = level_data.find(current_level);
     
     if(current_level_data != level_data.end()) {
-        // Draw level tiles EXCEPT where Willy is positioned
         for(const auto& row_pair : current_level_data->second) {
             int row = std::stoi(row_pair.first);
             for(const auto& col_pair : row_pair.second) {
                 int col = std::stoi(col_pair.first);
                 const std::string& tile = col_pair.second;
                 
-                // Don't render anything where Willy is positioned
                 if(row == willy_position.first && col == willy_position.second) {
                     continue;
                 }
@@ -982,12 +945,16 @@ void WillyGame::draw_game_screen(const Cairo::RefPtr<Cairo::Context>& cr) {
         }
     }
     
-    // Draw balls (but not where Willy is)
     for(const auto& ball : balls) {
         if(get_tile(ball.row, ball.col) != "BALLPIT" && 
            !(ball.row == willy_position.first && ball.col == willy_position.second)) {
             int x = ball.col * GAME_CHAR_WIDTH * scale_factor;
             int y = ball.row * GAME_CHAR_HEIGHT * scale_factor;
+            
+            cr->set_source_rgb(0.0, 0.0, 1.0);
+            cr->rectangle(x, y, GAME_CHAR_WIDTH * scale_factor, GAME_CHAR_HEIGHT * scale_factor);
+            cr->fill();
+            
             auto sprite = sprite_loader->get_sprite("BALL");
             if(sprite) {
                 cr->set_source(sprite, x, y);
@@ -996,9 +963,13 @@ void WillyGame::draw_game_screen(const Cairo::RefPtr<Cairo::Context>& cr) {
         }
     }
     
-    // Draw Willy LAST so he appears on top of everything
     int x = willy_position.second * GAME_CHAR_WIDTH * scale_factor;
     int y = willy_position.first * GAME_CHAR_HEIGHT * scale_factor;
+    
+    cr->set_source_rgb(0.0, 0.0, 1.0);
+    cr->rectangle(x, y, GAME_CHAR_WIDTH * scale_factor, GAME_CHAR_HEIGHT * scale_factor);
+    cr->fill();
+    
     std::string sprite_name = (willy_direction == "LEFT") ? "WILLY_LEFT" : "WILLY_RIGHT";
     auto sprite = sprite_loader->get_sprite(sprite_name);
     if(sprite) {
@@ -1006,6 +977,8 @@ void WillyGame::draw_game_screen(const Cairo::RefPtr<Cairo::Context>& cr) {
         cr->paint();
     }
 }
+
+
 void WillyGame::draw_game_over_screen(const Cairo::RefPtr<Cairo::Context>& cr) {
     // Create font
     Pango::FontDescription font_desc;
