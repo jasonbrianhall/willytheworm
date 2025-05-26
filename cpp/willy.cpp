@@ -886,37 +886,6 @@ bool WillyGame::on_draw(const Cairo::RefPtr<Cairo::Context>& cr) {
     return true;
 }
 
-void WillyGame::draw_intro_screen(const Cairo::RefPtr<Cairo::Context>& cr) {
-    // Calculate font size based on screen height
-    int line_height = (GAME_SCREEN_HEIGHT * GAME_CHAR_HEIGHT * scale_factor) / intro_text.size();
-    int font_size = std::max(12, line_height - 4);
-    
-    // Create font
-    Pango::FontDescription font_desc;
-    font_desc.set_family("Monospace");
-    font_desc.set_size(font_size * PANGO_SCALE);
-    
-    auto layout = create_pango_layout("");
-    layout->set_font_description(font_desc);
-    
-    cr->set_source_rgb(1.0, 1.0, 1.0); // White text
-    
-    int y_offset = 20;
-    for(const auto& line : intro_text) {
-        layout->set_text(line);
-        
-        int text_width, text_height;
-        layout->get_pixel_size(text_width, text_height);
-        
-        int x_offset = (GAME_SCREEN_WIDTH * GAME_CHAR_WIDTH * scale_factor - text_width) / 2;
-        
-        cr->move_to(x_offset, y_offset);
-        layout->show_in_cairo_context(cr);
-        
-        y_offset += line_height;
-    }
-}
-
 void WillyGame::draw_game_screen(const Cairo::RefPtr<Cairo::Context>& cr) {
     auto level_data = level_loader->get_level_data();
     auto current_level_data = level_data.find(current_level);
@@ -975,6 +944,117 @@ void WillyGame::draw_game_screen(const Cairo::RefPtr<Cairo::Context>& cr) {
     if(sprite) {
         cr->set_source(sprite, x, y);
         cr->paint();
+    }
+}
+
+void WillyGame::draw_intro_screen(const Cairo::RefPtr<Cairo::Context>& cr) {
+    // Clear background to blue
+    cr->set_source_rgb(0.0, 0.0, 1.0);
+    cr->paint();
+    
+    // Text data exactly like Python version
+    std::vector<std::vector<std::string>> textdata = {
+        {"Willy the Worm"},
+        {""},
+        {"By Jason Hall"},
+        {"(original version by Alan Farmer 1985)"},
+        {""},
+        {"This code is Free Open Source Software (FOSS)"},
+        {"Please feel free to do with it whatever you wish."},
+        {""},
+        {"If you do make changes though such as new levels,"},
+        {"please share them with the world."},
+        {""},
+        {""},
+        {"Meet Willy the Worm ", "WILLY_RIGHT", ". Willy is a fun-"},
+        {"loving invertebrate who likes to climb"},
+        {"ladders ", "LADDER", " bounce on springs ", "UPSPRING", " ", "SIDESPRING"},
+        {"and find his presents ", "PRESENT", ".  But more"},
+        {"than anything, Willy loves to ring,"},
+        {"bells! ", "BELL"},
+        {""},
+        {"You can press the arrow keys ← ↑ → ↓"},
+        {"to make Willy run and climb, or the"},
+        {"space bar to make him jump. Anything"},
+        {"else will make Willy stop and wait"},
+        {""},
+        {"Good luck, and don't let Willy step on"},
+        {"a tack ", "TACK", " or get ran over by a ball! ", "BALL"},
+        {""},
+        {"Press Enter to Continue"}
+    };
+    
+    // Get screen dimensions
+    int screen_width = get_width();
+    int screen_height = get_height();
+    
+    // Calculate font size based on screen height divided by number of text lines
+    int font_size = screen_height / textdata.size();
+    
+    // Create fallback font for text rendering
+    Pango::FontDescription font_desc;
+    font_desc.set_family("Courier");
+    font_desc.set_size(font_size * PANGO_SCALE);
+    
+    auto layout = create_pango_layout("");
+    layout->set_font_description(font_desc);
+    
+    int counter = 0;
+    
+    for(const auto& message : textdata) {
+        if(message.empty() || (message.size() == 1 && message[0].empty())) {
+            counter++;
+            continue;
+        }
+        
+        // Calculate total width of this line first
+        int max_width = 0;
+        for(const auto& message2 : message) {
+            auto sprite = sprite_loader->get_sprite(message2);
+            if(sprite && (message2 == "WILLY_RIGHT" || message2 == "WILLY_LEFT" || 
+                         message2 == "LADDER" || message2 == "UPSPRING" || 
+                         message2 == "SIDESPRING" || message2 == "PRESENT" || 
+                         message2 == "BELL" || message2 == "TACK" || message2 == "BALL")) {
+                max_width += GAME_CHAR_WIDTH * scale_factor;
+            } else {
+                // Text - calculate width
+                layout->set_text(message2);
+                int text_width, text_height;
+                layout->get_pixel_size(text_width, text_height);
+                max_width += text_width;
+            }
+        }
+        
+        // Now draw the line centered
+        int currentpos = (screen_width - max_width) / 2;
+        
+        for(const auto& message2 : message) {
+            if(message2.empty()) continue;
+            
+            auto sprite = sprite_loader->get_sprite(message2);
+            if(sprite && (message2 == "WILLY_RIGHT" || message2 == "WILLY_LEFT" || 
+                         message2 == "LADDER" || message2 == "UPSPRING" || 
+                         message2 == "SIDESPRING" || message2 == "PRESENT" || 
+                         message2 == "BELL" || message2 == "TACK" || message2 == "BALL")) {
+                // Draw game sprite
+                cr->set_source(sprite, currentpos, font_size * counter + 2);
+                cr->paint();
+                currentpos += GAME_CHAR_WIDTH * scale_factor;
+            } else {
+                // Draw text
+                cr->set_source_rgb(1.0, 1.0, 1.0); // White text
+                layout->set_text(message2);
+                
+                int text_width, text_height;
+                layout->get_pixel_size(text_width, text_height);
+                
+                cr->move_to(currentpos, font_size * counter + 2);
+                layout->show_in_cairo_context(cr);
+                currentpos += text_width;
+            }
+        }
+        
+        counter++;
     }
 }
 
