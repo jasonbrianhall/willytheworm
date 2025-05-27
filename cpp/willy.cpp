@@ -561,18 +561,18 @@ bool WillyGame::on_key_press(GdkEventKey* event) {
     } else if(current_state == GameState::PLAYING) {
         if(keyname == "space") {
             jump();
-        } else if(keyname == "Left") {
-            continuous_direction = "LEFT";
-            moving_continuously = true;
-            willy_direction = "LEFT";
-        } else if(keyname == "Right") {
-            continuous_direction = "RIGHT";
-            moving_continuously = true;
-            willy_direction = "RIGHT";
-        } else if(keyname == "Up") {
-            up_pressed = true;
-        } else if(keyname == "Down") {
-            down_pressed = true;
+     } else if(keyname == "Left" || (game_options.use_wasd && keyname == "a")) {
+        continuous_direction = "LEFT";
+        moving_continuously = true;
+        willy_direction = "LEFT";
+    } else if(keyname == "Right" || (game_options.use_wasd && keyname == "d")) {
+        continuous_direction = "RIGHT";
+        moving_continuously = true;
+        willy_direction = "RIGHT";
+    } else if(keyname == "Up" || (game_options.use_wasd && keyname == "w")) {
+        up_pressed = true;
+    } else if(keyname == "Down" || (game_options.use_wasd && keyname == "s")) {
+        down_pressed = true;
         } else if((keyname == "L" || keyname == "l") && ctrl_pressed) {
             // Level skip with Ctrl+L (matching Python version)
             complete_level_nobonus();
@@ -958,7 +958,7 @@ void WillyGame::update_balls() {
 
     // Ensure the ball count stays within the limit and apply random spawn delay
     auto now = std::chrono::steady_clock::now();
-    if (balls.size() < 6 && std::chrono::duration_cast<std::chrono::milliseconds>(now - last_ball_spawn).count() > delay_distribution(rng)) {
+    if (balls.size() < game_options.number_of_balls && std::chrono::duration_cast<std::chrono::milliseconds>(now - last_ball_spawn).count() > delay_distribution(rng)) {
         balls.emplace_back(primary_ball_pit_pos.first, primary_ball_pit_pos.second);
         last_ball_spawn = now; // Reset spawn timer
     }
