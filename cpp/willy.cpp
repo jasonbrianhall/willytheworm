@@ -316,6 +316,7 @@ WillyGame::WillyGame() :
     moving_continuously(false),
     up_pressed(false),
     down_pressed(false),
+    previous_willy_position({23, 7}),
     gen(rd()) {
     
     set_title("Willy the Worm - C++ GTK Edition");
@@ -688,7 +689,7 @@ bool WillyGame::is_on_solid_ground() {
 
 void WillyGame::update_willy_movement() {
     if(current_state != GameState::PLAYING) return;
-    
+    previous_willy_position = willy_position;
     // Store Willy's current position for collision checking
     int old_row = willy_position.first;
     int old_col = willy_position.second;
@@ -931,6 +932,28 @@ void WillyGame::check_collisions() {
     int y = willy_position.first;
     int x = willy_position.second;
     std::string current_tile = get_tile(y, x);
+    
+    // Check if Willy left a destroyable pipe (PIPE18) - destroy it after he leaves
+    int prev_y = previous_willy_position.first;
+    int prev_x = previous_willy_position.second;
+    
+    // Only check if Willy actually moved
+    if(prev_y != y || prev_x != x) {
+        // Check if there's a destroyable pipe below where Willy was previously standing
+        if(prev_y + 1 < GAME_SCREEN_HEIGHT) {
+            std::string below_previous_tile = get_tile(prev_y + 1, prev_x);
+            if(below_previous_tile == "PIPE18") {
+                // Destroy the pipe after Willy leaves it
+                set_tile(prev_y + 1, prev_x, "EMPTY");
+                
+                // Optional: Play a destruction sound
+                sound_manager->play_sound("present.mp3");  // Using existing sound
+                
+                // Optional: Add points for destroying the pipe
+                score += 50;
+            }
+        }
+    }
     
     // Check ball collisions (only die if at same horizontal level and same column)
     for(const auto& ball : balls) {

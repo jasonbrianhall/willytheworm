@@ -192,7 +192,7 @@ private:
     std::unique_ptr<SpriteLoader> sprite_loader;
     std::unique_ptr<LevelLoader> level_loader;
     std::unique_ptr<HighScoreManager> score_manager;
-    
+    std::pair<int, int> previous_willy_position;  // Track where Willy was last frame
     // Game state
     GameState current_state;
     int scale_factor;
