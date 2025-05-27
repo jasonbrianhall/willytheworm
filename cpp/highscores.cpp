@@ -68,36 +68,53 @@ bool HighScoreManager::is_new_day(const std::string& file_path) {
 
 void HighScoreManager::load_scores() {
     std::string file_path = get_score_file_path();
-    
+
     try {
         std::ifstream file(file_path);
-        if(!file.good()) {
+        if (!file.good()) {
             // File doesn't exist, use defaults
             return;
         }
-        
+
         std::stringstream buffer;
         buffer << file.rdbuf();
         std::string json_content = buffer.str();
-        
-        if(json_content.empty()) {
+
+        if (json_content.empty()) {
             return;
         }
-        
-        // Simple JSON parsing for our specific format
+
+        // Parse JSON and merge with existing scores
+        std::vector<HighScore> previous_scores = permanent_scores; // Keep old scores
         parse_scores_json(json_content);
-        
-        // Check if it's a new day and reset daily scores if needed
-        if(is_new_day(file_path)) {
+
+        // Merge previous and newly loaded scores, ensuring uniqueness
+        for (const auto& old_score : previous_scores) {
+            if (std::none_of(permanent_scores.begin(), permanent_scores.end(), [&](const HighScore& s) {
+                return s.name == old_score.name && s.score == old_score.score;
+            })) {
+                permanent_scores.push_back(old_score);
+            }
+        }
+
+        // Sort scores (highest first) and limit to top 10
+        std::sort(permanent_scores.begin(), permanent_scores.end(), 
+                  [](const HighScore& a, const HighScore& b) { return a.score > b.score; });
+        if (permanent_scores.size() > 10) {
+            permanent_scores.resize(10);
+        }
+
+        // Reset daily scores if it's a new day
+        if (is_new_day(file_path)) {
             daily_scores.clear();
-            for(int i = 0; i < 10; i++) {
+            for (int i = 0; i < 10; i++) {
                 daily_scores.push_back({"nobody", 0});
             }
         }
-        
-    } catch(const std::exception& e) {
+
+    } catch (const std::exception& e) {
         std::cout << "Error loading high scores: " << e.what() << std::endl;
-        // Use default scores
+        // Preserve existing scores in case of failure
     }
 }
 
