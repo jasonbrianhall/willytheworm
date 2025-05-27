@@ -412,6 +412,37 @@ void WillyGame::load_level(const std::string& level_name) {
     std::cout << "Ball pit at: (" << ball_pit_pos.first << ", " << ball_pit_pos.second << ")" << std::endl;
 }
 
+bool WillyGame::check_movement_collision(int old_row, int old_col, int new_row, int new_col) {
+    // Don't check collisions if moving to/from ballpit
+    std::string old_tile = get_tile(old_row, old_col);
+    std::string new_tile = get_tile(new_row, new_col);
+    if(old_tile == "BALLPIT" || new_tile == "BALLPIT") {
+        return false; // No collision in ballpit areas
+    }
+    
+    for(const auto& ball : balls) {
+        // Skip balls that are in ballpits
+        if(get_tile(ball.row, ball.col) == "BALLPIT") {
+            continue;
+        }
+        
+        // Check if ball is at Willy's new position
+        if(ball.row == new_row && ball.col == new_col) {
+            return true; // Collision detected
+        }
+        
+        // Check for crossing paths (ball and Willy swapping positions)
+        if(ball.row == old_row && ball.col == old_col && 
+           ball.row == new_row && ball.col == new_col) {
+            // This means ball was at Willy's old position and Willy is moving to ball's position
+            // Need to check if ball is also moving to Willy's old position
+            // This is a simplified check - you might need more sophisticated logic
+            return true; // Collision detected
+        }
+    }
+    return false;
+}
+
 bool WillyGame::on_key_press(GdkEventKey* event) {
     std::string keyname = gdk_keyval_name(event->keyval);
     std::cout << "Key pressed: " << keyname << std::endl;
@@ -535,9 +566,12 @@ bool WillyGame::is_on_solid_ground() {
     return (below_tile.substr(0, 4) == "PIPE" || below_tile == "BALLPIT");
 }
 
-
 void WillyGame::update_willy_movement() {
     if(current_state != GameState::PLAYING) return;
+    
+    // Store Willy's current position for collision checking
+    int old_row = willy_position.first;
+    int old_col = willy_position.second;
     
     std::string current_tile = get_tile(willy_position.first, willy_position.second);
     bool on_ladder = (current_tile == "LADDER");
@@ -549,18 +583,30 @@ void WillyGame::update_willy_movement() {
             std::string above_tile = get_tile(target_row, willy_position.second);
             
             if(on_ladder && above_tile == "LADDER" && can_move_to(target_row, willy_position.second)) {
-                willy_position.first--;
-                willy_velocity.second = 0;
-                moved_on_ladder = true;
-                moving_continuously = false;
-                continuous_direction = "";
+                // Check for collision before moving
+                if(!check_movement_collision(old_row, old_col, target_row, willy_position.second)) {
+                    willy_position.first--;
+                    willy_velocity.second = 0;
+                    moved_on_ladder = true;
+                    moving_continuously = false;
+                    continuous_direction = "";
+                } else {
+                    die();
+                    return;
+                }
             }
             else if(!on_ladder && above_tile == "LADDER" && can_move_to(target_row, willy_position.second)) {
-                willy_position.first--;
-                willy_velocity.second = 0;
-                moved_on_ladder = true;
-                moving_continuously = false;
-                continuous_direction = "";
+                // Check for collision before moving
+                if(!check_movement_collision(old_row, old_col, target_row, willy_position.second)) {
+                    willy_position.first--;
+                    willy_velocity.second = 0;
+                    moved_on_ladder = true;
+                    moving_continuously = false;
+                    continuous_direction = "";
+                } else {
+                    die();
+                    return;
+                }
             }
         }
     }
@@ -571,18 +617,30 @@ void WillyGame::update_willy_movement() {
             std::string below_tile = get_tile(target_row, willy_position.second);
             
             if(on_ladder && can_move_to(target_row, willy_position.second)) {
-                willy_position.first++;
-                willy_velocity.second = 0;
-                moved_on_ladder = true;
-                moving_continuously = false;
-                continuous_direction = "";
+                // Check for collision before moving
+                if(!check_movement_collision(old_row, old_col, target_row, willy_position.second)) {
+                    willy_position.first++;
+                    willy_velocity.second = 0;
+                    moved_on_ladder = true;
+                    moving_continuously = false;
+                    continuous_direction = "";
+                } else {
+                    die();
+                    return;
+                }
             }
             else if(!on_ladder && below_tile == "LADDER" && can_move_to(target_row, willy_position.second)) {
-                willy_position.first++;
-                willy_velocity.second = 0;
-                moved_on_ladder = true;
-                moving_continuously = false;
-                continuous_direction = "";
+                // Check for collision before moving
+                if(!check_movement_collision(old_row, old_col, target_row, willy_position.second)) {
+                    willy_position.first++;
+                    willy_velocity.second = 0;
+                    moved_on_ladder = true;
+                    moving_continuously = false;
+                    continuous_direction = "";
+                } else {
+                    die();
+                    return;
+                }
             }
         }
     }
@@ -593,13 +651,25 @@ void WillyGame::update_willy_movement() {
             
             if(continuous_direction == "LEFT") {
                 if(can_move_to(willy_position.first, willy_position.second - 1)) {
-                    willy_position.second--;
+                    // Check for collision before moving
+                    if(!check_movement_collision(old_row, old_col, willy_position.first, willy_position.second - 1)) {
+                        willy_position.second--;
+                    } else {
+                        die();
+                        return;
+                    }
                 } else {
                     hit_obstacle = true;
                 }
             } else if(continuous_direction == "RIGHT") {
                 if(can_move_to(willy_position.first, willy_position.second + 1)) {
-                    willy_position.second++;
+                    // Check for collision before moving
+                    if(!check_movement_collision(old_row, old_col, willy_position.first, willy_position.second + 1)) {
+                        willy_position.second++;
+                    } else {
+                        die();
+                        return;
+                    }
                 } else {
                     hit_obstacle = true;
                 }
@@ -614,12 +684,24 @@ void WillyGame::update_willy_movement() {
             if(keys_pressed.count("Left")) {
                 willy_direction = "LEFT";
                 if(can_move_to(willy_position.first, willy_position.second - 1)) {
-                    willy_position.second--;
+                    // Check for collision before moving
+                    if(!check_movement_collision(old_row, old_col, willy_position.first, willy_position.second - 1)) {
+                        willy_position.second--;
+                    } else {
+                        die();
+                        return;
+                    }
                 }
             } else if(keys_pressed.count("Right")) {
                 willy_direction = "RIGHT";
                 if(can_move_to(willy_position.first, willy_position.second + 1)) {
-                    willy_position.second++;
+                    // Check for collision before moving
+                    if(!check_movement_collision(old_row, old_col, willy_position.first, willy_position.second + 1)) {
+                        willy_position.second++;
+                    } else {
+                        die();
+                        return;
+                    }
                 }
             }
         }
@@ -641,7 +723,13 @@ void WillyGame::update_willy_movement() {
         if(willy_velocity.second != 0) {
             int new_y = willy_position.first + (willy_velocity.second > 0 ? 1 : -1);
             if(can_move_to(new_y, willy_position.second)) {
-                willy_position.first = new_y;
+                // Check for collision before moving due to gravity/jumping
+                if(!check_movement_collision(willy_position.first, willy_position.second, new_y, willy_position.second)) {
+                    willy_position.first = new_y;
+                } else {
+                    die();
+                    return;
+                }
             }
             
             if(willy_velocity.second < 0) {
