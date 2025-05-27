@@ -25,6 +25,10 @@
 #include <thread>
 #include <mutex>
 
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
 // Global variables to store command line options (add these near the top of willy.cpp)
 struct GameOptions {
     int starting_level = 1;
