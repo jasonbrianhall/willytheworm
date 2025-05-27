@@ -36,9 +36,11 @@ CXXFLAGS_WIN = $(CXXFLAGS_COMMON) $(GTK_CFLAGS_WIN) $(SDL_CFLAGS_WIN) -DWIN32 -m
 CXXFLAGS_LINUX_DEBUG = $(CXXFLAGS_LINUX) $(DEBUG_FLAGS)
 CXXFLAGS_WIN_DEBUG = $(CXXFLAGS_WIN) $(DEBUG_FLAGS)
 
-# Linker flags
+# Linker flags - FIXED VERSION for Windows
 LDFLAGS_LINUX = $(GTK_LIBS_LINUX) $(SDL_LIBS_LINUX) -pthread
-LDFLAGS_WIN = $(GTK_LIBS_WIN) $(SDL_LIBS_WIN) -lwinmm -lstdc++ -static-libgcc -static-libstdc++
+
+# Windows linker flags - Fixed to avoid multiple definition errors
+LDFLAGS_WIN = $(GTK_LIBS_WIN) $(SDL_LIBS_WIN) -lwinmm
 
 # Object files
 OBJS_LINUX = $(SRCS_COMMON:.cpp=.o)
@@ -217,6 +219,11 @@ copy-data-windows:
 			echo "Warning: $$file not found"; \
 		fi; \
 	done
+	@if [ -d audio ]; then \
+		echo "Copying audio files to Windows build directory..."; \
+		cp -r audio $(BUILD_DIR_WIN)/; \
+		echo "Audio files copied to $(BUILD_DIR_WIN)/audio/"; \
+	fi
 
 .PHONY: copy-data-windows-debug
 copy-data-windows-debug:
@@ -229,6 +236,11 @@ copy-data-windows-debug:
 			echo "Warning: $$file not found"; \
 		fi; \
 	done
+	@if [ -d audio ]; then \
+		echo "Copying audio files to Windows debug build directory..."; \
+		cp -r audio $(BUILD_DIR_WIN_DEBUG)/; \
+		echo "Audio files copied to $(BUILD_DIR_WIN_DEBUG)/audio/"; \
+	fi
 
 # Audio directory copying (if you have audio files)
 .PHONY: copy-audio-linux
