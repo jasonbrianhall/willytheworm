@@ -16,6 +16,7 @@
 #include <set>
 #include <utility>
 #include <sstream>
+#include <algorithm>
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_mixer.h>
@@ -44,7 +45,36 @@ public:
     bool is_sound_enabled() const { return sound_enabled; }
 };
 
+// High Score Management
+struct HighScore {
+    std::string name;
+    int score;
+};
 
+class HighScoreManager {
+private:
+    std::vector<HighScore> permanent_scores;  // All-time "Nightcrawlers"
+    std::vector<HighScore> daily_scores;      // Daily "Pinworms"
+    
+    std::string get_score_file_path();
+    bool is_new_day(const std::string& file_path);
+    void parse_scores_json(const std::string& json_content);
+    HighScore parse_score_line(const std::string& line);
+    
+public:
+    HighScoreManager();
+    ~HighScoreManager();
+    
+    void load_scores();
+    void save_scores();
+    bool is_high_score(int score);
+    bool is_permanent_high_score(int score);
+    void add_score(const std::string& name, int score);
+    std::string get_score_description(int score);
+    std::string get_achievement_message(int score);
+    std::vector<HighScore> get_permanent_scores() const;
+    std::vector<HighScore> get_daily_scores() const;
+};
 
 // Game constants
 const int GAME_CHAR_WIDTH = 8;
@@ -59,7 +89,9 @@ enum class GameState {
     INTRO,
     PLAYING,
     GAME_OVER,
-    PAUSED
+    PAUSED,
+    HIGH_SCORE_ENTRY,
+    HIGH_SCORE_DISPLAY
 };
 
 struct Ball {
@@ -159,6 +191,7 @@ private:
     
     std::unique_ptr<SpriteLoader> sprite_loader;
     std::unique_ptr<LevelLoader> level_loader;
+    std::unique_ptr<HighScoreManager> score_manager;
     
     // Game state
     GameState current_state;
@@ -188,6 +221,9 @@ private:
     bool moving_continuously;
     bool up_pressed = false;
     bool down_pressed = false;
+    
+    // High score entry state
+    std::string name_input;
     
 public:
     WillyGame();
@@ -220,6 +256,8 @@ private:
     void draw_intro_screen(const Cairo::RefPtr<Cairo::Context>& cr);
     void draw_game_screen(const Cairo::RefPtr<Cairo::Context>& cr);
     void draw_game_over_screen(const Cairo::RefPtr<Cairo::Context>& cr);
+    void draw_high_score_entry_screen(const Cairo::RefPtr<Cairo::Context>& cr);
+    void draw_high_score_display_screen(const Cairo::RefPtr<Cairo::Context>& cr);
     std::pair<int, int> find_ballpit_position();
     bool check_movement_collision(int old_row, int old_col, int new_row, int new_col);
     std::unique_ptr<SoundManager> sound_manager;
