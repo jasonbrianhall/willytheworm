@@ -496,9 +496,8 @@ void WillyGame::load_level(const std::string& level_name) {
     //std::pair<int, int> ball_pit_pos = level_loader->get_ball_pit_position(level_name);
     std::pair<int, int> ball_pit_pos = find_ballpit_position();
     printf("Ball %i %i\n", ball_pit_pos.first, ball_pit_pos.second); 
-    for(int i = 0; i < 6; i++) {
+    for(int i = 0; i < game_options.number_of_balls; i++) {
        balls.emplace_back(ball_pit_pos.first, ball_pit_pos.second);
-       //balls.emplace_back(1, 12);  
     }
     
     std::cout << "Loaded level: " << level_name << std::endl;
