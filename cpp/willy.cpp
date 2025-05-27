@@ -315,7 +315,7 @@ WillyGame::WillyGame() :
     gen(rd()) {
     
     set_title("Willy the Worm - C++ GTK Edition");
-    
+    score_manager = std::make_unique<HighScoreManager>();
     sprite_loader = std::make_unique<SpriteLoader>(scale_factor);
     level_loader = std::make_unique<LevelLoader>();
     sound_manager = std::make_unique<SoundManager>();
@@ -490,7 +490,29 @@ bool WillyGame::on_key_press(GdkEventKey* event) {
         if(keyname == "Return" || keyname == "Enter" || keyname == "KP_Enter") {
             current_state = GameState::INTRO;
         }
+    }  else if(current_state == GameState::HIGH_SCORE_ENTRY) {
+    if(keyname == "Return" || keyname == "Enter" || keyname == "KP_Enter") {
+        if(!name_input.empty()) {
+            score_manager->add_score(name_input, score);
+        }
+        current_state = GameState::HIGH_SCORE_DISPLAY;
+    } else if(keyname == "BackSpace") {
+        if(!name_input.empty()) {
+            name_input.pop_back();
+        }
+    } else if(keyname.length() == 1) {
+        // Single character key
+        if(name_input.length() < 20) { // Limit name length
+            name_input += keyname;
+        }
     }
+} else if(current_state == GameState::HIGH_SCORE_DISPLAY) {
+    if(keyname == "Escape") {
+        quit_game();
+    } else {
+        current_state = GameState::INTRO;
+    }
+}
     
     return true;
 }
@@ -926,7 +948,12 @@ void WillyGame::reset_level() {
 
 
 void WillyGame::game_over() {
-    current_state = GameState::GAME_OVER;
+    if(score_manager->is_high_score(score)) {
+        current_state = GameState::HIGH_SCORE_ENTRY;
+        name_input = "";
+    } else {
+        current_state = GameState::HIGH_SCORE_DISPLAY;
+    }
 }
 
 void WillyGame::new_game() {
@@ -978,7 +1005,11 @@ bool WillyGame::on_draw(const Cairo::RefPtr<Cairo::Context>& cr) {
         draw_game_screen(cr);
     } else if(current_state == GameState::GAME_OVER) {
         draw_game_over_screen(cr);
-    }
+    } else if(current_state == GameState::HIGH_SCORE_ENTRY) {
+    draw_high_score_entry_screen(cr);
+} else if(current_state == GameState::HIGH_SCORE_DISPLAY) {
+    draw_high_score_display_screen(cr);
+}
     
     return true;
 }
