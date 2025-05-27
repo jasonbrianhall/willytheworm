@@ -450,7 +450,7 @@ bool WillyGame::check_movement_collision(int old_row, int old_col, int new_row, 
 
 bool WillyGame::on_key_press(GdkEventKey* event) {
     std::string keyname = gdk_keyval_name(event->keyval);
-    std::cout << "Key pressed: " << keyname << std::endl;
+    //std::cout << "Key pressed: " << keyname << std::endl;
     keys_pressed.insert(keyname);
     
     if(keyname == "Escape") {
@@ -481,6 +481,8 @@ bool WillyGame::on_key_press(GdkEventKey* event) {
             up_pressed = true;
         } else if(keyname == "Down") {
             down_pressed = true;
+        } else if(keyname == "L" || keyname == "l") {
+            complete_level_nobonus();
         } else {
             moving_continuously = false;
             continuous_direction = "";
@@ -918,10 +920,35 @@ void WillyGame::die() {
     }
 }
 
+void WillyGame::complete_level_nobonus() {
+    level++;
+    continuous_direction = "";
+    moving_continuously = false;
+    willy_direction = "LEFT";
+    
+    // Try to load next level
+    std::string next_level = "level" + std::to_string(level);
+    if(level_loader->level_exists(next_level)) {
+        load_level(next_level);
+    } else {
+        // No more levels, restart from level 1 with increased difficulty
+        level = 1;
+        load_level("level1");
+    }
+    
+    // Reset game state for new level
+    bonus = 1000;
+    frame_count = 0;
+}
+
+
 void WillyGame::complete_level() {
     score += bonus;
     level++;
-    
+    continuous_direction = "";
+    moving_continuously = false;
+    willy_direction = "LEFT";
+
     // Try to load next level
     std::string next_level = "level" + std::to_string(level);
     if(level_loader->level_exists(next_level)) {
@@ -1396,7 +1423,7 @@ void WillyGame::flash_death_screen() {
     
     auto cr = window->create_cairo_context();
     
-    // Flash white for 0.25 seconds
+    // Flash white for 0.8 seconds
     cr->set_source_rgb(1.0, 1.0, 1.0); // White
     cr->paint();
     
@@ -1408,7 +1435,7 @@ void WillyGame::flash_death_screen() {
         Gtk::Main::iteration();
     }
     
-    // Hold the white screen for 0.25 seconds
+    // Hold the white screen for 0.8 seconds
     std::this_thread::sleep_for(std::chrono::milliseconds(800));
     
     // Return to normal - this will be handled by the next game tick/draw cycle

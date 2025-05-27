@@ -246,6 +246,7 @@ private:
     void check_collisions();
     void die();
     void complete_level();
+    void complete_level_nobonus();
     void reset_level();
     void game_over();
     void new_game();
