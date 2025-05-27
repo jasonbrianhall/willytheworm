@@ -339,21 +339,26 @@ WillyGame::WillyGame() :
     
     show_all_children();
     
-    // Calculate proper window size AFTER UI is created so we can measure the menubar
+    // Store base game dimensions (before any scaling)
+    base_game_width = GAME_SCREEN_WIDTH * GAME_CHAR_WIDTH * scale_factor;
+    base_game_height = (GAME_SCREEN_HEIGHT + 2) * GAME_CHAR_HEIGHT * scale_factor;
+    // Calculate proper window size
     Gtk::Requisition menubar_min, menubar_nat;
     menubar.get_preferred_size(menubar_min, menubar_nat);
     
     Gtk::Requisition statusbar_min, statusbar_nat;
     status_bar.get_preferred_size(statusbar_min, statusbar_nat);
     
-    int game_width = GAME_SCREEN_WIDTH * GAME_CHAR_WIDTH * scale_factor;
-    int game_height = GAME_SCREEN_HEIGHT * GAME_CHAR_HEIGHT * scale_factor;
+    int total_height = base_game_height + menubar_min.height + statusbar_min.height + 10;
     
-    // Add actual measured heights of menubar and status bar, plus some padding
-    int total_height = game_height + menubar_min.height + statusbar_min.height + 10;
+    set_default_size(base_game_width, total_height);
+    resize(base_game_width, total_height);
     
-    set_default_size(game_width, total_height);
-    resize(game_width, total_height);
+    // Connect resize signal
+    signal_size_allocate().connect(sigc::hide(sigc::mem_fun(*this, &WillyGame::on_window_resize)));
+    
+    // Initial scaling calculation
+    calculate_scaling_factors();
     
     drawing_area.grab_focus();
 }
@@ -365,18 +370,11 @@ WillyGame::~WillyGame() {
 void WillyGame::setup_ui() {
     add(vbox);
     
-    //create_menubar();  // Removed since it doesn't actually work and doesn't add anything
     vbox.pack_start(menubar, Gtk::PACK_SHRINK);
     
-    // Set the drawing area size to match exactly what we need for the game
-    int game_width = GAME_SCREEN_WIDTH * GAME_CHAR_WIDTH * scale_factor;
-    int game_height = (GAME_SCREEN_HEIGHT + 1) * GAME_CHAR_HEIGHT * scale_factor; // Adding plus 1 for the status bar
-    
-    drawing_area.set_size_request(game_width, game_height);
-    
-    // DON'T let the drawing area expand - keep it at exact size
-    drawing_area.set_hexpand(false);
-    drawing_area.set_vexpand(false);
+    // Allow the drawing area to expand and fill available space
+    drawing_area.set_hexpand(true);
+    drawing_area.set_vexpand(true);
     
     drawing_area.signal_draw().connect(
         sigc::mem_fun(*this, &WillyGame::on_draw));
@@ -388,11 +386,57 @@ void WillyGame::setup_ui() {
     drawing_area.signal_key_release_event().connect(
         sigc::mem_fun(*this, &WillyGame::on_key_release));
     
-    // Pack without expanding so it keeps its exact size
-    vbox.pack_start(drawing_area, Gtk::PACK_SHRINK);
+    // Pack with expansion so it fills available space
+    vbox.pack_start(drawing_area, Gtk::PACK_EXPAND_WIDGET);
     
     update_status_bar();
     vbox.pack_start(status_bar, Gtk::PACK_SHRINK);
+}
+
+void WillyGame::calculate_scaling_factors() {
+    // Get current window size
+    int window_width, window_height;
+    get_size(window_width, window_height);
+    
+    // Get menubar and status bar heights
+    Gtk::Requisition menubar_min, menubar_nat;
+    menubar.get_preferred_size(menubar_min, menubar_nat);
+    
+    Gtk::Requisition statusbar_min, statusbar_nat;
+    status_bar.get_preferred_size(statusbar_min, statusbar_nat);
+    
+    // Calculate available space for the game area
+    int available_width = window_width;
+    int available_height = window_height - menubar_min.height - statusbar_min.height;
+    
+    // Calculate scale based on height, unless width is smaller than height
+    double scale;
+    if (available_width < available_height) {
+        // Width is the limiting factor
+        scale = (double)available_width / base_game_width;
+    } else {
+        // Height is the limiting factor (normal case)
+        scale = (double)available_height / base_game_height;
+    }
+    
+    // Round to nearest 0.1
+    double rounded_scale = std::round(scale*10.0)/10.0;
+    
+    // Apply the same scale to both dimensions to maintain aspect ratio
+    current_scale_x = rounded_scale;
+    current_scale_y = rounded_scale;
+    
+    // Don't scale below 0.1 or above 10.0 for sanity
+    current_scale_x = std::max(0.1, std::min(10.0, current_scale_x));
+    current_scale_y = std::max(0.1, std::min(10.0, current_scale_y));
+}
+
+
+void WillyGame::on_window_resize() {
+    calculate_scaling_factors();
+    
+    // Force a redraw
+    drawing_area.queue_draw();
 }
 
 void WillyGame::load_level(const std::string& level_name) {
@@ -1083,23 +1127,30 @@ std::pair<int, int> WillyGame::find_ballpit_position() {
     return {-1, -1}; // Indicate that no BALLPIT was found
 }
 
-
-
 void WillyGame::draw_game_screen(const Cairo::RefPtr<Cairo::Context>& cr) {
     // Get menubar height to use as offset
     Gtk::Requisition menubar_min, menubar_nat;
     menubar.get_preferred_size(menubar_min, menubar_nat);
     int menubar_height = menubar_min.height;
     
+    // Apply scaling transformation
+    cr->save();
+    cr->translate(0, menubar_height);
+    cr->scale(current_scale_x, current_scale_y);
+    
+    // Calculate the scaled character dimensions
+    int scaled_char_width = GAME_CHAR_WIDTH * scale_factor;
+    int scaled_char_height = GAME_CHAR_HEIGHT * scale_factor;
+    
     // Draw ALL sprite positions with blue background, even empty ones
     for(int row = 0; row < GAME_MAX_HEIGHT; row++) {
         for(int col = 0; col < GAME_MAX_WIDTH; col++) {
-            int x = col * GAME_CHAR_WIDTH * scale_factor;
-            int y = row * GAME_CHAR_HEIGHT * scale_factor + menubar_height; // Offset by menubar height
+            int x = col * scaled_char_width;
+            int y = row * scaled_char_height;
             
             // Paint blue background for EVERY sprite position
             cr->set_source_rgb(redbg, greenbg, bluebg);
-            cr->rectangle(x, y, GAME_CHAR_WIDTH * scale_factor, GAME_CHAR_HEIGHT * scale_factor);
+            cr->rectangle(x, y, scaled_char_width, scaled_char_height);
             cr->fill();
             
             // Get the tile at this position
@@ -1126,8 +1177,8 @@ void WillyGame::draw_game_screen(const Cairo::RefPtr<Cairo::Context>& cr) {
             if(ball.row >= 0 && ball.row < GAME_MAX_HEIGHT && 
                ball.col >= 0 && ball.col < GAME_MAX_WIDTH) {
                 
-                int x = ball.col * GAME_CHAR_WIDTH * scale_factor;
-                int y = ball.row * GAME_CHAR_HEIGHT * scale_factor + menubar_height; // Offset by menubar height
+                int x = ball.col * scaled_char_width;
+                int y = ball.row * scaled_char_height;
                 
                 auto sprite = sprite_loader->get_sprite("BALL");
                 if(sprite) {
@@ -1142,8 +1193,8 @@ void WillyGame::draw_game_screen(const Cairo::RefPtr<Cairo::Context>& cr) {
     if(willy_position.first >= 0 && willy_position.first < GAME_MAX_HEIGHT &&
        willy_position.second >= 0 && willy_position.second < GAME_MAX_WIDTH) {
         
-        int x = willy_position.second * GAME_CHAR_WIDTH * scale_factor;
-        int y = willy_position.first * GAME_CHAR_HEIGHT * scale_factor + menubar_height; // Offset by menubar height
+        int x = willy_position.second * scaled_char_width;
+        int y = willy_position.first * scaled_char_height;
         
         std::string sprite_name = (willy_direction == "LEFT") ? "WILLY_LEFT" : "WILLY_RIGHT";
         auto sprite = sprite_loader->get_sprite(sprite_name);
@@ -1152,8 +1203,54 @@ void WillyGame::draw_game_screen(const Cairo::RefPtr<Cairo::Context>& cr) {
             cr->paint();
         }
     }
+    
+    // Draw status information below the game area
+    if(current_state == GameState::PLAYING) {
+        // Calculate status bar area (below the main game area)
+        int status_y = (GAME_SCREEN_HEIGHT + 1) * scaled_char_height; // +1 to go BELOW the last line
+        int status_height = 2 * scaled_char_height; // Give it some height
+        
+        // Draw blue background for status area (same as game background)
+        cr->set_source_rgb(redbg, greenbg, bluebg);
+        cr->rectangle(0, status_y, GAME_SCREEN_WIDTH * scaled_char_width, status_height);
+        cr->fill();
+        
+        // Create font for status text
+        Pango::FontDescription font_desc;
+        font_desc.set_family("Courier");
+        // Scale font size based on the current scale - make it bigger and scale properly
+        int font_size = std::max(12, (int)(16 * std::min(current_scale_x, current_scale_y)));
+        font_desc.set_size(font_size * PANGO_SCALE);
+        
+        auto layout = Pango::Layout::create(cr);
+        layout->set_font_description(font_desc);
+        
+        // Create status text with fixed-width formatting
+        char status_buffer[200];
+        snprintf(status_buffer, sizeof(status_buffer), 
+                "SCORE: %5d    BONUS: %4d    LEVEL: %2d    WILLY THE WORMS LEFT: %3d",
+                score, bonus, level, lives);
+        std::string status_text = status_buffer;
+        
+        layout->set_text(status_text);
+        
+        // Draw white text
+        cr->set_source_rgb(1.0, 1.0, 1.0);
+        
+        // Position text in the status area
+        int text_width, text_height;
+        layout->get_pixel_size(text_width, text_height);
+        
+        // Center the text in the status area
+        int text_x = (GAME_SCREEN_WIDTH * scaled_char_width - text_width) / 2;
+        int text_y = status_y + (status_height - text_height) / 2;
+        
+        cr->move_to(text_x, text_y);
+        layout->show_in_cairo_context(cr);
+    }
+    
+    cr->restore();
 }
-
 void WillyGame::create_menubar() {
     // Set menubar background to proper gray theme
     auto css_provider = Gtk::CssProvider::create();
@@ -1259,6 +1356,15 @@ void WillyGame::draw_intro_screen(const Cairo::RefPtr<Cairo::Context>& cr) {
     menubar.get_preferred_size(menubar_min, menubar_nat);
     int menubar_height = menubar_min.height;
     
+    // Apply scaling transformation
+    cr->save();
+    cr->translate(0, menubar_height);
+    cr->scale(current_scale_x, current_scale_y);
+    
+    // Use the base dimensions for layout calculations
+    int layout_width = base_game_width;
+    int layout_height = base_game_height;
+    
     // Text data exactly like Python version
     std::vector<std::vector<std::string>> textdata = {
         {""},
@@ -1293,15 +1399,8 @@ void WillyGame::draw_intro_screen(const Cairo::RefPtr<Cairo::Context>& cr) {
         {"Press Enter to Continue"}
     };
     
-    // Get the drawing area dimensions (not the full window)
-    Gtk::Allocation allocation = drawing_area.get_allocation();
-    int final_width = allocation.get_width();
-    int final_height = allocation.get_height() - menubar_height; // Subtract menubar height
-    
-    // Create a larger surface to render text at high resolution
-    int large_width = final_width * 2;
-    int large_height = final_height * 2;
-    auto large_surface = Cairo::ImageSurface::create(Cairo::FORMAT_ARGB32, large_width, large_height);
+    // Create surface for text rendering
+    auto large_surface = Cairo::ImageSurface::create(Cairo::FORMAT_ARGB32, layout_width * 2, layout_height * 2);
     auto large_ctx = Cairo::Context::create(large_surface);
     
     // Clear large surface to blue
@@ -1309,8 +1408,8 @@ void WillyGame::draw_intro_screen(const Cairo::RefPtr<Cairo::Context>& cr) {
     large_ctx->paint();
     
     // Use larger font size for the large surface
-    int large_font_size = std::max(16, (large_height / (int)textdata.size()) - 10);
-    int line_spacing = large_font_size + 8; // Add extra spacing between lines
+    int large_font_size = std::max(16, (layout_height * 2 / (int)textdata.size()) - 10);
+    int line_spacing = large_font_size + 8;
     
     Pango::FontDescription font_desc;
     font_desc.set_family("Courier");
@@ -1335,7 +1434,7 @@ void WillyGame::draw_intro_screen(const Cairo::RefPtr<Cairo::Context>& cr) {
                          message2 == "LADDER" || message2 == "UPSPRING" || 
                          message2 == "SIDESPRING" || message2 == "PRESENT" || 
                          message2 == "BELL" || message2 == "TACK" || message2 == "BALL")) {
-                max_width += (GAME_CHAR_WIDTH * scale_factor) * 2; // Scale up for large surface
+                max_width += (GAME_CHAR_WIDTH * scale_factor) * 2;
             } else {
                 layout->set_text(message2);
                 int text_width, text_height;
@@ -1345,7 +1444,7 @@ void WillyGame::draw_intro_screen(const Cairo::RefPtr<Cairo::Context>& cr) {
         }
         
         // Now draw the line centered on large surface
-        int currentpos = (large_width - max_width) / 2;
+        int currentpos = (layout_width * 2 - max_width) / 2;
         
         for(const auto& message2 : message) {
             if(message2.empty()) continue;
@@ -1358,14 +1457,14 @@ void WillyGame::draw_intro_screen(const Cairo::RefPtr<Cairo::Context>& cr) {
                 // Scale up sprite for large surface
                 large_ctx->save();
                 large_ctx->translate(currentpos, line_spacing * counter);
-                large_ctx->scale(2.0, 2.0); // Scale up sprites
+                large_ctx->scale(2.0, 2.0);
                 large_ctx->set_source(sprite, 0, 0);
                 large_ctx->paint();
                 large_ctx->restore();
                 currentpos += (GAME_CHAR_WIDTH * scale_factor) * 2;
             } else {
                 // Draw text on large surface
-                large_ctx->set_source_rgb(1.0, 1.0, 1.0); // White text
+                large_ctx->set_source_rgb(1.0, 1.0, 1.0);
                 layout->set_text(message2);
                 
                 int text_width, text_height;
@@ -1381,14 +1480,13 @@ void WillyGame::draw_intro_screen(const Cairo::RefPtr<Cairo::Context>& cr) {
     }
     
     // Now scale down the large surface to the final size for smooth anti-aliasing
-    // Offset by menubar height
-    cr->save();
-    cr->translate(0, menubar_height);
     cr->scale(0.5, 0.5);
     cr->set_source(large_surface, 0, 0);
     cr->paint();
+    
     cr->restore();
 }
+
 
 void WillyGame::draw_game_over_screen(const Cairo::RefPtr<Cairo::Context>& cr) {
     // Create font

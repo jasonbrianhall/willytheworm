@@ -80,7 +80,7 @@ public:
 const int GAME_CHAR_WIDTH = 8;
 const int GAME_CHAR_HEIGHT = 8;
 const int GAME_SCREEN_WIDTH = 40;
-const int GAME_SCREEN_HEIGHT = 24;
+const int GAME_SCREEN_HEIGHT = 25;
 const int GAME_MAX_WIDTH = 40;
 const int GAME_MAX_HEIGHT = 26;
 const int GAME_NEWLIFEPOINTS = 2000;
@@ -207,10 +207,15 @@ private:
     int fps;
     int frame_count;
     
-double redbg=0.0;
-double greenbg=0.0;
-double bluebg=1.0;
+    double redbg=0.0;
+    double greenbg=0.0;
+    double bluebg=1.0;
 
+    double current_scale_x = 1.0;
+    double current_scale_y = 1.0;
+    int base_game_width;
+    int base_game_height;
+    bool maintain_aspect_ratio = true;
     // Level data - now using LevelLoader's data structure
     std::string current_level;
     std::vector<Ball> balls;
@@ -232,6 +237,9 @@ double bluebg=1.0;
 public:
     WillyGame();
     ~WillyGame();
+    void on_window_resize();
+    void calculate_scaling_factors();
+
     
 private:
 
