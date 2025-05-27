@@ -159,14 +159,15 @@ std::pair<int, int> LevelLoader::get_willy_start_position(const std::string& lev
 }
 
 std::pair<int, int> LevelLoader::get_ball_pit_position(const std::string& level_name) const {
-    std::string pit_name = level_name + "PIT";
+/*    std::string pit_name = level_name + "PIT";
     auto pit_it = ball_pit_data.find(pit_name);
     if(pit_it != ball_pit_data.end()) {
-        auto primary_it = pit_it->second.find("PRIMARYBALLPIT");
+        auto primary_it = pit_it->second.find("BALLPIT");
         if(primary_it != pit_it->second.end()) {
             return primary_it->second;
         }
-    }
+    }*/
+    printf("Returning the default Ball pit\n");
     return {24, 20}; // Default position
 }
 

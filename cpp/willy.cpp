@@ -399,9 +399,12 @@ void WillyGame::load_level(const std::string& level_name) {
     
     // Initialize balls at the ball pit position
     balls.clear();
-    std::pair<int, int> ball_pit_pos = level_loader->get_ball_pit_position(level_name);
+    //std::pair<int, int> ball_pit_pos = level_loader->get_ball_pit_position(level_name);
+    std::pair<int, int> ball_pit_pos = find_ballpit_position();
+    printf("Ball %i %i\n", ball_pit_pos.first, ball_pit_pos.second); 
     for(int i = 0; i < 6; i++) {
-        balls.emplace_back(ball_pit_pos.first, ball_pit_pos.second);
+       balls.emplace_back(ball_pit_pos.first, ball_pit_pos.second);
+       //balls.emplace_back(1, 12);  
     }
     
     std::cout << "Loaded level: " << level_name << std::endl;
@@ -652,36 +655,48 @@ void WillyGame::update_willy_movement() {
 }
 
 void WillyGame::update_balls() {
-    if(current_state != GameState::PLAYING) return;
+    if (current_state != GameState::PLAYING) return;
     
-    for(auto& ball : balls) {
-        // Check if ball is in ball pit
-        if(get_tile(ball.row, ball.col) == "BALLPIT") {
-            ball.direction = "";
-            continue;
+    static std::chrono::steady_clock::time_point last_ball_spawn = std::chrono::steady_clock::now();
+    static std::uniform_int_distribution<int> delay_distribution(500, 2000); // Random delay between 500ms - 2000ms
+    static std::mt19937 rng(std::random_device{}());
+
+    // Get the primary ball pit position
+    std::pair<int, int> primary_ball_pit_pos = find_ballpit_position();
+
+    // Move any balls in non-primary ball pit positions to the primary ball pit
+    for (auto& ball : balls) {
+        if (get_tile(ball.row, ball.col) == "BALLPIT" &&
+            (ball.row != primary_ball_pit_pos.first || ball.col != primary_ball_pit_pos.second)) {
+            ball.row = primary_ball_pit_pos.first;
+            ball.col = primary_ball_pit_pos.second;
+            ball.direction = ""; // Reset movement after relocation
         }
-        
+    }
+
+    // Apply movement logic to all balls
+    for (auto& ball : balls) {
         // Apply gravity to balls
-        if(ball.row < GAME_MAX_HEIGHT - 1 && get_tile(ball.row + 1, ball.col).substr(0, 4) != "PIPE") {
+        if (ball.row < GAME_MAX_HEIGHT - 1 && get_tile(ball.row + 1, ball.col).substr(0, 4) != "PIPE") {
             ball.row++;
             ball.direction = "";
         } else {
             // Ball is on a platform, move horizontally
-            if(ball.direction.empty()) {
+            if (ball.direction.empty()) {
                 std::uniform_real_distribution<> dis(0.0, 1.0);
-                ball.direction = (dis(gen) > 0.5) ? "RIGHT" : "LEFT";
+                ball.direction = (dis(rng) > 0.5) ? "RIGHT" : "LEFT";
             }
-            
-            if(ball.direction == "RIGHT") {
-                if(ball.col + 1 < GAME_MAX_WIDTH && 
-                   get_tile(ball.row, ball.col + 1).substr(0, 4) != "PIPE") {
+
+            if (ball.direction == "RIGHT") {
+                if (ball.col + 1 < GAME_MAX_WIDTH && 
+                    get_tile(ball.row, ball.col + 1).substr(0, 4) != "PIPE") {
                     ball.col++;
                 } else {
                     ball.direction = "LEFT";
                 }
             } else { // LEFT
-                if(ball.col - 1 >= 0 && 
-                   get_tile(ball.row, ball.col - 1).substr(0, 4) != "PIPE") {
+                if (ball.col - 1 >= 0 && 
+                    get_tile(ball.row, ball.col - 1).substr(0, 4) != "PIPE") {
                     ball.col--;
                 } else {
                     ball.direction = "RIGHT";
@@ -689,7 +704,16 @@ void WillyGame::update_balls() {
             }
         }
     }
+
+    // Ensure the ball count stays within the limit and apply random spawn delay
+    auto now = std::chrono::steady_clock::now();
+    if (balls.size() < 6 && std::chrono::duration_cast<std::chrono::milliseconds>(now - last_ball_spawn).count() > delay_distribution(rng)) {
+        balls.emplace_back(primary_ball_pit_pos.first, primary_ball_pit_pos.second);
+        last_ball_spawn = now; // Reset spawn timer
+    }
 }
+
+
 
 void WillyGame::check_collisions() {
     if(current_state != GameState::PLAYING) return;
@@ -850,6 +874,20 @@ bool WillyGame::on_draw(const Cairo::RefPtr<Cairo::Context>& cr) {
     
     return true;
 }
+
+std::pair<int, int> WillyGame::find_ballpit_position() {
+    for(int row = 0; row < GAME_MAX_HEIGHT; row++) {
+        for(int col = 0; col < GAME_MAX_WIDTH; col++) {
+            std::string tile = get_tile(row, col);
+            if(tile == "BALLPIT") {
+                return {row, col}; // Return the first position found
+            }
+        }
+    }
+    return {-1, -1}; // Indicate that no BALLPIT was found
+}
+
+
 
 void WillyGame::draw_game_screen(const Cairo::RefPtr<Cairo::Context>& cr) {
     // Get menubar height to use as offset

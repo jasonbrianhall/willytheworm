@@ -191,6 +191,7 @@ private:
     void draw_intro_screen(const Cairo::RefPtr<Cairo::Context>& cr);
     void draw_game_screen(const Cairo::RefPtr<Cairo::Context>& cr);
     void draw_game_over_screen(const Cairo::RefPtr<Cairo::Context>& cr);
+    std::pair<int, int> find_ballpit_position();
 };
 
 class WillyApplication : public Gtk::Application {
