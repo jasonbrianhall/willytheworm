@@ -914,6 +914,7 @@ void WillyGame::draw_game_screen(const Cairo::RefPtr<Cairo::Context>& cr) {
         }
     }
     
+    // Draw balls
     for(const auto& ball : balls) {
         if(get_tile(ball.row, ball.col) != "BALLPIT" && 
            !(ball.row == willy_position.first && ball.col == willy_position.second)) {
@@ -932,6 +933,7 @@ void WillyGame::draw_game_screen(const Cairo::RefPtr<Cairo::Context>& cr) {
         }
     }
     
+    // Draw Willy
     int x = willy_position.second * GAME_CHAR_WIDTH * scale_factor;
     int y = willy_position.first * GAME_CHAR_HEIGHT * scale_factor;
     
@@ -945,6 +947,42 @@ void WillyGame::draw_game_screen(const Cairo::RefPtr<Cairo::Context>& cr) {
         cr->set_source(sprite, x, y);
         cr->paint();
     }
+    
+    // Draw score information right below the last rendered row
+    // Find the actual bottom row of the rendered game content
+    int bottom_row = GAME_MAX_HEIGHT; // This should be row 24 (0-based) or 25 (1-based)
+    int score_y_position = bottom_row * GAME_CHAR_HEIGHT * scale_factor;
+    
+    // Create font for score display
+    Pango::FontDescription font_desc;
+    font_desc.set_family("Monospace");
+    font_desc.set_size(14 * PANGO_SCALE);
+    font_desc.set_weight(Pango::WEIGHT_BOLD);
+    
+    auto layout = Pango::Layout::create(cr);
+    layout->set_font_description(font_desc);
+    
+    // Format the score text like in the screenshot with fixed-width score and bonus
+    char score_str[6];
+    char bonus_str[5];
+    snprintf(score_str, sizeof(score_str), "%5d", score);
+    snprintf(bonus_str, sizeof(bonus_str), "%4d", bonus);
+    
+    std::string score_text = "SCORE: " + std::string(score_str) + 
+                            "    BONUS: " + std::string(bonus_str) + 
+                            "    Level: " + std::to_string(level) + 
+                            "    Willy the Worms Left: " + std::to_string(lives);
+    
+    layout->set_text(score_text);
+    
+    // Position right below the last rendered game row
+    int text_x = 10;  // Left margin
+    int text_y = score_y_position + 5;  // Just below the last game row
+    
+    // Draw white text directly on the blue background
+    cr->set_source_rgb(1.0, 1.0, 1.0);
+    cr->move_to(text_x, text_y);
+    layout->show_in_cairo_context(cr);
 }
 
 void WillyGame::draw_intro_screen(const Cairo::RefPtr<Cairo::Context>& cr) {
@@ -960,6 +998,8 @@ void WillyGame::draw_intro_screen(const Cairo::RefPtr<Cairo::Context>& cr) {
     
     // Text data exactly like Python version
     std::vector<std::vector<std::string>> textdata = {
+        {""},
+        {""},
         {"Willy the Worm"},
         {""},
         {"By Jason Hall"},
