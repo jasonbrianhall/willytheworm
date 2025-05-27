@@ -1,6 +1,4 @@
 #include "willy.h"
-#include "loadlevels.h"
-#include "loadlevels.h"
 
 // Ball implementation
 Ball::Ball(int r, int c) : row(r), col(c), direction("") {}
