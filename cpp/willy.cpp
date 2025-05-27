@@ -583,7 +583,7 @@ void WillyGame::jump() {
         jumping = true;
 
         // Apply a stronger jump if standing on "UPSPRING"
-        willy_velocity.second = (current_tile == "UPSPRING") ? -8 : -5;
+        willy_velocity.second = (current_tile == "UPSPRING") ? -5 : -5;
 
         sound_manager->play_sound("jump.mp3");
     }
