@@ -948,6 +948,12 @@ void WillyGame::draw_game_screen(const Cairo::RefPtr<Cairo::Context>& cr) {
 }
 
 void WillyGame::draw_intro_screen(const Cairo::RefPtr<Cairo::Context>& cr) {
+    // Force a complete clear of the entire context first
+    cr->save();
+    cr->set_operator(Cairo::OPERATOR_CLEAR);
+    cr->paint();
+    cr->restore();
+    
     // Clear background to blue
     cr->set_source_rgb(0.0, 0.0, 1.0);
     cr->paint();
@@ -984,19 +990,29 @@ void WillyGame::draw_intro_screen(const Cairo::RefPtr<Cairo::Context>& cr) {
         {"Press Enter to Continue"}
     };
     
-    // Get screen dimensions
-    int screen_width = get_width();
-    int screen_height = get_height();
+    // Get final screen dimensions
+    int final_width = GAME_SCREEN_WIDTH * GAME_CHAR_WIDTH * scale_factor;
+    int final_height = GAME_SCREEN_HEIGHT * GAME_CHAR_HEIGHT * scale_factor;
     
-    // Calculate font size based on screen height divided by number of text lines
-    int font_size = screen_height / textdata.size();
+    // Create a larger surface to render text at high resolution
+    int large_width = final_width * 2;
+    int large_height = final_height * 2;
+    auto large_surface = Cairo::ImageSurface::create(Cairo::FORMAT_ARGB32, large_width, large_height);
+    auto large_ctx = Cairo::Context::create(large_surface);
     
-    // Create fallback font for text rendering
+    // Clear large surface to blue
+    large_ctx->set_source_rgb(0.0, 0.0, 1.0);
+    large_ctx->paint();
+    
+    // Use larger font size for the large surface
+    int large_font_size = std::max(16, (large_height / (int)textdata.size()) - 10);
+    int line_spacing = large_font_size + 8; // Add extra spacing between lines
+    
     Pango::FontDescription font_desc;
     font_desc.set_family("Courier");
-    font_desc.set_size(font_size * PANGO_SCALE);
+    font_desc.set_size(large_font_size * PANGO_SCALE);
     
-    auto layout = create_pango_layout("");
+    auto layout = Pango::Layout::create(large_ctx);
     layout->set_font_description(font_desc);
     
     int counter = 0;
@@ -1015,9 +1031,8 @@ void WillyGame::draw_intro_screen(const Cairo::RefPtr<Cairo::Context>& cr) {
                          message2 == "LADDER" || message2 == "UPSPRING" || 
                          message2 == "SIDESPRING" || message2 == "PRESENT" || 
                          message2 == "BELL" || message2 == "TACK" || message2 == "BALL")) {
-                max_width += GAME_CHAR_WIDTH * scale_factor;
+                max_width += (GAME_CHAR_WIDTH * scale_factor) * 2; // Scale up for large surface
             } else {
-                // Text - calculate width
                 layout->set_text(message2);
                 int text_width, text_height;
                 layout->get_pixel_size(text_width, text_height);
@@ -1025,8 +1040,8 @@ void WillyGame::draw_intro_screen(const Cairo::RefPtr<Cairo::Context>& cr) {
             }
         }
         
-        // Now draw the line centered
-        int currentpos = (screen_width - max_width) / 2;
+        // Now draw the line centered on large surface
+        int currentpos = (large_width - max_width) / 2;
         
         for(const auto& message2 : message) {
             if(message2.empty()) continue;
@@ -1036,26 +1051,37 @@ void WillyGame::draw_intro_screen(const Cairo::RefPtr<Cairo::Context>& cr) {
                          message2 == "LADDER" || message2 == "UPSPRING" || 
                          message2 == "SIDESPRING" || message2 == "PRESENT" || 
                          message2 == "BELL" || message2 == "TACK" || message2 == "BALL")) {
-                // Draw game sprite
-                cr->set_source(sprite, currentpos, font_size * counter + 2);
-                cr->paint();
-                currentpos += GAME_CHAR_WIDTH * scale_factor;
+                // Scale up sprite for large surface
+                large_ctx->save();
+                large_ctx->translate(currentpos, line_spacing * counter);
+                large_ctx->scale(2.0, 2.0); // Scale up sprites
+                large_ctx->set_source(sprite, 0, 0);
+                large_ctx->paint();
+                large_ctx->restore();
+                currentpos += (GAME_CHAR_WIDTH * scale_factor) * 2;
             } else {
-                // Draw text
-                cr->set_source_rgb(1.0, 1.0, 1.0); // White text
+                // Draw text on large surface
+                large_ctx->set_source_rgb(1.0, 1.0, 1.0); // White text
                 layout->set_text(message2);
                 
                 int text_width, text_height;
                 layout->get_pixel_size(text_width, text_height);
                 
-                cr->move_to(currentpos, font_size * counter + 2);
-                layout->show_in_cairo_context(cr);
+                large_ctx->move_to(currentpos, line_spacing * counter);
+                layout->show_in_cairo_context(large_ctx);
                 currentpos += text_width;
             }
         }
         
         counter++;
     }
+    
+    // Now scale down the large surface to the final size for smooth anti-aliasing
+    cr->save();
+    cr->scale(0.5, 0.5);
+    cr->set_source(large_surface, 0, 0);
+    cr->paint();
+    cr->restore();
 }
 
 
