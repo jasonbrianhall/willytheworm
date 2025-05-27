@@ -1020,10 +1020,10 @@ bool WillyGame::game_tick() {
             frame_count = 0;
             bonus = std::max(0, bonus - 10);
         }
+        update_status_bar();
     }
-    
     drawing_area.queue_draw();
-    update_status_bar();
+    
     return true; // Continue the timer
 }
 
