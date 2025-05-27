@@ -230,9 +230,6 @@ public:
     ~WillyGame();
     
 private:
-    double redbg=0.0;
-    double greenbg=0.0;
-    double bluebg=1.0;
 
 
     void setup_ui();

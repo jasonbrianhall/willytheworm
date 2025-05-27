@@ -365,7 +365,7 @@ WillyGame::~WillyGame() {
 void WillyGame::setup_ui() {
     add(vbox);
     
-    create_menubar();
+    //create_menubar();
     vbox.pack_start(menubar, Gtk::PACK_SHRINK);
     
     // Set the drawing area size to match exactly what we need for the game
