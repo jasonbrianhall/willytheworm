@@ -83,7 +83,7 @@ jobs:
       - name: Create Windows Executables
         run: |
           pyinstaller --onefile --noconsole --icon=icon.ico --add-data "levels.json;." --add-data "original_levels.json;." --add-data "willy.chr;." --add-data "audio/*;audio/" --runtime-hook rthooks.py --collect-all pygame willy.py
-          pyinstaller --onefile --noconsole --icon=icon.ico --add-data "levels.json;." --add-data "original_levels.json;." --add-data "willy.chr;." --add-data "audio/*;audio/" --runtime-hook rthooks.py --collect-all pygame edwilly.py
+          pyinstaller --onefile --noconsole --icon=edwilly.ico --add-data "levels.json;." --add-data "original_levels.json;." --add-data "willy.chr;." --add-data "audio/*;audio/" --runtime-hook rthooks.py --collect-all pygame edwilly.py
           pyinstaller --onefile --noconsole --icon=icon.ico --add-data "levels.json;." --add-data "original_levels.json;." --add-data "willy.chr;." --add-data "audio/*;audio/" --runtime-hook rthooks.py --collect-all pygame willy_qt.py
 
       - name: Prepare Build Artifacts
@@ -105,6 +105,7 @@ jobs:
           Copy-Item "original_levels.json" "build/windows/"
           Copy-Item "willy.chr" "build/windows/"
           Copy-Item "icon.ico" "build/windows/"
+          Copy-Item "edwilly.ico" "build/windows/"
           Copy-Item "icon.png" "build/windows/"
           Copy-Item "willy.py" "build/windows/"
           Copy-Item "edwilly.py" "build/windows/"
@@ -224,6 +225,7 @@ jobs:
                       <File Id="OriginalLevels" Name="original_levels.json" Source="original_levels.json"/>
                       <File Id="Characters" Name="willy.chr" Source="willy.chr"/>
                       <File Id="IconICO" Name="icon.ico" Source="icon.ico"/>
+                      <File Id="EdWillyIconICO" Name="edwilly.ico" Source="edwilly.ico"/>
                       <File Id="IconPNG" Name="icon.png" Source="icon.png"/>
                       <File Id="WillyPY" Name="willy.py" Source="willy.py"/>
                       <File Id="EdWillyPY" Name="edwilly.py" Source="edwilly.py"/>
@@ -352,7 +354,7 @@ jobs:
               
               <!-- Application icons -->
               <Icon Id="WillyIcon" SourceFile="icon.ico"/>
-              <Icon Id="EdWillyIcon" SourceFile="icon.ico"/>
+              <Icon Id="EdWillyIcon" SourceFile="edwilly.ico"/>
               <Icon Id="WillyQtIcon" SourceFile="icon.ico"/>
               
               <!-- Custom actions for cleanup -->
