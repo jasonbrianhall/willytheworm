@@ -1,4 +1,6 @@
 #include "willy.h"
+#include <getopt.h>
+#include <cstring>
 
 double redbg=0.0;
 double greenbg=0.0;
@@ -1676,7 +1678,187 @@ void WillyApplication::on_activate() {
     window->present();
 }
 
+// Global variables to store command line options (add these near the top of willy.cpp)
+struct GameOptions {
+    int starting_level = 1;
+    std::string levels_file = "levels.json";
+    int number_of_balls = 6;
+    bool use_wasd = false;
+    bool disable_flash = false;
+    int fps = 10;
+    bool mouse_support = false;
+    bool sound_enabled = true;
+    int scale_factor = 3;
+    bool show_help = false;
+};
+
+GameOptions game_options;
+
+void print_help(const char* program_name) {
+    std::cout << "Willy the Worm - C++ GTK Edition\n\n";
+    std::cout << "Usage: " << program_name << " [OPTIONS]\n\n";
+    std::cout << "Options:\n";
+    std::cout << "  -l LEVEL          Start at specific level (default: 1)\n";
+    std::cout << "  -L LEVELFILE      Use custom levels file (default: levels.json)\n";
+    std::cout << "  -b BALLS          Set number of balls (default: 6)\n";
+    std::cout << "  -w                Use WASD keyboard controls instead of arrow keys\n";
+    std::cout << "  -f                Disable death flash effect\n";
+    std::cout << "  -F FPS            Set frames per second (default: 10)\n";
+    std::cout << "  -m                Enable mouse support\n";
+    std::cout << "  -s                Start with sound disabled\n";
+    std::cout << "  -S SCALE          Set scale factor (default: 3)\n";
+    std::cout << "  -h, --help        Show this help message\n\n";
+    std::cout << "Controls:\n";
+    std::cout << "  Arrow Keys        Move Willy (or WASD with -w option)\n";
+    std::cout << "  Space             Jump\n";
+    std::cout << "  Ctrl+L            Skip level\n";
+    std::cout << "  Ctrl+S            Toggle sound\n";
+    std::cout << "  F5/F6/F7          Change background colors\n";
+    std::cout << "  F11               Toggle fullscreen\n";
+    std::cout << "  Escape            Quit game\n\n";
+}
+
+bool parse_command_line(int argc, char* argv[]) {
+    static struct option long_options[] = {
+        {"help", no_argument, 0, 'h'},
+        {"level", required_argument, 0, 'l'},
+        {"levels-file", required_argument, 0, 'L'},
+        {"balls", required_argument, 0, 'b'},
+        {"wasd", no_argument, 0, 'w'},
+        {"no-flash", no_argument, 0, 'f'},
+        {"fps", required_argument, 0, 'F'},
+        {"mouse", no_argument, 0, 'm'},
+        {"no-sound", no_argument, 0, 's'},
+        {"scale", required_argument, 0, 'S'},
+        {0, 0, 0, 0}
+    };
+
+    int option_index = 0;
+    int c;
+
+    while ((c = getopt_long(argc, argv, "hl:L:b:wfF:msS:", long_options, &option_index)) != -1) {
+        switch (c) {
+            case 'h':
+                game_options.show_help = true;
+                return true;
+                
+            case 'l':
+                try {
+                    game_options.starting_level = std::stoi(optarg);
+                    if (game_options.starting_level < 1) {
+                        std::cerr << "Error: Level must be 1 or greater\n";
+                        return false;
+                    }
+                } catch (const std::exception& e) {
+                    std::cerr << "Error: Invalid level number: " << optarg << "\n";
+                    return false;
+                }
+                break;
+                
+            case 'L':
+                game_options.levels_file = optarg;
+                break;
+                
+            case 'b':
+                try {
+                    game_options.number_of_balls = std::stoi(optarg);
+                    if (game_options.number_of_balls < 1 || game_options.number_of_balls > 20) {
+                        std::cerr << "Error: Number of balls must be between 1 and 20\n";
+                        return false;
+                    }
+                } catch (const std::exception& e) {
+                    std::cerr << "Error: Invalid number of balls: " << optarg << "\n";
+                    return false;
+                }
+                break;
+                
+            case 'w':
+                game_options.use_wasd = true;
+                break;
+                
+            case 'f':
+                game_options.disable_flash = true;
+                break;
+                
+            case 'F':
+                try {
+                    game_options.fps = std::stoi(optarg);
+                    if (game_options.fps < 1 || game_options.fps > 120) {
+                        std::cerr << "Error: FPS must be between 1 and 120\n";
+                        return false;
+                    }
+                } catch (const std::exception& e) {
+                    std::cerr << "Error: Invalid FPS value: " << optarg << "\n";
+                    return false;
+                }
+                break;
+                
+            case 'm':
+                game_options.mouse_support = true;
+                break;
+                
+            case 's':
+                game_options.sound_enabled = false;
+                break;
+                
+            case 'S':
+                try {
+                    game_options.scale_factor = std::stoi(optarg);
+                    if (game_options.scale_factor < 1 || game_options.scale_factor > 10) {
+                        std::cerr << "Error: Scale factor must be between 1 and 10\n";
+                        return false;
+                    }
+                } catch (const std::exception& e) {
+                    std::cerr << "Error: Invalid scale factor: " << optarg << "\n";
+                    return false;
+                }
+                break;
+                
+            case '?':
+                // getopt_long already printed an error message
+                return false;
+                
+            default:
+                std::cerr << "Error: Unknown option\n";
+                return false;
+        }
+    }
+
+    // Check for non-option arguments
+    if (optind < argc) {
+        std::cerr << "Error: Unexpected argument: " << argv[optind] << "\n";
+        return false;
+    }
+
+    return true;
+}
+
+// Modified main function
 int main(int argc, char* argv[]) {
+    // Parse command line arguments
+    if (!parse_command_line(argc, argv)) {
+        print_help(argv[0]);
+        return 1;
+    }
+    
+    if (game_options.show_help) {
+        print_help(argv[0]);
+        return 0;
+    }
+    
+    // Print startup information
+    std::cout << "Willy the Worm - C++ GTK Edition\n";
+    std::cout << "Starting level: " << game_options.starting_level << "\n";
+    std::cout << "Levels file: " << game_options.levels_file << "\n";
+    std::cout << "Number of balls: " << game_options.number_of_balls << "\n";
+    std::cout << "FPS: " << game_options.fps << "\n";
+    std::cout << "Scale factor: " << game_options.scale_factor << "\n";
+    if (game_options.use_wasd) std::cout << "Using WASD controls\n";
+    if (game_options.disable_flash) std::cout << "Death flash disabled\n";
+    if (game_options.mouse_support) std::cout << "Mouse support enabled\n";
+    if (!game_options.sound_enabled) std::cout << "Sound disabled\n";
+    std::cout << "\n";
+
     auto app = WillyApplication::create();
     return app->run(argc, argv);
 }
