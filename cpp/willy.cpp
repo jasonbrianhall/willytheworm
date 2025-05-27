@@ -1022,8 +1022,8 @@ bool WillyGame::game_tick() {
         }
     }
     
-    update_status_bar();
     drawing_area.queue_draw();
+    update_status_bar();
     return true; // Continue the timer
 }
 
@@ -1423,7 +1423,7 @@ void WillyGame::flash_death_screen() {
     
     auto cr = window->create_cairo_context();
     
-    // Flash white for 0.8 seconds
+    // Flash white for 0.25 seconds
     cr->set_source_rgb(1.0, 1.0, 1.0); // White
     cr->paint();
     
@@ -1435,8 +1435,8 @@ void WillyGame::flash_death_screen() {
         Gtk::Main::iteration();
     }
     
-    // Hold the white screen for 0.8 seconds
-    std::this_thread::sleep_for(std::chrono::milliseconds(800));
+    // Hold the white screen for 0.25 seconds
+    std::this_thread::sleep_for(std::chrono::milliseconds(250));
     
     // Return to normal - this will be handled by the next game tick/draw cycle
 }
