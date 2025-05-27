@@ -874,7 +874,6 @@ void WillyGame::check_collisions() {
         set_tile(y, x, "EMPTY");
     } else if(current_tile == "UPSPRING") {
        sound_manager->play_sound("jump.mp3");
-       printf("Jumping\n");
        jump();
     } else if(current_tile == "SIDESPRING") {
         sound_manager->play_sound("jump.mp3");
