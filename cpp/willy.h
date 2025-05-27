@@ -243,6 +243,13 @@ private:
     
     // High score entry state
     std::string name_input;
+bool mouse_button_held = false;
+int held_button = 0;
+std::string mouse_direction = "";
+bool mouse_up_held = false;
+bool mouse_down_held = false;
+
+
     
 public:
     WillyGame();
@@ -253,7 +260,12 @@ public:
     
 private:
 
-
+bool on_button_press(GdkEventButton* event);
+bool on_button_release(GdkEventButton* event);
+bool on_motion_notify(GdkEventMotion* event);
+bool mouse_dragging;
+double drag_start_x, drag_start_y;
+double drag_end_x, drag_end_y;
     void setup_ui();
     void create_menubar();
     void load_level(const std::string& level_name);
