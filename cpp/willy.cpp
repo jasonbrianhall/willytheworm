@@ -550,11 +550,18 @@ void WillyGame::start_game() {
 void WillyGame::jump() {
     int y = willy_position.first;
     int x = willy_position.second;
-    
-    // Can only jump if on solid ground or platform
-    if(y == GAME_MAX_HEIGHT - 1 || get_tile(y + 1, x).substr(0, 4) == "PIPE") {
+
+    // Get the current and below tiles
+    std::string current_tile = get_tile(y, x);
+    std::string below_tile = get_tile(y + 1, x);
+
+    // Can jump if standing on "UPSPRING" or if below tile is a "PIPE"
+    if (current_tile == "UPSPRING" || below_tile.substr(0, 4) == "PIPE" || y == GAME_MAX_HEIGHT - 1) {
         jumping = true;
-        willy_velocity.second = -5;
+
+        // Apply a stronger jump if standing on "UPSPRING"
+        willy_velocity.second = (current_tile == "UPSPRING") ? -8 : -5;
+
         sound_manager->play_sound("jump.mp3");
     }
 }
@@ -866,10 +873,9 @@ void WillyGame::check_collisions() {
         sound_manager->play_sound("present.mp3");
         set_tile(y, x, "EMPTY");
     } else if(current_tile == "UPSPRING") {
-        if(!jumping) {
-            sound_manager->play_sound("jump.mp3");
-            jump();
-        }
+       sound_manager->play_sound("jump.mp3");
+       printf("Jumping\n");
+       jump();
     } else if(current_tile == "SIDESPRING") {
         sound_manager->play_sound("jump.mp3");
         // Reverse continuous direction if moving continuously
