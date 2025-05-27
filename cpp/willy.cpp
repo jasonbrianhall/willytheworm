@@ -919,7 +919,6 @@ void WillyGame::draw_game_screen(const Cairo::RefPtr<Cairo::Context>& cr) {
         }
     }
 }
-// Add this method to WillyGame class in willy.cpp
 
 void WillyGame::create_menubar() {
     // Set menubar background to proper gray theme
