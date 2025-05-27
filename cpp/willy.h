@@ -261,7 +261,8 @@ private:
     std::pair<int, int> find_ballpit_position();
     bool check_movement_collision(int old_row, int old_col, int new_row, int new_col);
     std::unique_ptr<SoundManager> sound_manager;
-
+    void flash_death_screen();
+    void flash_death_screen_seizure();
 };
 
 class WillyApplication : public Gtk::Application {

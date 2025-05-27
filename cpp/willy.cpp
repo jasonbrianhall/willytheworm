@@ -292,7 +292,6 @@ Cairo::RefPtr<Cairo::ImageSurface> SpriteLoader::get_sprite(const std::string& n
     return sprites["EMPTY"];
 }
 
-// WillyGame implementation
 WillyGame::WillyGame() : 
     vbox(Gtk::ORIENTATION_VERTICAL), 
     current_state(GameState::INTRO),
@@ -855,7 +854,7 @@ void WillyGame::check_collisions() {
     
     // Check tile interactions
     if(current_tile == "TACK") {
-        sound_manager->play_sound("tack.mp3");
+        //sound_manager->play_sound("tack.mp3");
         die();
     } else if(current_tile == "BELL") {
         sound_manager->play_sound("bell.mp3");
@@ -905,6 +904,12 @@ void WillyGame::check_collisions() {
 
 
 void WillyGame::die() {
+    // Play death sound
+    sound_manager->play_sound("tack.mp3");
+    
+    // Flash the screen
+    flash_death_screen();
+    
     lives--;
     if(lives <= 0) {
         game_over();
@@ -1382,6 +1387,91 @@ WillyApplication::WillyApplication() : Gtk::Application("org.example.willythewor
 
 Glib::RefPtr<WillyApplication> WillyApplication::create() {
     return Glib::RefPtr<WillyApplication>(new WillyApplication());
+}
+
+void WillyGame::flash_death_screen() {
+    // Get the window and context for drawing
+    auto window = drawing_area.get_window();
+    if (!window) return;
+    
+    auto cr = window->create_cairo_context();
+    
+    // Flash white for 0.25 seconds
+    cr->set_source_rgb(1.0, 1.0, 1.0); // White
+    cr->paint();
+    
+    // Force immediate display update
+    window->invalidate(false);
+    
+    // Process pending GTK events to ensure the white screen shows
+    while (Gtk::Main::events_pending()) {
+        Gtk::Main::iteration();
+    }
+    
+    // Hold the white screen for 0.25 seconds
+    std::this_thread::sleep_for(std::chrono::milliseconds(800));
+    
+    // Return to normal - this will be handled by the next game tick/draw cycle
+}
+
+void WillyGame::flash_death_screen_seizure() {
+    // Get the current drawing area allocation
+    Gtk::Allocation allocation = drawing_area.get_allocation();
+    
+    // Calculate the duration of the flashing in seconds (0.25 seconds like Python)
+    double duration = 0.25;
+    
+    // Calculate the number of times to switch between colors (assuming ~60 FPS)
+    int num_flashes = static_cast<int>(duration * 60);
+    
+    // Colors to alternate between
+    Cairo::RefPtr<Cairo::ImageSurface> surface1 = Cairo::ImageSurface::create(
+        Cairo::FORMAT_RGB24, allocation.get_width(), allocation.get_height());
+    Cairo::RefPtr<Cairo::ImageSurface> surface2 = Cairo::ImageSurface::create(
+        Cairo::FORMAT_RGB24, allocation.get_width(), allocation.get_height());
+    
+    // Fill surfaces with different colors
+    auto ctx1 = Cairo::Context::create(surface1);
+    ctx1->set_source_rgb(1.0, 1.0, 1.0); // White
+    ctx1->paint();
+    
+    auto ctx2 = Cairo::Context::create(surface2);
+    ctx2->set_source_rgb(0.0, 0.0, 1.0); // Blue (or current background color)
+    ctx2->paint();
+    
+    // Get the window and context for drawing
+    auto window = drawing_area.get_window();
+    if (!window) return;
+    
+    auto cr = window->create_cairo_context();
+    
+    // Start the flashing
+    for (int i = 0; i < num_flashes; i++) {
+        // Alternate between the two colors
+        if (i % 2 == 0) {
+            cr->set_source(surface1, 0, 0);
+        } else {
+            cr->set_source(surface2, 0, 0);
+        }
+        
+        cr->paint();
+        
+        // Force immediate display update
+        window->invalidate(false);
+        
+        // Process pending GTK events
+        while (Gtk::Main::events_pending()) {
+            Gtk::Main::iteration();
+        }
+        
+        // Wait for a short amount of time before the next frame
+        std::this_thread::sleep_for(std::chrono::microseconds(static_cast<int>(1000000.0 / 60.0)));
+    }
+    
+    // Clear back to normal background
+    cr->set_source_rgb(0.0, 0.0, 1.0); // Blue
+    cr->paint();
+    window->invalidate(false);
 }
 
 void WillyApplication::on_activate() {
