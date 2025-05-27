@@ -4,6 +4,15 @@
 #include <sstream>
 #include <ctime>
 #include <iomanip>
+#include <sys/stat.h>
+
+#ifdef _WIN32
+    #include <windows.h>
+    #include <direct.h>   // For _mkdir
+#else
+    #include <unistd.h>
+#endif
+
 
 // HighScoreManager implementation
 HighScoreManager::HighScoreManager() {
