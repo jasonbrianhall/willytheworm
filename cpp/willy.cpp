@@ -501,6 +501,11 @@ bool WillyGame::on_key_press(GdkEventKey* event) {
     //std::cout << "Key pressed: " << keyname << std::endl;
     keys_pressed.insert(keyname);
     
+    // Check for modifier keys
+    bool ctrl_pressed = (event->state & GDK_CONTROL_MASK);
+    bool shift_pressed = (event->state & GDK_SHIFT_MASK);
+    bool alt_pressed = (event->state & GDK_MOD1_MASK);
+        
     if(keyname == "Escape") {
         quit_game();
     } else if(keyname == "F11") {
@@ -529,24 +534,35 @@ bool WillyGame::on_key_press(GdkEventKey* event) {
             up_pressed = true;
         } else if(keyname == "Down") {
             down_pressed = true;
-        } else if(keyname == "L" || keyname == "l") {
+        } else if((keyname == "L" || keyname == "l") && ctrl_pressed) {
+            // Level skip with Ctrl+L (matching Python version)
             complete_level_nobonus();
+        } else if((keyname == "S" || keyname == "s") && ctrl_pressed) {
+            // Sound toggle with Ctrl+S
+            bool current_sound_state = sound_manager->is_sound_enabled();
+            sound_manager->set_sound_enabled(!current_sound_state);
+            
+            // Visual feedback for sound toggle
+            std::string sound_status = current_sound_state ? "OFF" : "ON";
+            std::cout << "Sound toggled " << sound_status << std::endl;
+            
+            // Optional: Play a test sound when enabling
+            if (!current_sound_state) {
+                sound_manager->play_sound("bell.mp3");
+            }
         } else if(keyname == "F5") {
             redbg+=0.25;
-            if (redbg>1.0)
-            {
+            if (redbg>1.0) {
                 redbg=0.0;
             }
         } else if(keyname == "F6") {
             greenbg+=0.25;
-            if (greenbg>1.0)
-            {
+            if (greenbg>1.0) {
                 greenbg=0.0;
             }
         } else if(keyname == "F7") {
             bluebg+=0.25;
-            if (bluebg>1.0)
-            {
+            if (bluebg>1.0) {
                 bluebg=0.0;
             }
         } else {
@@ -557,29 +573,29 @@ bool WillyGame::on_key_press(GdkEventKey* event) {
         if(keyname == "Return" || keyname == "Enter" || keyname == "KP_Enter") {
             current_state = GameState::INTRO;
         }
-    }  else if(current_state == GameState::HIGH_SCORE_ENTRY) {
-    if(keyname == "Return" || keyname == "Enter" || keyname == "KP_Enter") {
-        if(!name_input.empty()) {
-            score_manager->add_score(name_input, score);
+    } else if(current_state == GameState::HIGH_SCORE_ENTRY) {
+        if(keyname == "Return" || keyname == "Enter" || keyname == "KP_Enter") {
+            if(!name_input.empty()) {
+                score_manager->add_score(name_input, score);
+            }
+            current_state = GameState::HIGH_SCORE_DISPLAY;
+        } else if(keyname == "BackSpace") {
+            if(!name_input.empty()) {
+                name_input.pop_back();
+            }
+        } else if(keyname.length() == 1) {
+            // Single character key
+            if(name_input.length() < 20) { // Limit name length
+                name_input += keyname;
+            }
         }
-        current_state = GameState::HIGH_SCORE_DISPLAY;
-    } else if(keyname == "BackSpace") {
-        if(!name_input.empty()) {
-            name_input.pop_back();
-        }
-    } else if(keyname.length() == 1) {
-        // Single character key
-        if(name_input.length() < 20) { // Limit name length
-            name_input += keyname;
+    } else if(current_state == GameState::HIGH_SCORE_DISPLAY) {
+        if(keyname == "Escape") {
+            quit_game();
+        } else {
+            current_state = GameState::INTRO;
         }
     }
-} else if(current_state == GameState::HIGH_SCORE_DISPLAY) {
-    if(keyname == "Escape") {
-        quit_game();
-    } else {
-        current_state = GameState::INTRO;
-    }
-}
     
     return true;
 }
