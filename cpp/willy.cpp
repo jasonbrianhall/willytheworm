@@ -318,6 +318,12 @@ WillyGame::WillyGame() :
     
     sprite_loader = std::make_unique<SpriteLoader>(scale_factor);
     level_loader = std::make_unique<LevelLoader>();
+    sound_manager = std::make_unique<SoundManager>();
+    
+    // Initialize sound system
+    if (!sound_manager->initialize()) {
+        std::cout << "Warning: Sound system initialization failed" << std::endl;
+    }
     
     level_loader->load_levels("levels.json");
     
@@ -525,9 +531,11 @@ void WillyGame::jump() {
     // Can only jump if on solid ground or platform
     if(y == GAME_MAX_HEIGHT - 1 || get_tile(y + 1, x).substr(0, 4) == "PIPE") {
         jumping = true;
-        willy_velocity.second = -5; // Increased from -3 to -4 for higher jump
+        willy_velocity.second = -5;
+        sound_manager->play_sound("jump.mp3");
     }
 }
+
 
 std::string WillyGame::get_tile(int row, int col) {
     return level_loader->get_tile(current_level, row, col);
@@ -590,6 +598,7 @@ void WillyGame::update_willy_movement() {
                     moved_on_ladder = true;
                     moving_continuously = false;
                     continuous_direction = "";
+                    sound_manager->play_sound("ladder.mp3"); // Add ladder sound
                 } else {
                     die();
                     return;
@@ -603,6 +612,7 @@ void WillyGame::update_willy_movement() {
                     moved_on_ladder = true;
                     moving_continuously = false;
                     continuous_direction = "";
+                    sound_manager->play_sound("ladder.mp3"); // Add ladder sound
                 } else {
                     die();
                     return;
@@ -624,6 +634,7 @@ void WillyGame::update_willy_movement() {
                     moved_on_ladder = true;
                     moving_continuously = false;
                     continuous_direction = "";
+                    sound_manager->play_sound("ladder.mp3"); // Add ladder sound
                 } else {
                     die();
                     return;
@@ -637,6 +648,7 @@ void WillyGame::update_willy_movement() {
                     moved_on_ladder = true;
                     moving_continuously = false;
                     continuous_direction = "";
+                    sound_manager->play_sound("ladder.mp3"); // Add ladder sound
                 } else {
                     die();
                     return;
@@ -813,6 +825,7 @@ void WillyGame::check_collisions() {
     // Check ball collisions (don't die in ballpits)
     for(const auto& ball : balls) {
         if(ball.row == y && ball.col == x && current_tile != "BALLPIT") {
+            sound_manager->play_sound("tack.mp3"); // Death sound
             die();
             return;
         }
@@ -820,17 +833,22 @@ void WillyGame::check_collisions() {
     
     // Check tile interactions
     if(current_tile == "TACK") {
+        sound_manager->play_sound("tack.mp3");
         die();
     } else if(current_tile == "BELL") {
+        sound_manager->play_sound("bell.mp3");
         complete_level();
     } else if(current_tile == "PRESENT") {
         score += 100;
+        sound_manager->play_sound("present.mp3");
         set_tile(y, x, "EMPTY");
     } else if(current_tile == "UPSPRING") {
         if(!jumping) {
+            sound_manager->play_sound("jump.mp3");
             jump();
         }
     } else if(current_tile == "SIDESPRING") {
+        sound_manager->play_sound("jump.mp3");
         // Reverse continuous direction if moving continuously
         if(moving_continuously) {
             if(continuous_direction == "RIGHT") {
@@ -854,6 +872,7 @@ void WillyGame::check_collisions() {
                 for(const auto& ball : balls) {
                     if(ball.row == check_y && ball.col == x) {
                         score += 20;
+                        sound_manager->play_sound("boop.mp3");
                         break;
                     }
                 }
@@ -861,6 +880,7 @@ void WillyGame::check_collisions() {
         }
     }
 }
+
 
 void WillyGame::die() {
     lives--;

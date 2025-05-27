@@ -17,6 +17,35 @@
 #include <utility>
 #include <sstream>
 
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_mixer.h>
+#include <map>
+#include <string>
+#include <thread>
+#include <mutex>
+
+class SoundManager {
+private:
+    std::map<std::string, Mix_Chunk*> sound_cache;
+    std::mutex sound_mutex;
+    bool sound_enabled;
+    bool initialized;
+    
+    std::string find_sound_file(const std::string& filename);
+    
+public:
+    SoundManager();
+    ~SoundManager();
+    
+    bool initialize();
+    void cleanup();
+    void play_sound(const std::string& filename);
+    void set_sound_enabled(bool enabled) { sound_enabled = enabled; }
+    bool is_sound_enabled() const { return sound_enabled; }
+};
+
+
+
 // Game constants
 const int GAME_CHAR_WIDTH = 8;
 const int GAME_CHAR_HEIGHT = 8;
@@ -193,6 +222,8 @@ private:
     void draw_game_over_screen(const Cairo::RefPtr<Cairo::Context>& cr);
     std::pair<int, int> find_ballpit_position();
     bool check_movement_collision(int old_row, int old_col, int new_row, int new_col);
+    std::unique_ptr<SoundManager> sound_manager;
+
 };
 
 class WillyApplication : public Gtk::Application {
