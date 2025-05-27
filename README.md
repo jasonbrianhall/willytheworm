@@ -24,6 +24,31 @@ But watch out! Willy's world is full of perilous tacks and mischievous bouncing 
 - Smash that spacebar to make him jump
 - Any other key? Willy takes a breather!
 
+### 🚀 Available Versions
+
+Choose your adventure platform:
+
+#### 🐍 Python Version (Original)
+Classic cross-platform Python implementation with Qt GUI
+```bash
+pip install -r requirements.txt
+./willy.py
+```
+
+#### 🖥️ C++ Linux Version (Native Performance); Windows compile is still experimental (but will compile and run; it's just funky)
+High-performance native C++ version with GTK interface
+```bash
+cd cpp/
+make
+./build/linux/willy
+```
+
+#### 📱 Qt GUI Version
+User-friendly GUI for the command-line challenged
+```bash
+./willy_qt.py
+```
+
 ### 🚀 Features That'll Make You Go "Wow!"
 
 - 📺 Fullscreen toggle with F11
@@ -31,10 +56,12 @@ But watch out! Willy's world is full of perilous tacks and mischievous bouncing 
 - 🎹 WASD support for the cool kids
 - ⚡ Adjustable game speed
 - 🖱️ Mouse support for the pointer-inclined
+- 🔊 Sound effects with toggle support
+- 🏆 High score tracking (daily and all-time)
 
 ### 🛠️ Customization at Your Fingertips
 
-Tweak your Willy experience with these command-line options:
+#### Python Version Options:
 ```
 ./willy.py 
     -l level           (Start at a specific level)
@@ -46,9 +73,19 @@ Tweak your Willy experience with these command-line options:
     -h or --help       (Show all options)
 ```
 
-A GUI for the CLI challenged
+#### C++ Linux Version Options:
 ```
-./willy_qt.py
+./cpp/build/linux/willy
+    -l LEVEL          (Start at specific level)
+    -L LEVELFILE      (Use custom levels file)
+    -b BALLS          (Set number of balls)
+    -w                (Use WASD keyboard controls)
+    -f                (Disable death flash effect)
+    -F FPS            (Set frames per second)
+    -m                (Enable mouse support)
+    -s                (Start with sound disabled)
+    -S SCALE          (Set scale factor)
+    -h, --help        (Show help message)
 ```
 
 ### 🎨 Unleash Your Creativity with the Level Editor!
@@ -83,9 +120,8 @@ Want to give Willy and friends a high-definition makeover? Check out the HD Spri
 
 Quick Start with HD Sprites:
 ```bash
-
 # Extract existing sprites
-pip install -r hd/requirements.txt (one time only)
+pip install -r hd/requirements.txt # (one time only)
 python hd/hd.py extract --input willy.chr --output hd/sprites/
 
 # Customize sprites in your favorite image editor
@@ -93,11 +129,32 @@ python hd/hd.py extract --input willy.chr --output hd/sprites/
 python hd/hd.py create --input hd/sprites/ --output willy.chr
 ```
 
+### 🔧 Build Requirements
+
+#### For Python Version:
+- Python 3.6+
+- Dependencies listed in `requirements.txt`
+
+#### For C++ Linux Version:
+- GCC or Clang compiler
+- GTK3 development libraries
+- gtkmm-3.0 development libraries
+- SDL2 and SDL2_mixer development libraries
+- Cairo development libraries
+- pkg-config
+
+On Ubuntu/Debian:
+```bash
+sudo apt-get install build-essential libgtkmm-3.0-dev libsdl2-dev libsdl2-mixer-dev libcairo2-dev pkg-config
+```
+
 ### 🚀 Ready to Dive In?
 
 1. Clone this repo
-2. Run `pip install -r requirements.txt`
-3. Launch with `./willy.py`
+2. Choose your preferred version:
+   - **Python**: Run `pip install -r requirements.txt`, then `./willy.py`
+   - **C++ Linux**: Run `cd cpp && make`, then `./build/linux/willy`
+3. Start your wormy adventure!
 
 ### 🌐 Spread the Willy Love!
 
@@ -120,7 +177,8 @@ Created something cool? Found a bug? Want to chat about worm physics? Open an is
 🎉 **Willy the Worm** - Bringing joy to invertebrate enthusiasts since 2023! 🎉
 
 *Original Pascal version by Alan Farmer (1985)*  
-*Python reincarnation by Jason Hall (jasonbrianhall@gmail.com)*
+*Python reincarnation by Jason Hall (jasonbrianhall@gmail.com)*  
+*C++ Linux port by Jason Hall*
 
 This code is FOSS (Free and Open-Source Software). Remix it, share it, love it! 💖
 
@@ -130,4 +188,4 @@ https://sourceforge.net/projects/willy-the-worm
 
 ---
 
-**Keywords**: retro gaming, platformer, Python game, open-source game, Willy the Worm, level editor, nostalgic games, indie game, 2D game, arcade-style game
+**Keywords**: retro gaming, platformer, Python game, C++ game, Linux game, open-source game, Willy the Worm, level editor, nostalgic games, indie game, 2D game, arcade-style game, GTK, native performance
