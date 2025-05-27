@@ -333,7 +333,25 @@ WillyGame::WillyGame() :
     sprite_loader = std::make_unique<SpriteLoader>(scale_factor);
     level_loader = std::make_unique<LevelLoader>();
     sound_manager = std::make_unique<SoundManager>();
+    set_title("Willy the Worm - C++ GTK Edition");
+    // After set_title(), add:
+set_decorated(true);
+set_skip_taskbar_hint(false);
+set_skip_pager_hint(false);
+property_window_position().set_value(Gtk::WIN_POS_CENTER);
+
+// Ensure the window manager shows normal window chrome
+if (get_window()) {
+    get_window()->set_decorations(Gdk::DECOR_ALL);
+    get_window()->set_functions(Gdk::FUNC_ALL);
+}
+    // Explicitly enable window decorations
+    set_decorated(true);
+    set_deletable(true);
+    set_resizable(true);
     
+    // Set window type hint (helps on Windows)
+    set_type_hint(Gdk::WINDOW_TYPE_HINT_NORMAL);
     // Initialize sound system
     if (!sound_manager->initialize()) {
         std::cout << "Warning: Sound system initialization failed" << std::endl;

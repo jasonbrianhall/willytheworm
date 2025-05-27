@@ -161,20 +161,26 @@ $(BUILD_DIR_WIN_DEBUG)/%.win.debug.o: %.cpp
 .PHONY: willy-collect-dlls
 willy-collect-dlls: $(BUILD_DIR_WIN)/$(TARGET_WIN)
 	@echo "Collecting DLLs for Windows Willy..."
-	@if [ -f collect_dlls.sh ]; then \
+	@if [ -f $(BUILD_DIR_WIN)/collect_dlls.sh ]; then \
+		cd $(BUILD_DIR_WIN) && ./collect_dlls.sh $(TARGET_WIN) $(DLL_SOURCE_DIR) .; \
+	elif [ -f collect_dlls.sh ]; then \
 		./collect_dlls.sh $(BUILD_DIR_WIN)/$(TARGET_WIN) $(DLL_SOURCE_DIR) $(BUILD_DIR_WIN); \
 	else \
-		echo "Warning: collect_dlls.sh not found. You may need to manually copy required DLLs."; \
+		echo "Warning: collect_dlls.sh not found in current directory or $(BUILD_DIR_WIN)/"; \
+		echo "You may need to manually copy required DLLs."; \
 		echo "Required DLLs typically include: libgcc_s_seh-1.dll, libstdc++-6.dll, libgtkmm-3.0-1.dll, libgtk-3-0.dll, SDL2.dll, SDL2_mixer.dll"; \
 	fi
 
 .PHONY: willy-collect-debug-dlls
 willy-collect-debug-dlls: $(BUILD_DIR_WIN_DEBUG)/$(TARGET_WIN_DEBUG)
 	@echo "Collecting Debug DLLs for Windows Willy..."
-	@if [ -f collect_dlls.sh ]; then \
+	@if [ -f $(BUILD_DIR_WIN_DEBUG)/collect_dlls.sh ]; then \
+		cd $(BUILD_DIR_WIN_DEBUG) && ./collect_dlls.sh $(TARGET_WIN_DEBUG) $(DLL_SOURCE_DIR) .; \
+	elif [ -f collect_dlls.sh ]; then \
 		./collect_dlls.sh $(BUILD_DIR_WIN_DEBUG)/$(TARGET_WIN_DEBUG) $(DLL_SOURCE_DIR) $(BUILD_DIR_WIN_DEBUG); \
 	else \
-		echo "Warning: collect_dlls.sh not found. You may need to manually copy required DLLs."; \
+		echo "Warning: collect_dlls.sh not found in current directory or $(BUILD_DIR_WIN_DEBUG)/"; \
+		echo "You may need to manually copy required DLLs."; \
 	fi
 
 #
@@ -219,11 +225,8 @@ copy-data-windows:
 			echo "Warning: $$file not found"; \
 		fi; \
 	done
-	@if [ -d audio ]; then \
-		echo "Copying audio files to Windows build directory..."; \
-		cp -r audio $(BUILD_DIR_WIN)/; \
-		echo "Audio files copied to $(BUILD_DIR_WIN)/audio/"; \
-	fi
+	mkdir -p $(BUILD_DIR_WIN)/audio/
+	cp audio/* $(BUILD_DIR_WIN)/audio/ -R -f
 
 .PHONY: copy-data-windows-debug
 copy-data-windows-debug:
@@ -236,11 +239,8 @@ copy-data-windows-debug:
 			echo "Warning: $$file not found"; \
 		fi; \
 	done
-	@if [ -d audio ]; then \
-		echo "Copying audio files to Windows debug build directory..."; \
-		cp -r audio $(BUILD_DIR_WIN_DEBUG)/; \
-		echo "Audio files copied to $(BUILD_DIR_WIN_DEBUG)/audio/"; \
-	fi
+	mkdir -p $(BUILD_DIR_WIN)/audio/
+	cp audio/* $(BUILD_DIR_WIN)/audio/ -R -f
 
 # Audio directory copying (if you have audio files)
 .PHONY: copy-audio-linux
