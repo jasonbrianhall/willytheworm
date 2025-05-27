@@ -576,7 +576,7 @@ bool WillyGame::can_move_to(int row, int col) {
     std::string tile = get_tile(row, col);
     return (tile == "EMPTY" || tile == "LADDER" || tile == "PRESENT" || 
             tile == "BELL" || tile == "UPSPRING" || tile == "SIDESPRING" || 
-            tile == "TACK" || tile == "BALLPIT");  // Added BALLPIT
+            tile == "TACK" || tile == "BALLPIT" || tile == "WILLY_RIGHT" || tile == "WILLY_LEFT");  // Added BALLPIT
 }
 
 bool WillyGame::is_on_solid_ground() {
@@ -594,7 +594,7 @@ bool WillyGame::is_on_solid_ground() {
         return true;
     }
     
-    return (below_tile.substr(0, 4) == "PIPE" || below_tile == "BALLPIT");
+    return (below_tile.substr(0, 4) == "PIPE");
 }
 
 void WillyGame::update_willy_movement() {
