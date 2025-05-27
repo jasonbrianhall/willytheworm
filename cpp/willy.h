@@ -25,6 +25,20 @@
 #include <thread>
 #include <mutex>
 
+// Global variables to store command line options (add these near the top of willy.cpp)
+struct GameOptions {
+    int starting_level = 1;
+    std::string levels_file = "levels.json";
+    int number_of_balls = 6;
+    bool use_wasd = false;
+    bool disable_flash = false;
+    int fps = 10;
+    bool mouse_support = false;
+    bool sound_enabled = true;
+    int scale_factor = 3;
+    bool show_help = false;
+};
+
 class SoundManager {
 private:
     std::map<std::string, Mix_Chunk*> sound_cache;
@@ -206,10 +220,6 @@ private:
     bool jumping;
     int fps;
     int frame_count;
-    
-    double redbg=0.0;
-    double greenbg=0.0;
-    double bluebg=1.0;
 
     double current_scale_x = 1.0;
     double current_scale_y = 1.0;
