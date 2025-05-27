@@ -189,6 +189,8 @@ copy-data-linux:
 			echo "Warning: $$file not found"; \
 		fi; \
 	done
+	mkdir -p $(BUILD_DIR_LINUX)/audio/
+	cp audio/* $(BUILD_DIR_LINUX)/audio/ -R -f
 
 .PHONY: copy-data-linux-debug
 copy-data-linux-debug:
@@ -201,6 +203,8 @@ copy-data-linux-debug:
 			echo "Warning: $$file not found"; \
 		fi; \
 	done
+	mkdir -p $(BUILD_DIR_LINUX_DEBUG)/audio/
+	cp audio/* $(BUILD_DIR_LINUX_DEBUG)/audio/ -R -f
 
 .PHONY: copy-data-windows
 copy-data-windows:
