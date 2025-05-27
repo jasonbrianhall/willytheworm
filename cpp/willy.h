@@ -23,7 +23,7 @@ const int GAME_CHAR_HEIGHT = 8;
 const int GAME_SCREEN_WIDTH = 40;
 const int GAME_SCREEN_HEIGHT = 30;
 const int GAME_MAX_WIDTH = 40;
-const int GAME_MAX_HEIGHT = 25;
+const int GAME_MAX_HEIGHT = 26;
 const int GAME_NEWLIFEPOINTS = 2000;
 
 enum class GameState {
@@ -154,9 +154,6 @@ private:
     std::mt19937 gen;
     
     sigc::connection timer_connection;
-    
-    // Intro screen text
-    std::vector<std::string> intro_text;
     
     std::string continuous_direction;  // For continuous movement
     bool moving_continuously;

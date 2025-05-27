@@ -316,47 +316,10 @@ WillyGame::WillyGame() :
     
     set_title("Willy the Worm - C++ GTK Edition");
     
-    int status_bar_height = 40;
-    set_default_size(
-        GAME_SCREEN_WIDTH * GAME_CHAR_WIDTH * scale_factor,
-        GAME_SCREEN_HEIGHT * GAME_CHAR_HEIGHT * scale_factor + 100 + status_bar_height
-    );
-    
     sprite_loader = std::make_unique<SpriteLoader>(scale_factor);
     level_loader = std::make_unique<LevelLoader>();
     
     level_loader->load_levels("levels.json");
-    
-    intro_text = {
-        "Willy the Worm",
-        "",
-        "By Jason Hall",
-        "(original version by Alan Farmer 1985)",
-        "",
-        "This code is Free Open Source Software (FOSS)",
-        "Please feel free to do with it whatever you wish.",
-        "",
-        "If you do make changes though such as new levels,",
-        "please share them with the world.",
-        "",
-        "",
-        "Meet Willy the Worm. Willy is a fun-",
-        "loving invertebrate who likes to climb",
-        "ladders, bounce on springs",
-        "and find his presents. But more",
-        "than anything, Willy loves to ring",
-        "bells!",
-        "",
-        "You can press the arrow keys ← ↑ → ↓",
-        "to make Willy run and climb, or the",
-        "space bar to make him jump. Anything",
-        "else will make Willy stop and wait",
-        "",
-        "Good luck, and don't let Willy step on",
-        "a tack or get ran over by a ball!",
-        "",
-        "Press Enter to Continue"
-    };
     
     setup_ui();
     current_state = GameState::INTRO;
@@ -365,6 +328,23 @@ WillyGame::WillyGame() :
         sigc::mem_fun(*this, &WillyGame::game_tick), 1000 / fps);
     
     show_all_children();
+    
+    // Calculate proper window size AFTER UI is created so we can measure the menubar
+    Gtk::Requisition menubar_min, menubar_nat;
+    menubar.get_preferred_size(menubar_min, menubar_nat);
+    
+    Gtk::Requisition statusbar_min, statusbar_nat;
+    status_bar.get_preferred_size(statusbar_min, statusbar_nat);
+    
+    int game_width = GAME_SCREEN_WIDTH * GAME_CHAR_WIDTH * scale_factor;
+    int game_height = GAME_SCREEN_HEIGHT * GAME_CHAR_HEIGHT * scale_factor;
+    
+    // Add actual measured heights of menubar and status bar, plus some padding
+    int total_height = game_height + menubar_min.height + statusbar_min.height + 10;
+    
+    set_default_size(game_width, total_height);
+    resize(game_width, total_height);
+    
     drawing_area.grab_focus();
 }
 
@@ -378,10 +358,16 @@ void WillyGame::setup_ui() {
     create_menubar();
     vbox.pack_start(menubar, Gtk::PACK_SHRINK);
     
-    drawing_area.set_size_request(
-        GAME_SCREEN_WIDTH * GAME_CHAR_WIDTH * scale_factor,
-        GAME_SCREEN_HEIGHT * GAME_CHAR_HEIGHT * scale_factor
-    );
+    // Set the drawing area size to match exactly what we need for the game
+    int game_width = GAME_SCREEN_WIDTH * GAME_CHAR_WIDTH * scale_factor;
+    int game_height = GAME_SCREEN_HEIGHT * GAME_CHAR_HEIGHT * scale_factor;
+    
+    drawing_area.set_size_request(game_width, game_height);
+    
+    // DON'T let the drawing area expand - keep it at exact size
+    drawing_area.set_hexpand(false);
+    drawing_area.set_vexpand(false);
+    
     drawing_area.signal_draw().connect(
         sigc::mem_fun(*this, &WillyGame::on_draw));
     
@@ -392,29 +378,11 @@ void WillyGame::setup_ui() {
     drawing_area.signal_key_release_event().connect(
         sigc::mem_fun(*this, &WillyGame::on_key_release));
     
-    vbox.pack_start(drawing_area, Gtk::PACK_EXPAND_WIDGET);
+    // Pack without expanding so it keeps its exact size
+    vbox.pack_start(drawing_area, Gtk::PACK_SHRINK);
     
     update_status_bar();
     vbox.pack_start(status_bar, Gtk::PACK_SHRINK);
-}
-
-
-void WillyGame::create_menubar() {
-    auto game_menu = Gtk::manage(new Gtk::Menu());
-    
-    auto new_game_item = Gtk::manage(new Gtk::MenuItem("New Game"));
-    new_game_item->signal_activate().connect(
-        sigc::mem_fun(*this, &WillyGame::new_game));
-    game_menu->append(*new_game_item);
-    
-    auto quit_item = Gtk::manage(new Gtk::MenuItem("Quit"));
-    quit_item->signal_activate().connect(
-        sigc::mem_fun(*this, &WillyGame::quit_game));
-    game_menu->append(*quit_item);
-    
-    auto game_item = Gtk::manage(new Gtk::MenuItem("Game"));
-    game_item->set_submenu(*game_menu);
-    menubar.append(*game_item);
 }
 
 void WillyGame::load_level(const std::string& level_name) {
@@ -869,11 +837,10 @@ bool WillyGame::game_tick() {
 }
 
 bool WillyGame::on_draw(const Cairo::RefPtr<Cairo::Context>& cr) {
-    // Clear background
-    cr->set_source_rgb(0.0, 0.0, 1.0); // Blue background
-    cr->paint();
-    
+    // Only paint blue background for intro screen
     if(current_state == GameState::INTRO) {
+        cr->set_source_rgb(0.0, 0.0, 1.0); // Blue background for intro only
+        cr->paint();
         draw_intro_screen(cr);
     } else if(current_state == GameState::PLAYING) {
         draw_game_screen(cr);
@@ -885,114 +852,179 @@ bool WillyGame::on_draw(const Cairo::RefPtr<Cairo::Context>& cr) {
 }
 
 void WillyGame::draw_game_screen(const Cairo::RefPtr<Cairo::Context>& cr) {
-    auto level_data = level_loader->get_level_data();
-    auto current_level_data = level_data.find(current_level);
+    // Get menubar height to use as offset
+    Gtk::Requisition menubar_min, menubar_nat;
+    menubar.get_preferred_size(menubar_min, menubar_nat);
+    int menubar_height = menubar_min.height;
     
-    if(current_level_data != level_data.end()) {
-        for(const auto& row_pair : current_level_data->second) {
-            int row = std::stoi(row_pair.first);
-            for(const auto& col_pair : row_pair.second) {
-                int col = std::stoi(col_pair.first);
-                const std::string& tile = col_pair.second;
-                
-                if(row == willy_position.first && col == willy_position.second) {
-                    continue;
-                }
-                
-                if(tile != "EMPTY" && tile.find("WILLY") == std::string::npos) {
-                    int x = col * GAME_CHAR_WIDTH * scale_factor;
-                    int y = row * GAME_CHAR_HEIGHT * scale_factor;
-                    auto sprite = sprite_loader->get_sprite(tile);
-                    if(sprite) {
-                        cr->set_source(sprite, x, y);
-                        cr->paint();
-                    }
-                }
-            }
-        }
-    }
-    
-    // Draw balls
-    for(const auto& ball : balls) {
-        if(get_tile(ball.row, ball.col) != "BALLPIT" && 
-           !(ball.row == willy_position.first && ball.col == willy_position.second)) {
-            int x = ball.col * GAME_CHAR_WIDTH * scale_factor;
-            int y = ball.row * GAME_CHAR_HEIGHT * scale_factor;
+    // Draw ALL sprite positions with blue background, even empty ones
+    for(int row = 0; row < GAME_MAX_HEIGHT; row++) {
+        for(int col = 0; col < GAME_MAX_WIDTH; col++) {
+            int x = col * GAME_CHAR_WIDTH * scale_factor;
+            int y = row * GAME_CHAR_HEIGHT * scale_factor + menubar_height; // Offset by menubar height
             
+            // Paint blue background for EVERY sprite position
             cr->set_source_rgb(0.0, 0.0, 1.0);
             cr->rectangle(x, y, GAME_CHAR_WIDTH * scale_factor, GAME_CHAR_HEIGHT * scale_factor);
             cr->fill();
             
-            auto sprite = sprite_loader->get_sprite("BALL");
-            if(sprite) {
-                cr->set_source(sprite, x, y);
-                cr->paint();
+            // Get the tile at this position
+            std::string tile = get_tile(row, col);
+            
+            // Draw sprite if not empty or Willy start position, but not at Willy's current position
+            if(tile != "EMPTY" && tile.find("WILLY") == std::string::npos && 
+               !(row == willy_position.first && col == willy_position.second)) {
+                auto sprite = sprite_loader->get_sprite(tile);
+                if(sprite) {
+                    cr->set_source(sprite, x, y);
+                    cr->paint();
+                }
             }
         }
     }
     
-    // Draw Willy
-    int x = willy_position.second * GAME_CHAR_WIDTH * scale_factor;
-    int y = willy_position.first * GAME_CHAR_HEIGHT * scale_factor;
-    
-    cr->set_source_rgb(0.0, 0.0, 1.0);
-    cr->rectangle(x, y, GAME_CHAR_WIDTH * scale_factor, GAME_CHAR_HEIGHT * scale_factor);
-    cr->fill();
-    
-    std::string sprite_name = (willy_direction == "LEFT") ? "WILLY_LEFT" : "WILLY_RIGHT";
-    auto sprite = sprite_loader->get_sprite(sprite_name);
-    if(sprite) {
-        cr->set_source(sprite, x, y);
-        cr->paint();
+    // Draw balls (but not the ones in ball pits or at Willy's position)
+    for(const auto& ball : balls) {
+        if(get_tile(ball.row, ball.col) != "BALLPIT" && 
+           !(ball.row == willy_position.first && ball.col == willy_position.second)) {
+            
+            // Make sure ball is in visible area
+            if(ball.row >= 0 && ball.row < GAME_MAX_HEIGHT && 
+               ball.col >= 0 && ball.col < GAME_MAX_WIDTH) {
+                
+                int x = ball.col * GAME_CHAR_WIDTH * scale_factor;
+                int y = ball.row * GAME_CHAR_HEIGHT * scale_factor + menubar_height; // Offset by menubar height
+                
+                auto sprite = sprite_loader->get_sprite("BALL");
+                if(sprite) {
+                    cr->set_source(sprite, x, y);
+                    cr->paint();
+                }
+            }
+        }
     }
     
-    // Draw score information right below the last rendered row
-    // Find the actual bottom row of the rendered game content
-    int bottom_row = GAME_MAX_HEIGHT; // This should be row 24 (0-based) or 25 (1-based)
-    int score_y_position = bottom_row * GAME_CHAR_HEIGHT * scale_factor;
+    // Draw Willy - make sure he's in visible area
+    if(willy_position.first >= 0 && willy_position.first < GAME_MAX_HEIGHT &&
+       willy_position.second >= 0 && willy_position.second < GAME_MAX_WIDTH) {
+        
+        int x = willy_position.second * GAME_CHAR_WIDTH * scale_factor;
+        int y = willy_position.first * GAME_CHAR_HEIGHT * scale_factor + menubar_height; // Offset by menubar height
+        
+        std::string sprite_name = (willy_direction == "LEFT") ? "WILLY_LEFT" : "WILLY_RIGHT";
+        auto sprite = sprite_loader->get_sprite(sprite_name);
+        if(sprite) {
+            cr->set_source(sprite, x, y);
+            cr->paint();
+        }
+    }
+}
+// Add this method to WillyGame class in willy.cpp
+
+void WillyGame::create_menubar() {
+    // Set menubar background to proper gray theme
+    auto css_provider = Gtk::CssProvider::create();
+    css_provider->load_from_data(R"(
+        menubar {
+            background-color: #f0f0f0;
+            color: #000000;
+            border-bottom: 1px solid #d0d0d0;
+        }
+        menubar > menuitem {
+            background-color: #f0f0f0;
+            color: #000000;
+            padding: 4px 8px;
+        }
+        menubar > menuitem:hover {
+            background-color: #e0e0e0;
+            color: #000000;
+        }
+        menubar menu {
+            background-color: #ffffff;
+            color: #000000;
+            border: 1px solid #d0d0d0;
+        }
+        menubar menu menuitem {
+            background-color: #ffffff;
+            color: #000000;
+            padding: 4px 12px;
+        }
+        menubar menu menuitem:hover {
+            background-color: #0078d4;
+            color: #ffffff;
+        }
+        menubar menu separator {
+            background-color: #d0d0d0;
+            min-height: 1px;
+        }
+    )");
     
-    // Create font for score display
-    Pango::FontDescription font_desc;
-    font_desc.set_family("Monospace");
-    font_desc.set_size(14 * PANGO_SCALE);
-    font_desc.set_weight(Pango::WEIGHT_BOLD);
+    auto style_context = menubar.get_style_context();
+    style_context->add_provider(css_provider, GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
     
-    auto layout = Pango::Layout::create(cr);
-    layout->set_font_description(font_desc);
+    // File menu
+    auto file_menu = Gtk::manage(new Gtk::Menu());
     
-    // Format the score text like in the screenshot with fixed-width score and bonus
-    char score_str[6];
-    char bonus_str[5];
-    snprintf(score_str, sizeof(score_str), "%5d", score);
-    snprintf(bonus_str, sizeof(bonus_str), "%4d", bonus);
+    auto new_game_item = Gtk::manage(new Gtk::MenuItem("_New Game", true));
+    new_game_item->signal_activate().connect(
+        sigc::mem_fun(*this, &WillyGame::new_game));
+    file_menu->append(*new_game_item);
     
-    std::string score_text = "SCORE: " + std::string(score_str) + 
-                            "    BONUS: " + std::string(bonus_str) + 
-                            "    Level: " + std::to_string(level) + 
-                            "    Willy the Worms Left: " + std::to_string(lives);
+    file_menu->append(*Gtk::manage(new Gtk::SeparatorMenuItem()));
     
-    layout->set_text(score_text);
+    auto quit_item = Gtk::manage(new Gtk::MenuItem("_Quit", true));
+    quit_item->signal_activate().connect(
+        sigc::mem_fun(*this, &WillyGame::quit_game));
+    file_menu->append(*quit_item);
     
-    // Position right below the last rendered game row
-    int text_x = 10;  // Left margin
-    int text_y = score_y_position + 5;  // Just below the last game row
+    auto file_item = Gtk::manage(new Gtk::MenuItem("_File", true));
+    file_item->set_submenu(*file_menu);
+    menubar.append(*file_item);
     
-    // Draw white text directly on the blue background
-    cr->set_source_rgb(1.0, 1.0, 1.0);
-    cr->move_to(text_x, text_y);
-    layout->show_in_cairo_context(cr);
+    // Game menu
+    auto game_menu = Gtk::manage(new Gtk::Menu());
+    
+    auto pause_item = Gtk::manage(new Gtk::MenuItem("_Pause", true));
+    pause_item->signal_activate().connect([this]() {
+        if(current_state == GameState::PLAYING) {
+            current_state = GameState::PAUSED;
+        } else if(current_state == GameState::PAUSED) {
+            current_state = GameState::PLAYING;
+        }
+    });
+    game_menu->append(*pause_item);
+    
+    auto reset_item = Gtk::manage(new Gtk::MenuItem("_Reset Level", true));
+    reset_item->signal_activate().connect([this]() {
+        if(current_state == GameState::PLAYING) {
+            reset_level();
+        }
+    });
+    game_menu->append(*reset_item);
+    
+    auto game_item = Gtk::manage(new Gtk::MenuItem("_Game", true));
+    game_item->set_submenu(*game_menu);
+    menubar.append(*game_item);
+    
+    // Help menu
+    auto help_menu = Gtk::manage(new Gtk::Menu());
+    
+    auto about_item = Gtk::manage(new Gtk::MenuItem("_About", true));
+    about_item->signal_activate().connect([this]() {
+        current_state = GameState::INTRO;
+    });
+    help_menu->append(*about_item);
+    
+    auto help_item = Gtk::manage(new Gtk::MenuItem("_Help", true));
+    help_item->set_submenu(*help_menu);
+    menubar.append(*help_item);
 }
 
 void WillyGame::draw_intro_screen(const Cairo::RefPtr<Cairo::Context>& cr) {
-    // Force a complete clear of the entire context first
-    cr->save();
-    cr->set_operator(Cairo::OPERATOR_CLEAR);
-    cr->paint();
-    cr->restore();
-    
-    // Clear background to blue
-    cr->set_source_rgb(0.0, 0.0, 1.0);
-    cr->paint();
+    // Get menubar height to use as offset
+    Gtk::Requisition menubar_min, menubar_nat;
+    menubar.get_preferred_size(menubar_min, menubar_nat);
+    int menubar_height = menubar_min.height;
     
     // Text data exactly like Python version
     std::vector<std::vector<std::string>> textdata = {
@@ -1028,9 +1060,10 @@ void WillyGame::draw_intro_screen(const Cairo::RefPtr<Cairo::Context>& cr) {
         {"Press Enter to Continue"}
     };
     
-    // Get final screen dimensions
-    int final_width = GAME_SCREEN_WIDTH * GAME_CHAR_WIDTH * scale_factor;
-    int final_height = GAME_SCREEN_HEIGHT * GAME_CHAR_HEIGHT * scale_factor;
+    // Get the drawing area dimensions (not the full window)
+    Gtk::Allocation allocation = drawing_area.get_allocation();
+    int final_width = allocation.get_width();
+    int final_height = allocation.get_height() - menubar_height; // Subtract menubar height
     
     // Create a larger surface to render text at high resolution
     int large_width = final_width * 2;
@@ -1115,13 +1148,14 @@ void WillyGame::draw_intro_screen(const Cairo::RefPtr<Cairo::Context>& cr) {
     }
     
     // Now scale down the large surface to the final size for smooth anti-aliasing
+    // Offset by menubar height
     cr->save();
+    cr->translate(0, menubar_height);
     cr->scale(0.5, 0.5);
     cr->set_source(large_surface, 0, 0);
     cr->paint();
     cr->restore();
 }
-
 
 void WillyGame::draw_game_over_screen(const Cairo::RefPtr<Cairo::Context>& cr) {
     // Create font
