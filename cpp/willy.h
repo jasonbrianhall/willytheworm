@@ -207,6 +207,10 @@ private:
     int fps;
     int frame_count;
     
+double redbg=0.0;
+double greenbg=0.0;
+double bluebg=1.0;
+
     // Level data - now using LevelLoader's data structure
     std::string current_level;
     std::vector<Ball> balls;

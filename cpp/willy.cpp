@@ -866,8 +866,6 @@ void WillyGame::update_balls() {
     }
 }
 
-
-
 void WillyGame::check_collisions() {
     if(current_state != GameState::PLAYING) return;
     
@@ -931,7 +929,6 @@ void WillyGame::check_collisions() {
         }
     }
 }
-
 
 void WillyGame::die() {
     // Play death sound
@@ -1058,7 +1055,7 @@ bool WillyGame::game_tick() {
 bool WillyGame::on_draw(const Cairo::RefPtr<Cairo::Context>& cr) {
     // Only paint blue background for intro screen
     if(current_state == GameState::INTRO) {
-        cr->set_source_rgb(00, 0.0, 1.0); // Blue background for intro only
+        cr->set_source_rgb(redbg, greenbg, bluebg); // Blue background for intro only
         cr->paint();
         draw_intro_screen(cr);
     } else if(current_state == GameState::PLAYING) {
@@ -1308,7 +1305,7 @@ void WillyGame::draw_intro_screen(const Cairo::RefPtr<Cairo::Context>& cr) {
     auto large_ctx = Cairo::Context::create(large_surface);
     
     // Clear large surface to blue
-    large_ctx->set_source_rgb(0.0, 0.0, 1.0);
+    large_ctx->set_source_rgb(redbg, greenbg, bluebg);
     large_ctx->paint();
     
     // Use larger font size for the large surface
@@ -1491,7 +1488,7 @@ void WillyGame::flash_death_screen_seizure() {
     ctx1->paint();
     
     auto ctx2 = Cairo::Context::create(surface2);
-    ctx2->set_source_rgb(0.0, 0.0, 1.0); // Blue (or current background color)
+    ctx2->set_source_rgb(redbg, greenbg, bluebg); // Blue (or current background color)
     ctx2->paint();
     
     // Get the window and context for drawing
@@ -1524,7 +1521,7 @@ void WillyGame::flash_death_screen_seizure() {
     }
     
     // Clear back to normal background
-    cr->set_source_rgb(0.0, 0.0, 1.0); // Blue
+    cr->set_source_rgb(redbg, greenbg, bluebg); // Blue
     cr->paint();
     window->invalidate(false);
 }
