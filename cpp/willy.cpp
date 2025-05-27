@@ -1,5 +1,10 @@
 #include "willy.h"
 
+double redbg=0.0;
+double greenbg=0.0;
+double bluebg=1.0;
+
+
 // Ball implementation
 Ball::Ball(int r, int c) : row(r), col(c), direction("") {}
 
@@ -266,7 +271,7 @@ Cairo::RefPtr<Cairo::ImageSurface> SpriteLoader::create_spring_sprite(bool upwar
             ctx->fill();
         }
     } else {
-        ctx->set_source_rgb(0.0, 0.0, 1.0); // Blue
+        ctx->set_source_rgb(redbg, greenbg, bluebg); // Blue
         // Vertical lines (coil effect)
         int line_width = std::max(1, size / 8);
         for(int i = 0; i < 4; i++) {
@@ -483,6 +488,24 @@ bool WillyGame::on_key_press(GdkEventKey* event) {
             down_pressed = true;
         } else if(keyname == "L" || keyname == "l") {
             complete_level_nobonus();
+        } else if(keyname == "F5") {
+            redbg+=0.25;
+            if (redbg>1.0)
+            {
+                redbg=0.0;
+            }
+        } else if(keyname == "F6") {
+            greenbg+=0.25;
+            if (greenbg>1.0)
+            {
+                greenbg=0.0;
+            }
+        } else if(keyname == "F7") {
+            bluebg+=0.25;
+            if (bluebg>1.0)
+            {
+                bluebg=0.0;
+            }
         } else {
             moving_continuously = false;
             continuous_direction = "";
@@ -1035,7 +1058,7 @@ bool WillyGame::game_tick() {
 bool WillyGame::on_draw(const Cairo::RefPtr<Cairo::Context>& cr) {
     // Only paint blue background for intro screen
     if(current_state == GameState::INTRO) {
-        cr->set_source_rgb(0.0, 0.0, 1.0); // Blue background for intro only
+        cr->set_source_rgb(00, 0.0, 1.0); // Blue background for intro only
         cr->paint();
         draw_intro_screen(cr);
     } else if(current_state == GameState::PLAYING) {
@@ -1078,7 +1101,7 @@ void WillyGame::draw_game_screen(const Cairo::RefPtr<Cairo::Context>& cr) {
             int y = row * GAME_CHAR_HEIGHT * scale_factor + menubar_height; // Offset by menubar height
             
             // Paint blue background for EVERY sprite position
-            cr->set_source_rgb(0.0, 0.0, 1.0);
+            cr->set_source_rgb(redbg, greenbg, bluebg);
             cr->rectangle(x, y, GAME_CHAR_WIDTH * scale_factor, GAME_CHAR_HEIGHT * scale_factor);
             cr->fill();
             
