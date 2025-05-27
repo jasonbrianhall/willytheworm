@@ -365,12 +365,12 @@ WillyGame::~WillyGame() {
 void WillyGame::setup_ui() {
     add(vbox);
     
-    //create_menubar();
+    //create_menubar();  // Removed since it doesn't actually work and doesn't add anything
     vbox.pack_start(menubar, Gtk::PACK_SHRINK);
     
     // Set the drawing area size to match exactly what we need for the game
     int game_width = GAME_SCREEN_WIDTH * GAME_CHAR_WIDTH * scale_factor;
-    int game_height = GAME_SCREEN_HEIGHT * GAME_CHAR_HEIGHT * scale_factor;
+    int game_height = (GAME_SCREEN_HEIGHT + 1) * GAME_CHAR_HEIGHT * scale_factor; // Adding plus 1 for the status bar
     
     drawing_area.set_size_request(game_width, game_height);
     
@@ -583,7 +583,7 @@ void WillyGame::jump() {
         jumping = true;
 
         // Apply a stronger jump if standing on "UPSPRING"
-        willy_velocity.second = (current_tile == "UPSPRING") ? -5 : -5;
+        willy_velocity.second = (current_tile == "UPSPRING") ? -6 : -5;
 
         sound_manager->play_sound("jump.mp3");
     }
