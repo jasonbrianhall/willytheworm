@@ -248,7 +248,7 @@ int held_button = 0;
 std::string mouse_direction = "";
 bool mouse_up_held = false;
 bool mouse_down_held = false;
-
+int life_adder; 
 
     
 public:

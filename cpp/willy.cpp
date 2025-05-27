@@ -318,8 +318,14 @@ WillyGame::WillyGame() :
     current_level("level1"),
     continuous_direction(""),
     moving_continuously(false),
+    mouse_button_held(false),
+    held_button(0),
+    mouse_direction(""),
+    mouse_up_held(false),
+    mouse_down_held(false),
     up_pressed(false),
     down_pressed(false),
+    life_adder(0),
     gen(rd()) {
     
     set_title("Willy the Worm - C++ GTK Edition");
@@ -811,7 +817,7 @@ void WillyGame::start_game() {
     moving_continuously = false;
     up_pressed = false;
     down_pressed = false;
-    
+    life_adder = 0;
     load_level("level1");
     update_status_bar();
 }
@@ -1312,11 +1318,37 @@ bool WillyGame::game_tick() {
         update_balls();
         check_collisions();
         
-        // Update bonus
+        // Update bonus/timer
         frame_count++;
         if(frame_count >= fps) {
             frame_count = 0;
+            int old_bonus = bonus;
             bonus = std::max(0, bonus - 10);
+            
+        if((score / GAME_NEWLIFEPOINTS) > life_adder) {
+            lives++;
+            life_adder++;
+            std::cout << "Extra life awarded! Score: " << score << ", Lives: " << lives << std::endl;
+            
+            // Play a sound for extra life
+            sound_manager->play_sound("bell.mp3"); // Or create a special extra life sound
+        }
+
+
+            // Check for time warnings
+            if((bonus <= 100 && old_bonus > 100) || (bonus <= 50 && old_bonus > 50)) {
+                std::cout << "Warning: Time running low!" << std::endl;
+                sound_manager->play_sound("bell.mp3"); // Warning sound
+            }
+
+            
+            // Check if timer ran out - Willy dies!
+            if(bonus <= 0) {
+                std::cout << "Time's up! Bonus reached zero - Willy dies!" << std::endl;
+                sound_manager->play_sound("tack.mp3"); // Death sound
+                die(); // Kill Willy when timer expires
+                return true; // Exit early since we're now in death/reset state
+            }
         }
         update_status_bar();
     }
@@ -1324,6 +1356,7 @@ bool WillyGame::game_tick() {
     
     return true; // Continue the timer
 }
+
 
 bool WillyGame::on_draw(const Cairo::RefPtr<Cairo::Context>& cr) {
     // Only paint blue background for intro screen
@@ -1449,11 +1482,11 @@ void WillyGame::draw_game_screen(const Cairo::RefPtr<Cairo::Context>& cr) {
         font_desc.set_family("Courier");
         // Scale font size based on the current scale - make it bigger and scale properly
         int font_size = std::max(12, (int)(16 * std::min(current_scale_x, current_scale_y)));
+        if(font_size>16) { font_size=16; }
         font_desc.set_size(font_size * PANGO_SCALE);
         
         auto layout = Pango::Layout::create(cr);
         layout->set_font_description(font_desc);
-        
         // Create status text with fixed-width formatting
         char status_buffer[200];
         snprintf(status_buffer, sizeof(status_buffer), 
@@ -1882,6 +1915,13 @@ void print_help(const char* program_name) {
     std::cout << "Controls:\n";
     std::cout << "  Arrow Keys        Move Willy (or WASD with -w option)\n";
     std::cout << "  Space             Jump\n";
+    std::cout << "  Mouse (with -m):  Hold mouse button relative to Willy:\n";
+    std::cout << "    - Hold above    Keep moving up (climb ladder)\n";
+    std::cout << "    - Hold below    Keep moving down (climb ladder)\n";
+    std::cout << "    - Hold left     Keep moving left\n";
+    std::cout << "    - Hold right    Keep moving right\n";
+    std::cout << "  Right Click       Jump (with -m option)\n";
+    std::cout << "  Middle Click      Stop Willy (with -m option)\n";
     std::cout << "  Ctrl+L            Skip level\n";
     std::cout << "  Ctrl+S            Toggle sound\n";
     std::cout << "  F5/F6/F7          Change background colors\n";
