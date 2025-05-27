@@ -480,18 +480,17 @@ bool WillyGame::check_movement_collision(int old_row, int old_col, int new_row, 
             continue;
         }
         
-        // Check if ball is at Willy's new position
+        // Only check collision if ball is at Willy's new position (same row AND column)
         if(ball.row == new_row && ball.col == new_col) {
-            return true; // Collision detected
+            return true; // Collision detected - ball and Willy at same position
         }
         
         // Check for crossing paths (ball and Willy swapping positions)
+        // This is only relevant if they're both moving horizontally at the same level
         if(ball.row == old_row && ball.col == old_col && 
-           ball.row == new_row && ball.col == new_col) {
-            // This means ball was at Willy's old position and Willy is moving to ball's position
-            // Need to check if ball is also moving to Willy's old position
-            // This is a simplified check - you might need more sophisticated logic
-            return true; // Collision detected
+           ball.row == new_row && ball.col == new_col && 
+           old_row == new_row) { // Only check swapping if on same horizontal level
+            return true; // Collision detected - crossing paths horizontally
         }
     }
     return false;
@@ -917,8 +916,10 @@ void WillyGame::check_collisions() {
     int x = willy_position.second;
     std::string current_tile = get_tile(y, x);
     
-    // Check ball collisions (don't die in ballpits)
+    // Check ball collisions (only die if at same horizontal level and same column)
     for(const auto& ball : balls) {
+        // Only check collision if Willy and ball are at the SAME row AND column
+        // AND not in a ballpit
         if(ball.row == y && ball.col == x && current_tile != "BALLPIT") {
             sound_manager->play_sound("tack.mp3"); // Death sound
             die();
@@ -1356,16 +1357,21 @@ void WillyGame::draw_intro_screen(const Cairo::RefPtr<Cairo::Context>& cr) {
     menubar.get_preferred_size(menubar_min, menubar_nat);
     int menubar_height = menubar_min.height;
     
-    // Apply scaling transformation
+    // Get current drawing area size
+    Gtk::Allocation allocation = drawing_area.get_allocation();
+    int area_width = allocation.get_width();
+    int area_height = allocation.get_height() - menubar_height;
+    
+    // Apply offset for menubar and clear background
     cr->save();
     cr->translate(0, menubar_height);
-    cr->scale(current_scale_x, current_scale_y);
     
-    // Use the base dimensions for layout calculations
-    int layout_width = base_game_width;
-    int layout_height = base_game_height;
+    // Clear the intro area with blue background
+    cr->set_source_rgb(redbg, greenbg, bluebg);
+    cr->rectangle(0, 0, area_width, area_height);
+    cr->fill();
     
-    // Text data exactly like Python version
+    // Text data
     std::vector<std::vector<std::string>> textdata = {
         {""},
         {""},
@@ -1399,90 +1405,91 @@ void WillyGame::draw_intro_screen(const Cairo::RefPtr<Cairo::Context>& cr) {
         {"Press Enter to Continue"}
     };
     
-    // Create surface for text rendering
-    auto large_surface = Cairo::ImageSurface::create(Cairo::FORMAT_ARGB32, layout_width * 2, layout_height * 2);
-    auto large_ctx = Cairo::Context::create(large_surface);
+    // Calculate appropriate sizing
+    int num_lines = textdata.size();
+    int available_height = area_height - 40; // Leave some margin
+    int line_height = available_height / num_lines;
+    int base_font_size = std::max(10, std::min(20, line_height - 2));
     
-    // Clear large surface to blue
-    large_ctx->set_source_rgb(redbg, greenbg, bluebg);
-    large_ctx->paint();
-    
-    // Use larger font size for the large surface
-    int large_font_size = std::max(16, (layout_height * 2 / (int)textdata.size()) - 10);
-    int line_spacing = large_font_size + 8;
-    
+    // Set up font
     Pango::FontDescription font_desc;
     font_desc.set_family("Courier");
-    font_desc.set_size(large_font_size * PANGO_SCALE);
+    font_desc.set_size(base_font_size * PANGO_SCALE);
     
-    auto layout = Pango::Layout::create(large_ctx);
+    auto layout = Pango::Layout::create(cr);
     layout->set_font_description(font_desc);
     
-    int counter = 0;
+    // Sprite size should match text height
+    int sprite_size = base_font_size;
     
-    for(const auto& message : textdata) {
-        if(message.empty() || (message.size() == 1 && message[0].empty())) {
-            counter++;
+    for(size_t line_idx = 0; line_idx < textdata.size(); line_idx++) {
+        const auto& line = textdata[line_idx];
+        
+        if(line.empty() || (line.size() == 1 && line[0].empty())) {
             continue;
         }
         
-        // Calculate total width of this line first
-        int max_width = 0;
-        for(const auto& message2 : message) {
-            auto sprite = sprite_loader->get_sprite(message2);
-            if(sprite && (message2 == "WILLY_RIGHT" || message2 == "WILLY_LEFT" || 
-                         message2 == "LADDER" || message2 == "UPSPRING" || 
-                         message2 == "SIDESPRING" || message2 == "PRESENT" || 
-                         message2 == "BELL" || message2 == "TACK" || message2 == "BALL")) {
-                max_width += (GAME_CHAR_WIDTH * scale_factor) * 2;
-            } else {
-                layout->set_text(message2);
-                int text_width, text_height;
-                layout->get_pixel_size(text_width, text_height);
-                max_width += text_width;
-            }
-        }
+        int y_pos = 20 + line_idx * line_height; // 20px top margin
         
-        // Now draw the line centered on large surface
-        int currentpos = (layout_width * 2 - max_width) / 2;
-        
-        for(const auto& message2 : message) {
-            if(message2.empty()) continue;
+        // Calculate line width for centering
+        int line_width = 0;
+        for(const auto& element : line) {
+            if(element.empty()) continue;
             
-            auto sprite = sprite_loader->get_sprite(message2);
-            if(sprite && (message2 == "WILLY_RIGHT" || message2 == "WILLY_LEFT" || 
-                         message2 == "LADDER" || message2 == "UPSPRING" || 
-                         message2 == "SIDESPRING" || message2 == "PRESENT" || 
-                         message2 == "BELL" || message2 == "TACK" || message2 == "BALL")) {
-                // Scale up sprite for large surface
-                large_ctx->save();
-                large_ctx->translate(currentpos, line_spacing * counter);
-                large_ctx->scale(2.0, 2.0);
-                large_ctx->set_source(sprite, 0, 0);
-                large_ctx->paint();
-                large_ctx->restore();
-                currentpos += (GAME_CHAR_WIDTH * scale_factor) * 2;
+            if(element == "WILLY_RIGHT" || element == "WILLY_LEFT" || 
+               element == "LADDER" || element == "UPSPRING" || 
+               element == "SIDESPRING" || element == "PRESENT" || 
+               element == "BELL" || element == "TACK" || element == "BALL") {
+                line_width += sprite_size;
             } else {
-                // Draw text on large surface
-                large_ctx->set_source_rgb(1.0, 1.0, 1.0);
-                layout->set_text(message2);
-                
-                int text_width, text_height;
-                layout->get_pixel_size(text_width, text_height);
-                
-                large_ctx->move_to(currentpos, line_spacing * counter);
-                layout->show_in_cairo_context(large_ctx);
-                currentpos += text_width;
+                layout->set_text(element);
+                int text_w, text_h;
+                layout->get_pixel_size(text_w, text_h);
+                line_width += text_w;
             }
         }
         
-        counter++;
+        // Center the line
+        int start_x = (area_width - line_width) / 2;
+        int current_x = start_x;
+        
+        // Draw elements
+        for(const auto& element : line) {
+            if(element.empty()) continue;
+            
+            if(element == "WILLY_RIGHT" || element == "WILLY_LEFT" || 
+               element == "LADDER" || element == "UPSPRING" || 
+               element == "SIDESPRING" || element == "PRESENT" || 
+               element == "BELL" || element == "TACK" || element == "BALL") {
+                
+                auto sprite = sprite_loader->get_sprite(element);
+                if(sprite) {
+                    cr->save();
+                    cr->translate(current_x, y_pos);
+                    
+                    // Scale sprite to match text size
+                    double sprite_scale = (double)sprite_size / (GAME_CHAR_WIDTH * scale_factor);
+                    cr->scale(sprite_scale, sprite_scale);
+                    
+                    cr->set_source(sprite, 0, 0);
+                    cr->paint();
+                    cr->restore();
+                }
+                current_x += sprite_size;
+            } else {
+                // Draw text
+                layout->set_text(element);
+                int text_w, text_h;
+                layout->get_pixel_size(text_w, text_h);
+                
+                cr->set_source_rgb(1.0, 1.0, 1.0);
+                cr->move_to(current_x, y_pos);
+                layout->show_in_cairo_context(cr);
+                
+                current_x += text_w;
+            }
+        }
     }
-    
-    // Now scale down the large surface to the final size for smooth anti-aliasing
-    cr->scale(0.5, 0.5);
-    cr->set_source(large_surface, 0, 0);
-    cr->paint();
     
     cr->restore();
 }
