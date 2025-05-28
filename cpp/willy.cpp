@@ -539,7 +539,7 @@ void WillyGame::start_game() {
     current_state = GameState::PLAYING;
     level = 1;
     score = 0;
-    lives = 5;
+    lives = game_options.starting_lives;;
     bonus = 1000;
     frame_count = 0;
     continuous_direction = "";
@@ -1625,4 +1625,31 @@ void WillyApplication::on_activate() {
     auto window = new WillyGame();
     add_window(*window);
     window->present();
+}
+
+// Function to run the game with specific options (called from editor)
+int run_willy_game(const GameOptions& options) {
+    // Set the global game_options to the provided options
+    game_options = options;
+    
+    // Print startup information
+    std::cout << "Willy the Worm - C++ GTK Edition\n";
+    std::cout << "Starting level: " << game_options.starting_level << "\n";
+    std::cout << "Levels file: " << game_options.levels_file << "\n";
+    std::cout << "Number of balls: " << game_options.number_of_balls << "\n";
+    std::cout << "FPS: " << game_options.fps << "\n";
+    std::cout << "Scale factor: " << game_options.scale_factor << "\n";
+    if (game_options.use_wasd) std::cout << "Using WASD controls\n";
+    if (game_options.disable_flash) std::cout << "Death flash disabled\n";
+    if (game_options.mouse_support) std::cout << "Mouse support enabled\n";
+    if (!game_options.sound_enabled) std::cout << "Sound disabled\n";
+    std::cout << "\n";
+
+    // Create a new argc/argv with only the program name for GTK
+    int gtk_argc = 1;
+    char program_name[] = "willy";
+    char* gtk_argv[] = {program_name, nullptr};
+
+    auto app = WillyApplication::create();
+    return app->run(gtk_argc, gtk_argv);
 }

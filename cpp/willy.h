@@ -41,6 +41,7 @@ struct GameOptions {
     bool sound_enabled = true;
     int scale_factor = 3;
     bool show_help = false;
+    int starting_lives = 5;
 };
 
 class SoundManager {
@@ -316,5 +317,7 @@ public:
 protected:
     void on_activate() override;
 };
+
+int run_willy_game(const GameOptions& options);
 
 #endif // WILLY_H

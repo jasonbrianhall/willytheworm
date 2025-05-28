@@ -79,7 +79,7 @@ private:
     double current_scale_y = 1.0;
     int base_game_width;
     int base_game_height;
-    
+    void test_level();
 public:
     WillyEditor();
     ~WillyEditor();
@@ -96,7 +96,6 @@ private:
     void save_level();
     void new_level();
     void next_level();
-    void test_level();
     void change_background_color(int color_component);
     void update_status_bar();
     void calculate_scaling_factors();
@@ -508,15 +507,6 @@ void WillyEditor::next_level() {
     drawing_area.queue_draw();
 }
 
-void WillyEditor::test_level() {
-    std::cout << "Test level functionality would launch the game here" << std::endl;
-    std::cout << "Command would be: ./willy -l " << current_level_num 
-              << " -L " << editor_options.levels_file << std::endl;
-    
-    // In a full implementation, you could fork and exec the game process
-    // or create a separate test window
-}
-
 void WillyEditor::change_background_color(int color_component) {
     double* color_ptr = nullptr;
     std::string color_name;
@@ -908,6 +898,36 @@ bool parse_editor_command_line(int argc, char* argv[]) {
     return true;
 }
 
+// Function to run the game with specific options (called from editor)
+void WillyEditor::test_level() {
+    std::cout << "Testing level " << current_level_num << "..." << std::endl;
+    
+    // Save the current level first
+    save_level();
+    
+    // Set up game options for testing
+    GameOptions test_options;
+    test_options.starting_level = current_level_num;
+    test_options.levels_file = editor_options.levels_file;
+    test_options.scale_factor = editor_options.scale_factor;
+    test_options.number_of_balls = 6;  // Default
+    test_options.fps = 10;             // Default
+    test_options.sound_enabled = true; // Default
+    test_options.use_wasd = false;
+    test_options.disable_flash = false;
+    test_options.mouse_support = false;
+    test_options.show_help = false;
+    test_options.starting_lives = 1;   // Only 1 life for testing!
+    
+    // Launch the game directly
+    std::cout << "Launching game to test level " << current_level_num << " (1 life)" << std::endl;
+    
+    // Run the game - this will block until the game window is closed
+    run_willy_game(test_options);
+    
+    std::cout << "Returned from testing level " << current_level_num << std::endl;
+}
+
 int main(int argc, char* argv[]) {
     // Parse command line arguments BEFORE creating GTK app
     if (!parse_editor_command_line(argc, argv)) {
@@ -933,3 +953,5 @@ int main(int argc, char* argv[]) {
     auto app = WillyEditorApplication::create();
     return app->run(gtk_argc, gtk_argv);
 }
+
+
