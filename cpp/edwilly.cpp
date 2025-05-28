@@ -101,6 +101,7 @@ private:
     void update_status_bar();
     void calculate_scaling_factors();
     void on_window_resize();
+    bool on_scroll_event(GdkEventScroll* event);
     std::pair<int, int> screen_to_grid(double screen_x, double screen_y);
     void place_sprite(int row, int col, const std::string& sprite_name);
     void remove_sprite(int row, int col);
@@ -197,10 +198,12 @@ void WillyEditor::setup_ui() {
     drawing_area.signal_key_press_event().connect(
         sigc::mem_fun(*this, &WillyEditor::on_key_press));
     
-    // Enable mouse events
-    drawing_area.add_events(Gdk::BUTTON_PRESS_MASK);
+    // Enable mouse events including scroll wheel
+    drawing_area.add_events(Gdk::BUTTON_PRESS_MASK | Gdk::SCROLL_MASK);
     drawing_area.signal_button_press_event().connect(
         sigc::mem_fun(*this, &WillyEditor::on_button_press));
+    drawing_area.signal_scroll_event().connect(
+        sigc::mem_fun(*this, &WillyEditor::on_scroll_event));
     
     vbox.pack_start(drawing_area, Gtk::PACK_EXPAND_WIDGET);
     
@@ -278,8 +281,10 @@ bool WillyEditor::on_key_press(GdkEventKey* event) {
         }
     } else if(editor_state == EditorState::INTRO) {
         if(keyname == "Return" || keyname == "Enter" || keyname == "KP_Enter") {
+            std::cout << "Starting editor..." << std::endl;
             editor_state = EditorState::EDITING;
             load_level(current_level_num);
+            drawing_area.queue_draw();
         }
     } else if(editor_state == EditorState::EDITING) {
         if(keyname == "s" || keyname == "S") {
@@ -308,6 +313,27 @@ bool WillyEditor::on_key_press(GdkEventKey* event) {
     }
     
     drawing_area.queue_draw();
+    return true;
+}
+
+bool WillyEditor::on_scroll_event(GdkEventScroll* event) {
+    if(editor_state != EditorState::EDITING) {
+        return false;
+    }
+    
+    if(event->direction == GDK_SCROLL_UP) {
+        sprite_iterator.previous();
+        std::cout << "Scroll up - previous sprite: " << sprite_iterator.current() << std::endl;
+    } else if(event->direction == GDK_SCROLL_DOWN) {
+        sprite_iterator.next();
+        std::cout << "Scroll down - next sprite: " << sprite_iterator.current() << std::endl;
+    }
+    
+    // Update the preview sprite in top-right corner (column 40)
+    place_sprite(0, 40, sprite_iterator.current());
+    update_status_bar();
+    drawing_area.queue_draw();
+    
     return true;
 }
 
@@ -400,13 +426,16 @@ void WillyEditor::load_level(int level_num) {
     current_level_num = level_num;
     current_level = "level" + std::to_string(level_num);
     
+    std::cout << "Loading level: " << current_level << std::endl;
+    
     if(!level_loader->level_exists(current_level)) {
         // Create new level
+        std::cout << "Level doesn't exist, creating new one..." << std::endl;
         ensure_level_exists();
     }
     
-    // Set up the preview sprite in top-right corner
-    place_sprite(0, GAME_MAX_WIDTH - 1, sprite_iterator.current());
+    // Set up the preview sprite in top-right corner (column 40, outside the game area)
+    place_sprite(0, 40, sprite_iterator.current());
     
     update_status_bar();
     std::cout << "Loaded level: " << current_level << std::endl;
@@ -415,20 +444,23 @@ void WillyEditor::load_level(int level_num) {
 void WillyEditor::ensure_level_exists() {
     // Initialize empty level if it doesn't exist
     if (!level_loader->level_exists(current_level)) {
-        // Create level by setting at least one tile
+        std::cout << "Creating new level: " << current_level << std::endl;
+        // Create level by setting at least one tile - we'll set all to EMPTY initially
         for(int row = 0; row < GAME_MAX_HEIGHT; row++) {
             for(int col = 0; col < GAME_MAX_WIDTH; col++) {
                 level_loader->set_tile(current_level, row, col, "EMPTY");
             }
         }
         std::cout << "Created new empty level: " << current_level << std::endl;
+    } else {
+        std::cout << "Level " << current_level << " already exists" << std::endl;
     }
 }
 
 void WillyEditor::save_level() {
-    // Remove the preview sprite before saving (if it exists)
-    if (level_loader->get_tile(current_level, 0, GAME_MAX_WIDTH - 1) != "EMPTY") {
-        level_loader->set_tile(current_level, 0, GAME_MAX_WIDTH - 1, "EMPTY");
+    // Remove the preview sprite before saving (column 40)
+    if (level_loader->get_tile(current_level, 0, 40) != "EMPTY") {
+        level_loader->set_tile(current_level, 0, 40, "EMPTY");
     }
     
     if(level_loader->save_levels(editor_options.levels_file)) {
@@ -437,8 +469,8 @@ void WillyEditor::save_level() {
         std::cout << "Failed to save level!" << std::endl;
     }
     
-    // Restore the preview sprite
-    place_sprite(0, GAME_MAX_WIDTH - 1, sprite_iterator.current());
+    // Restore the preview sprite (column 40)
+    place_sprite(0, 40, sprite_iterator.current());
     
     update_status_bar();
 }
@@ -451,8 +483,8 @@ void WillyEditor::new_level() {
     // Initialize new empty level
     ensure_level_exists();
     
-    // Set up the preview sprite in top-right corner
-    place_sprite(0, GAME_MAX_WIDTH - 1, sprite_iterator.current());
+    // Set up the preview sprite in top-right corner (column 40)
+    place_sprite(0, 40, sprite_iterator.current());
     
     update_status_bar();
     drawing_area.queue_draw();
@@ -560,6 +592,7 @@ void WillyEditor::on_window_resize() {
 
 bool WillyEditor::on_draw(const Cairo::RefPtr<Cairo::Context>& cr) {
     if(editor_state == EditorState::INTRO) {
+        // Paint blue background for entire area first
         cr->set_source_rgb(redbg, greenbg, bluebg);
         cr->paint();
         draw_intro_screen(cr);
@@ -712,9 +745,9 @@ void WillyEditor::draw_editor_screen(const Cairo::RefPtr<Cairo::Context>& cr) {
     int scaled_char_width = GAME_CHAR_WIDTH * scale_factor;
     int scaled_char_height = GAME_CHAR_HEIGHT * scale_factor;
     
-    // Draw background for all positions
+    // Draw background for game area (40 columns) plus preview column (column 40)
     for(int row = 0; row < GAME_MAX_HEIGHT; row++) {
-        for(int col = 0; col < GAME_MAX_WIDTH; col++) {
+        for(int col = 0; col <= 40; col++) { // Include column 40 for preview
             int x = col * scaled_char_width;
             int y = row * scaled_char_height;
             
@@ -724,7 +757,15 @@ void WillyEditor::draw_editor_screen(const Cairo::RefPtr<Cairo::Context>& cr) {
             cr->fill();
             
             // Get the tile at this position
-            std::string tile = level_loader->get_tile(current_level, row, col);
+            std::string tile;
+            if(col < GAME_MAX_WIDTH) {
+                tile = level_loader->get_tile(current_level, row, col);
+            } else if(col == 40 && row == 0) {
+                // Preview sprite in column 40, row 0
+                tile = sprite_iterator.current();
+            } else {
+                tile = "EMPTY";
+            }
             
             // Draw sprite if not empty
             if(tile != "EMPTY") {
