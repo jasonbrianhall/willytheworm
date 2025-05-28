@@ -11,6 +11,7 @@ DEBUG_FLAGS = -g -DDEBUG
 
 # Source files
 SRCS_COMMON = willy.cpp loadlevels.cpp sound.cpp highscores.cpp spriteloader.cpp
+SRCS_EDITOR = edwilly.cpp loadlevels.cpp spriteloader.cpp
 
 # GTK flags for Linux
 GTK_CFLAGS_LINUX := $(shell pkg-config --cflags gtkmm-3.0)
@@ -32,15 +33,23 @@ SDL_LIBS_WIN := $(shell mingw64-pkg-config --libs sdl2 SDL2_mixer 2>/dev/null ||
 CXXFLAGS_LINUX = $(CXXFLAGS_COMMON) $(GTK_CFLAGS_LINUX) $(SDL_CFLAGS_LINUX) -DLINUX
 CXXFLAGS_WIN = $(CXXFLAGS_COMMON) $(GTK_CFLAGS_WIN) $(SDL_CFLAGS_WIN) -DWIN32 -mwindows
 
+# Editor-specific flags (no SDL needed)
+CXXFLAGS_EDITOR_LINUX = $(CXXFLAGS_COMMON) $(GTK_CFLAGS_LINUX) -DLINUX -DEDITOR_BUILD
+CXXFLAGS_EDITOR_WIN = $(CXXFLAGS_COMMON) $(GTK_CFLAGS_WIN) -DWIN32 -mwindows -DEDITOR_BUILD
+
 # Debug-specific flags
 CXXFLAGS_LINUX_DEBUG = $(CXXFLAGS_LINUX) $(DEBUG_FLAGS)
 CXXFLAGS_WIN_DEBUG = $(CXXFLAGS_WIN) $(DEBUG_FLAGS)
+CXXFLAGS_EDITOR_LINUX_DEBUG = $(CXXFLAGS_EDITOR_LINUX) $(DEBUG_FLAGS)
+CXXFLAGS_EDITOR_WIN_DEBUG = $(CXXFLAGS_EDITOR_WIN) $(DEBUG_FLAGS)
 
 # Linker flags - FIXED VERSION for Windows
 LDFLAGS_LINUX = $(GTK_LIBS_LINUX) $(SDL_LIBS_LINUX) -pthread
+LDFLAGS_EDITOR_LINUX = $(GTK_LIBS_LINUX) -pthread
 
 # Windows linker flags - Fixed to avoid multiple definition errors
 LDFLAGS_WIN = $(GTK_LIBS_WIN) $(SDL_LIBS_WIN) -lwinmm
+LDFLAGS_EDITOR_WIN = $(GTK_LIBS_WIN) -lwinmm
 
 # Object files
 OBJS_LINUX = $(SRCS_COMMON:.cpp=.o)
@@ -48,11 +57,23 @@ OBJS_WIN = $(SRCS_COMMON:.cpp=.win.o)
 OBJS_LINUX_DEBUG = $(SRCS_COMMON:.cpp=.debug.o)
 OBJS_WIN_DEBUG = $(SRCS_COMMON:.cpp=.win.debug.o)
 
+# Editor object files
+OBJS_EDITOR_LINUX = $(SRCS_EDITOR:.cpp=.editor.o)
+OBJS_EDITOR_WIN = $(SRCS_EDITOR:.cpp=.editor.win.o)
+OBJS_EDITOR_LINUX_DEBUG = $(SRCS_EDITOR:.cpp=.editor.debug.o)
+OBJS_EDITOR_WIN_DEBUG = $(SRCS_EDITOR:.cpp=.editor.win.debug.o)
+
 # Target executables
 TARGET_LINUX = willy
 TARGET_WIN = willy.exe
 TARGET_LINUX_DEBUG = willy_debug
 TARGET_WIN_DEBUG = willy_debug.exe
+
+# Editor target executables
+TARGET_EDITOR_LINUX = edwilly
+TARGET_EDITOR_WIN = edwilly.exe
+TARGET_EDITOR_LINUX_DEBUG = edwilly_debug
+TARGET_EDITOR_WIN_DEBUG = edwilly_debug.exe
 
 # Build directories
 BUILD_DIR = build
@@ -76,23 +97,23 @@ all: linux
 
 # OS-specific builds
 .PHONY: windows
-windows: willy-windows
+windows: willy-windows edwilly-windows
 
 .PHONY: linux
-linux: willy-linux
+linux: willy-linux edwilly-linux
 
 # Debug targets
 .PHONY: debug
-debug: willy-linux-debug willy-windows-debug
+debug: willy-linux-debug willy-windows-debug edwilly-linux-debug edwilly-windows-debug
 
 .PHONY: linux-debug
-linux-debug: willy-linux-debug
+linux-debug: willy-linux-debug edwilly-linux-debug
 
 .PHONY: windows-debug
-windows-debug: willy-windows-debug
+windows-debug: willy-windows-debug edwilly-windows-debug
 
 #
-# Linux build targets
+# Linux build targets (Game)
 #
 .PHONY: willy-linux
 willy-linux: $(BUILD_DIR_LINUX)/$(TARGET_LINUX) copy-data-linux
@@ -108,7 +129,23 @@ $(BUILD_DIR_LINUX)/%.o: %.cpp
 	$(CXX_LINUX) $(CXXFLAGS_LINUX) -c $< -o $@
 
 #
-# Linux debug targets
+# Linux Editor build targets
+#
+.PHONY: edwilly-linux
+edwilly-linux: $(BUILD_DIR_LINUX)/$(TARGET_EDITOR_LINUX) copy-data-linux
+
+$(BUILD_DIR_LINUX)/$(TARGET_EDITOR_LINUX): $(addprefix $(BUILD_DIR_LINUX)/,$(OBJS_EDITOR_LINUX))
+	@echo "Linking Linux editor executable..."
+	$(CXX_LINUX) $^ -o $@ $(LDFLAGS_EDITOR_LINUX)
+	@echo "Linux editor build completed: $@"
+
+# Generic compilation rules for Linux editor
+$(BUILD_DIR_LINUX)/%.editor.o: %.cpp
+	@echo "Compiling $< for Linux editor..."
+	$(CXX_LINUX) $(CXXFLAGS_EDITOR_LINUX) -c $< -o $@
+
+#
+# Linux debug targets (Game)
 #
 .PHONY: willy-linux-debug
 willy-linux-debug: $(BUILD_DIR_LINUX_DEBUG)/$(TARGET_LINUX_DEBUG) copy-data-linux-debug
@@ -124,7 +161,23 @@ $(BUILD_DIR_LINUX_DEBUG)/%.debug.o: %.cpp
 	$(CXX_LINUX) $(CXXFLAGS_LINUX_DEBUG) -c $< -o $@
 
 #
-# Windows build targets
+# Linux debug targets (Editor)
+#
+.PHONY: edwilly-linux-debug
+edwilly-linux-debug: $(BUILD_DIR_LINUX_DEBUG)/$(TARGET_EDITOR_LINUX_DEBUG) copy-data-linux-debug
+
+$(BUILD_DIR_LINUX_DEBUG)/$(TARGET_EDITOR_LINUX_DEBUG): $(addprefix $(BUILD_DIR_LINUX_DEBUG)/,$(OBJS_EDITOR_LINUX_DEBUG))
+	@echo "Linking Linux editor debug executable..."
+	$(CXX_LINUX) $^ -o $@ $(LDFLAGS_EDITOR_LINUX)
+	@echo "Linux editor debug build completed: $@"
+
+# Generic compilation rules for Linux editor debug
+$(BUILD_DIR_LINUX_DEBUG)/%.editor.debug.o: %.cpp
+	@echo "Compiling $< for Linux editor debug..."
+	$(CXX_LINUX) $(CXXFLAGS_EDITOR_LINUX_DEBUG) -c $< -o $@
+
+#
+# Windows build targets (Game)
 #
 .PHONY: willy-windows
 willy-windows: $(BUILD_DIR_WIN)/$(TARGET_WIN) willy-collect-dlls copy-data-windows
@@ -140,7 +193,23 @@ $(BUILD_DIR_WIN)/%.win.o: %.cpp
 	$(CXX_WIN) $(CXXFLAGS_WIN) -c $< -o $@
 
 #
-# Windows debug targets
+# Windows Editor build targets
+#
+.PHONY: edwilly-windows
+edwilly-windows: $(BUILD_DIR_WIN)/$(TARGET_EDITOR_WIN) edwilly-collect-dlls copy-data-windows
+
+$(BUILD_DIR_WIN)/$(TARGET_EDITOR_WIN): $(addprefix $(BUILD_DIR_WIN)/,$(OBJS_EDITOR_WIN))
+	@echo "Linking Windows editor executable..."
+	$(CXX_WIN) $^ -o $@ $(LDFLAGS_EDITOR_WIN)
+	@echo "Windows editor build completed: $@"
+
+# Generic compilation rules for Windows editor
+$(BUILD_DIR_WIN)/%.editor.win.o: %.cpp
+	@echo "Compiling $< for Windows editor..."
+	$(CXX_WIN) $(CXXFLAGS_EDITOR_WIN) -c $< -o $@
+
+#
+# Windows debug targets (Game)
 #
 .PHONY: willy-windows-debug
 willy-windows-debug: $(BUILD_DIR_WIN_DEBUG)/$(TARGET_WIN_DEBUG) willy-collect-debug-dlls copy-data-windows-debug
@@ -154,6 +223,22 @@ $(BUILD_DIR_WIN_DEBUG)/$(TARGET_WIN_DEBUG): $(addprefix $(BUILD_DIR_WIN_DEBUG)/,
 $(BUILD_DIR_WIN_DEBUG)/%.win.debug.o: %.cpp
 	@echo "Compiling $< for Windows debug..."
 	$(CXX_WIN) $(CXXFLAGS_WIN_DEBUG) -c $< -o $@
+
+#
+# Windows debug targets (Editor)
+#
+.PHONY: edwilly-windows-debug
+edwilly-windows-debug: $(BUILD_DIR_WIN_DEBUG)/$(TARGET_EDITOR_WIN_DEBUG) edwilly-collect-debug-dlls copy-data-windows-debug
+
+$(BUILD_DIR_WIN_DEBUG)/$(TARGET_EDITOR_WIN_DEBUG): $(addprefix $(BUILD_DIR_WIN_DEBUG)/,$(OBJS_EDITOR_WIN_DEBUG))
+	@echo "Linking Windows editor debug executable..."
+	$(CXX_WIN) $^ -o $@ $(LDFLAGS_EDITOR_WIN)
+	@echo "Windows editor debug build completed: $@"
+
+# Generic compilation rules for Windows editor debug
+$(BUILD_DIR_WIN_DEBUG)/%.editor.win.debug.o: %.cpp
+	@echo "Compiling $< for Windows editor debug..."
+	$(CXX_WIN) $(CXXFLAGS_EDITOR_WIN_DEBUG) -c $< -o $@
 
 #
 # DLL collection for Windows builds
@@ -171,6 +256,19 @@ willy-collect-dlls: $(BUILD_DIR_WIN)/$(TARGET_WIN)
 		echo "Required DLLs typically include: libgcc_s_seh-1.dll, libstdc++-6.dll, libgtkmm-3.0-1.dll, libgtk-3-0.dll, SDL2.dll, SDL2_mixer.dll"; \
 	fi
 
+.PHONY: edwilly-collect-dlls
+edwilly-collect-dlls: $(BUILD_DIR_WIN)/$(TARGET_EDITOR_WIN)
+	@echo "Collecting DLLs for Windows Editor..."
+	@if [ -f $(BUILD_DIR_WIN)/collect_dlls.sh ]; then \
+		cd $(BUILD_DIR_WIN) && ./collect_dlls.sh $(TARGET_EDITOR_WIN) $(DLL_SOURCE_DIR) .; \
+	elif [ -f collect_dlls.sh ]; then \
+		./collect_dlls.sh $(BUILD_DIR_WIN)/$(TARGET_EDITOR_WIN) $(DLL_SOURCE_DIR) $(BUILD_DIR_WIN); \
+	else \
+		echo "Warning: collect_dlls.sh not found in current directory or $(BUILD_DIR_WIN)/"; \
+		echo "You may need to manually copy required DLLs."; \
+		echo "Required DLLs typically include: libgcc_s_seh-1.dll, libstdc++-6.dll, libgtkmm-3.0-1.dll, libgtk-3-0.dll"; \
+	fi
+
 .PHONY: willy-collect-debug-dlls
 willy-collect-debug-dlls: $(BUILD_DIR_WIN_DEBUG)/$(TARGET_WIN_DEBUG)
 	@echo "Collecting Debug DLLs for Windows Willy..."
@@ -183,6 +281,18 @@ willy-collect-debug-dlls: $(BUILD_DIR_WIN_DEBUG)/$(TARGET_WIN_DEBUG)
 		echo "You may need to manually copy required DLLs."; \
 	fi
 
+.PHONY: edwilly-collect-debug-dlls
+edwilly-collect-debug-dlls: $(BUILD_DIR_WIN_DEBUG)/$(TARGET_EDITOR_WIN_DEBUG)
+	@echo "Collecting Debug DLLs for Windows Editor..."
+	@if [ -f $(BUILD_DIR_WIN_DEBUG)/collect_dlls.sh ]; then \
+		cd $(BUILD_DIR_WIN_DEBUG) && ./collect_dlls.sh $(TARGET_EDITOR_WIN_DEBUG) $(DLL_SOURCE_DIR) .; \
+	elif [ -f collect_dlls.sh ]; then \
+		./collect_dlls.sh $(BUILD_DIR_WIN_DEBUG)/$(TARGET_EDITOR_WIN_DEBUG) $(DLL_SOURCE_DIR) $(BUILD_DIR_WIN_DEBUG); \
+	else \
+		echo "Warning: collect_dlls.sh not found in current directory or $(BUILD_DIR_WIN_DEBUG)/"; \
+		echo "You may need to manually copy required DLLs."; \
+	fi
+
 #
 # Data file copying
 #
@@ -190,11 +300,11 @@ willy-collect-debug-dlls: $(BUILD_DIR_WIN_DEBUG)/$(TARGET_WIN_DEBUG)
 copy-data-linux:
 	@echo "Copying data files to Linux build directory..."
 	@for file in $(DATA_FILES); do \
-		if [ -f $$file ]; then \
-			cp $$file $(BUILD_DIR_LINUX)/; \
-			echo "Copied $$file to $(BUILD_DIR_LINUX)/"; \
+		if [ -f $file ]; then \
+			cp $file $(BUILD_DIR_LINUX)/; \
+			echo "Copied $file to $(BUILD_DIR_LINUX)/"; \
 		else \
-			echo "Warning: $$file not found"; \
+			echo "Warning: $file not found"; \
 		fi; \
 	done
 	mkdir -p $(BUILD_DIR_LINUX)/audio/
@@ -204,11 +314,11 @@ copy-data-linux:
 copy-data-linux-debug:
 	@echo "Copying data files to Linux debug build directory..."
 	@for file in $(DATA_FILES); do \
-		if [ -f $$file ]; then \
-			cp $$file $(BUILD_DIR_LINUX_DEBUG)/; \
-			echo "Copied $$file to $(BUILD_DIR_LINUX_DEBUG)/"; \
+		if [ -f $file ]; then \
+			cp $file $(BUILD_DIR_LINUX_DEBUG)/; \
+			echo "Copied $file to $(BUILD_DIR_LINUX_DEBUG)/"; \
 		else \
-			echo "Warning: $$file not found"; \
+			echo "Warning: $file not found"; \
 		fi; \
 	done
 	mkdir -p $(BUILD_DIR_LINUX_DEBUG)/audio/
@@ -218,11 +328,11 @@ copy-data-linux-debug:
 copy-data-windows:
 	@echo "Copying data files to Windows build directory..."
 	@for file in $(DATA_FILES); do \
-		if [ -f $$file ]; then \
-			cp $$file $(BUILD_DIR_WIN)/; \
-			echo "Copied $$file to $(BUILD_DIR_WIN)/"; \
+		if [ -f $file ]; then \
+			cp $file $(BUILD_DIR_WIN)/; \
+			echo "Copied $file to $(BUILD_DIR_WIN)/"; \
 		else \
-			echo "Warning: $$file not found"; \
+			echo "Warning: $file not found"; \
 		fi; \
 	done
 	mkdir -p $(BUILD_DIR_WIN)/audio/
@@ -232,11 +342,11 @@ copy-data-windows:
 copy-data-windows-debug:
 	@echo "Copying data files to Windows debug build directory..."
 	@for file in $(DATA_FILES); do \
-		if [ -f $$file ]; then \
-			cp $$file $(BUILD_DIR_WIN_DEBUG)/; \
-			echo "Copied $$file to $(BUILD_DIR_WIN_DEBUG)/"; \
+		if [ -f $file ]; then \
+			cp $file $(BUILD_DIR_WIN_DEBUG)/; \
+			echo "Copied $file to $(BUILD_DIR_WIN_DEBUG)/"; \
 		else \
-			echo "Warning: $$file not found"; \
+			echo "Warning: $file not found"; \
 		fi; \
 	done
 	mkdir -p $(BUILD_DIR_WIN)/audio/
@@ -261,20 +371,22 @@ copy-audio-windows:
 
 # Install targets (Linux only)
 .PHONY: install
-install: willy-linux
-	@echo "Installing Willy the Worm..."
+install: willy-linux edwilly-linux
+	@echo "Installing Willy the Worm and Editor..."
 	sudo cp $(BUILD_DIR_LINUX)/$(TARGET_LINUX) /usr/local/bin/
+	sudo cp $(BUILD_DIR_LINUX)/$(TARGET_EDITOR_LINUX) /usr/local/bin/
 	sudo mkdir -p /usr/local/share/willy/
 	sudo cp $(DATA_FILES) /usr/local/share/willy/ 2>/dev/null || true
 	@if [ -d audio ]; then \
 		sudo cp -r audio /usr/local/share/willy/; \
 	fi
-	@echo "Installation completed. Run with: willy"
+	@echo "Installation completed. Run with: willy (game) or edwilly (editor)"
 
 .PHONY: uninstall
 uninstall:
-	@echo "Uninstalling Willy the Worm..."
+	@echo "Uninstalling Willy the Worm and Editor..."
 	sudo rm -f /usr/local/bin/$(TARGET_LINUX)
+	sudo rm -f /usr/local/bin/$(TARGET_EDITOR_LINUX)
 	sudo rm -rf /usr/local/share/willy/
 	@echo "Uninstallation completed."
 
@@ -286,9 +398,13 @@ clean:
 	find $(BUILD_DIR) -type f -name "*.dll" -delete 2>/dev/null || true
 	find $(BUILD_DIR) -type f -name "*.exe" -delete 2>/dev/null || true
 	rm -f $(BUILD_DIR_LINUX)/$(TARGET_LINUX) 2>/dev/null || true
+	rm -f $(BUILD_DIR_LINUX)/$(TARGET_EDITOR_LINUX) 2>/dev/null || true
 	rm -f $(BUILD_DIR_LINUX_DEBUG)/$(TARGET_LINUX_DEBUG) 2>/dev/null || true
+	rm -f $(BUILD_DIR_LINUX_DEBUG)/$(TARGET_EDITOR_LINUX_DEBUG) 2>/dev/null || true
 	rm -f $(BUILD_DIR_WIN)/$(TARGET_WIN) 2>/dev/null || true
+	rm -f $(BUILD_DIR_WIN)/$(TARGET_EDITOR_WIN) 2>/dev/null || true
 	rm -f $(BUILD_DIR_WIN_DEBUG)/$(TARGET_WIN_DEBUG) 2>/dev/null || true
+	rm -f $(BUILD_DIR_WIN_DEBUG)/$(TARGET_EDITOR_WIN_DEBUG) 2>/dev/null || true
 	@echo "Clean completed."
 
 .PHONY: clean-all
@@ -299,24 +415,25 @@ clean-all: clean
 
 # Test targets
 .PHONY: test-linux
-test-linux: willy-linux
-	@echo "Testing Linux build..."
+test-linux: willy-linux edwilly-linux
+	@echo "Testing Linux builds..."
 	cd $(BUILD_DIR_LINUX) && ./$(TARGET_LINUX) -h
+	cd $(BUILD_DIR_LINUX) && ./$(TARGET_EDITOR_LINUX) -h
 
 .PHONY: test-windows
-test-windows: willy-windows
-	@echo "Testing Windows build..."
-	@echo "Run $(BUILD_DIR_WIN)/$(TARGET_WIN) manually on Windows system"
+test-windows: willy-windows edwilly-windows
+	@echo "Testing Windows builds..."
+	@echo "Run $(BUILD_DIR_WIN)/$(TARGET_WIN) and $(BUILD_DIR_WIN)/$(TARGET_EDITOR_WIN) manually on Windows system"
 
 # Package targets
 .PHONY: package-linux
-package-linux: willy-linux copy-audio-linux
+package-linux: willy-linux edwilly-linux copy-audio-linux
 	@echo "Creating Linux package..."
 	tar -czf willy-linux.tar.gz -C $(BUILD_DIR_LINUX) .
 	@echo "Linux package created: willy-linux.tar.gz"
 
 .PHONY: package-windows
-package-windows: willy-windows copy-audio-windows
+package-windows: willy-windows edwilly-windows copy-audio-windows
 	@echo "Creating Windows package..."
 	cd $(BUILD_DIR_WIN) && zip -r ../willy-windows.zip .
 	@echo "Windows package created: $(BUILD_DIR)/willy-windows.zip"
@@ -328,19 +445,24 @@ package-all: package-linux package-windows
 .PHONY: help
 help:
 	@echo "Available targets:"
-	@echo "  make               - Build Willy for Linux (default)"
-	@echo "  make linux         - Build Willy for Linux"
-	@echo "  make windows       - Build Willy for Windows (requires MinGW)"
+	@echo "  make               - Build Willy game and editor for Linux (default)"
+	@echo "  make linux         - Build Willy game and editor for Linux"
+	@echo "  make windows       - Build Willy game and editor for Windows (requires MinGW)"
+	@echo ""
+	@echo "  make willy-linux   - Build only the game for Linux"
+	@echo "  make edwilly-linux - Build only the editor for Linux"
+	@echo "  make willy-windows - Build only the game for Windows"
+	@echo "  make edwilly-windows - Build only the editor for Windows"
 	@echo ""
 	@echo "  make debug         - Build debug versions for both platforms"
-	@echo "  make linux-debug   - Build Willy for Linux with debug symbols"
-	@echo "  make windows-debug - Build Willy for Windows with debug symbols"
+	@echo "  make linux-debug   - Build Willy game and editor for Linux with debug symbols"
+	@echo "  make windows-debug - Build Willy game and editor for Windows with debug symbols"
 	@echo ""
-	@echo "  make install       - Install Willy system-wide (Linux only)"
+	@echo "  make install       - Install Willy game and editor system-wide (Linux only)"
 	@echo "  make uninstall     - Uninstall Willy from system (Linux only)"
 	@echo ""
-	@echo "  make test-linux    - Test Linux build"
-	@echo "  make test-windows  - Test Windows build"
+	@echo "  make test-linux    - Test Linux builds"
+	@echo "  make test-windows  - Test Windows builds"
 	@echo ""
 	@echo "  make package-linux   - Create Linux distribution package"
 	@echo "  make package-windows - Create Windows distribution package"
@@ -353,3 +475,7 @@ help:
 	@echo "Requirements:"
 	@echo "  Linux build:   g++, pkg-config, libgtkmm-3.0-dev, libsdl2-dev, libsdl2-mixer-dev"
 	@echo "  Windows build: mingw-w64-g++, mingw64-pkg-config, mingw64 GTK3 and SDL2 libraries"
+	@echo ""
+	@echo "Editor vs Game:"
+	@echo "  Game (willy):   Full game with sound, requires SDL2"
+	@echo "  Editor (edwilly): Level editor only, no sound, only requires GTK"
