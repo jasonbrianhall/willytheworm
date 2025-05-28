@@ -537,9 +537,9 @@ bool WillyGame::on_key_release(GdkEventKey* event) {
 
 void WillyGame::start_game() {
     current_state = GameState::PLAYING;
-    level = 1;
+    level = game_options.starting_level;  // Use the configured starting level (not hardcoded 1)
     score = 0;
-    lives = game_options.starting_lives;;
+    lives = game_options.starting_lives;  // Use the configured starting lives
     bonus = 1000;
     frame_count = 0;
     continuous_direction = "";
@@ -547,7 +547,10 @@ void WillyGame::start_game() {
     up_pressed = false;
     down_pressed = false;
     life_adder = 0;
-    load_level("level1");
+    
+    // Load the specified starting level (not hardcoded "level1")
+    std::string level_name = "level" + std::to_string(level);
+    load_level(level_name);
     update_status_bar();
 }
 
