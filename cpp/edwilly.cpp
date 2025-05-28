@@ -181,7 +181,7 @@ WillyEditor::~WillyEditor() {
 void WillyEditor::setup_ui() {
     add(vbox);
     
-    create_menubar();
+    //create_menubar();
     vbox.pack_start(menubar, Gtk::PACK_SHRINK);
     
     // Allow the drawing area to expand and fill available space
