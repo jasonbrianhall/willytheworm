@@ -2,9 +2,9 @@
 #include <getopt.h>
 
 // Editor-specific global variables
-double redbg = 0.0;
-double greenbg = 0.0;
-double bluebg = 1.0;
+extern double redbg;
+extern double greenbg;
+extern double bluebg;;
 
 // Editor game options
 struct EditorGameOptions {
