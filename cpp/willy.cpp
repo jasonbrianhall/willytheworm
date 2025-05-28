@@ -1628,6 +1628,7 @@ void WillyApplication::on_activate() {
 }
 
 // Function to run the game with specific options (called from editor)
+// Function to run the game with specific options (called from editor)
 int run_willy_game(const GameOptions& options) {
     // Set the global game_options to the provided options
     game_options = options;
@@ -1639,17 +1640,31 @@ int run_willy_game(const GameOptions& options) {
     std::cout << "Number of balls: " << game_options.number_of_balls << "\n";
     std::cout << "FPS: " << game_options.fps << "\n";
     std::cout << "Scale factor: " << game_options.scale_factor << "\n";
+    std::cout << "Starting lives: " << game_options.starting_lives << "\n";
     if (game_options.use_wasd) std::cout << "Using WASD controls\n";
     if (game_options.disable_flash) std::cout << "Death flash disabled\n";
     if (game_options.mouse_support) std::cout << "Mouse support enabled\n";
     if (!game_options.sound_enabled) std::cout << "Sound disabled\n";
     std::cout << "\n";
 
-    // Create a new argc/argv with only the program name for GTK
-    int gtk_argc = 1;
-    char program_name[] = "willy";
-    char* gtk_argv[] = {program_name, nullptr};
-
-    auto app = WillyApplication::create();
-    return app->run(gtk_argc, gtk_argv);
+    // Create the game window directly instead of a new application
+    auto game_window = std::make_unique<WillyGame>();
+    
+    // Start the game at the intro screen
+    game_window->show_all();
+    game_window->present();
+    
+    // Run a local event loop until the game window is closed
+    while (game_window->get_visible()) {
+        // Process GTK events
+        while (Gtk::Main::events_pending()) {
+            Gtk::Main::iteration();
+        }
+        
+        // Small delay to prevent busy waiting
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+    
+    std::cout << "Game window closed, returning to editor\n";
+    return 0;
 }
