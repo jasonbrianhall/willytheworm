@@ -923,7 +923,7 @@ void WillyEditor::test_level() {
     std::cout << "Launching game to test level " << current_level_num << " (1 life)" << std::endl;
     
     // Run the game - this will block until the game window is closed
-    run_willy_game(test_options);
+    run_edwilly_game(test_options);
     
     std::cout << "Returned from testing level " << current_level_num << std::endl;
 }

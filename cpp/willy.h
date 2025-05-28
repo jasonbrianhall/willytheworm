@@ -319,5 +319,6 @@ protected:
 };
 
 int run_willy_game(const GameOptions& options);
+int run_edwilly_game(const GameOptions& options);
 
 #endif // WILLY_H
