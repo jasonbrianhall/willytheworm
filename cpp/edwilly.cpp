@@ -614,10 +614,16 @@ void WillyEditor::draw_intro_screen(const Cairo::RefPtr<Cairo::Context>& cr) {
     int area_width = allocation.get_width();
     int area_height = allocation.get_height() - menubar_height;
     
+    // Apply offset for menubar and clear background
     cr->save();
     cr->translate(0, menubar_height);
     
-    // Text data for intro screen
+    // Clear the intro area with blue background
+    cr->set_source_rgb(redbg, greenbg, bluebg);
+    cr->rectangle(0, 0, area_width, area_height);
+    cr->fill();
+    
+    // Text data - CHANGED FOR EDITOR
     std::vector<std::vector<std::string>> textdata = {
         {""},
         {""},
@@ -654,7 +660,7 @@ void WillyEditor::draw_intro_screen(const Cairo::RefPtr<Cairo::Context>& cr) {
     
     // Calculate appropriate sizing
     int num_lines = textdata.size();
-    int available_height = area_height - 40;
+    int available_height = area_height - 40; // Leave some margin
     int line_height = available_height / num_lines;
     int base_font_size = std::max(10, std::min(20, line_height - 2));
     
@@ -663,9 +669,10 @@ void WillyEditor::draw_intro_screen(const Cairo::RefPtr<Cairo::Context>& cr) {
     font_desc.set_family("Courier");
     font_desc.set_size(base_font_size * PANGO_SCALE);
     
-    auto layout = Pango::Layout::create(cr);
+    auto layout = create_pango_layout("");
     layout->set_font_description(font_desc);
     
+    // Sprite size should match text height
     int sprite_size = base_font_size;
     
     for(size_t line_idx = 0; line_idx < textdata.size(); line_idx++) {
@@ -675,14 +682,18 @@ void WillyEditor::draw_intro_screen(const Cairo::RefPtr<Cairo::Context>& cr) {
             continue;
         }
         
-        int y_pos = 20 + line_idx * line_height;
+        int y_pos = 20 + line_idx * line_height; // 20px top margin
         
         // Calculate line width for centering
         int line_width = 0;
         for(const auto& element : line) {
             if(element.empty()) continue;
             
-            if(sprite_loader->get_sprite(element)) {
+            if(element == "WILLY_RIGHT" || element == "WILLY_LEFT" || 
+               element == "LADDER" || element == "UPSPRING" || 
+               element == "SIDESPRING" || element == "PRESENT" || 
+               element == "BELL" || element == "TACK" || element == "BALL" ||
+               element == "BALLPIT") {
                 line_width += sprite_size;
             } else {
                 layout->set_text(element);
@@ -700,20 +711,28 @@ void WillyEditor::draw_intro_screen(const Cairo::RefPtr<Cairo::Context>& cr) {
         for(const auto& element : line) {
             if(element.empty()) continue;
             
-            auto sprite = sprite_loader->get_sprite(element);
-            if(sprite) {
-                cr->save();
-                cr->translate(current_x, y_pos);
+            if(element == "WILLY_RIGHT" || element == "WILLY_LEFT" || 
+               element == "LADDER" || element == "UPSPRING" || 
+               element == "SIDESPRING" || element == "PRESENT" || 
+               element == "BELL" || element == "TACK" || element == "BALL" ||
+               element == "BALLPIT") {
                 
-                double sprite_scale = (double)sprite_size / (GAME_CHAR_WIDTH * scale_factor);
-                cr->scale(sprite_scale, sprite_scale);
-                
-                cr->set_source(sprite, 0, 0);
-                cr->paint();
-                cr->restore();
-                
+                auto sprite = sprite_loader->get_sprite(element);
+                if(sprite) {
+                    cr->save();
+                    cr->translate(current_x, y_pos);
+                    
+                    // Scale sprite to match text size
+                    double sprite_scale = (double)sprite_size / (GAME_CHAR_WIDTH * scale_factor);
+                    cr->scale(sprite_scale, sprite_scale);
+                    
+                    cr->set_source(sprite, 0, 0);
+                    cr->paint();
+                    cr->restore();
+                }
                 current_x += sprite_size;
             } else {
+                // Draw text
                 layout->set_text(element);
                 int text_w, text_h;
                 layout->get_pixel_size(text_w, text_h);
