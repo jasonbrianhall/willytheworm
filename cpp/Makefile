@@ -11,7 +11,7 @@ DEBUG_FLAGS = -g -DDEBUG
 
 # Source files
 SRCS_COMMON = willy.cpp loadlevels.cpp sound.cpp highscores.cpp spriteloader.cpp willy_main.cpp
-SRCS_EDITOR = edwilly.cpp loadlevels.cpp spriteloader.cpp willy.cpp sound.cpp
+SRCS_EDITOR = edwilly.cpp loadlevels.cpp spriteloader.cpp willy.cpp sound.cpp highscores.cpp
 
 # GTK flags for Linux
 GTK_CFLAGS_LINUX := $(shell pkg-config --cflags gtkmm-3.0)
@@ -33,9 +33,9 @@ SDL_LIBS_WIN := $(shell mingw64-pkg-config --libs sdl2 SDL2_mixer 2>/dev/null ||
 CXXFLAGS_LINUX = $(CXXFLAGS_COMMON) $(GTK_CFLAGS_LINUX) $(SDL_CFLAGS_LINUX) -DLINUX
 CXXFLAGS_WIN = $(CXXFLAGS_COMMON) $(GTK_CFLAGS_WIN) $(SDL_CFLAGS_WIN) -DWIN32 -mwindows
 
-# Editor-specific flags (no SDL needed)
-CXXFLAGS_EDITOR_LINUX = $(CXXFLAGS_COMMON) $(GTK_CFLAGS_LINUX) -DLINUX -DEDITOR_BUILD
-CXXFLAGS_EDITOR_WIN = $(CXXFLAGS_COMMON) $(GTK_CFLAGS_WIN) -DWIN32 -mwindows -DEDITOR_BUILD
+# Editor-specific flags (NOW WITH SDL since it needs to run the game)
+CXXFLAGS_EDITOR_LINUX = $(CXXFLAGS_COMMON) $(GTK_CFLAGS_LINUX) $(SDL_CFLAGS_LINUX) -DLINUX -DEDITOR_BUILD
+CXXFLAGS_EDITOR_WIN = $(CXXFLAGS_COMMON) $(GTK_CFLAGS_WIN) $(SDL_CFLAGS_WIN) -DWIN32 -mwindows -DEDITOR_BUILD
 
 # Debug-specific flags
 CXXFLAGS_LINUX_DEBUG = $(CXXFLAGS_LINUX) $(DEBUG_FLAGS)
@@ -43,13 +43,13 @@ CXXFLAGS_WIN_DEBUG = $(CXXFLAGS_WIN) $(DEBUG_FLAGS)
 CXXFLAGS_EDITOR_LINUX_DEBUG = $(CXXFLAGS_EDITOR_LINUX) $(DEBUG_FLAGS)
 CXXFLAGS_EDITOR_WIN_DEBUG = $(CXXFLAGS_EDITOR_WIN) $(DEBUG_FLAGS)
 
-# Linker flags - FIXED VERSION for Windows
+# Linker flags - UPDATED for editor to include SDL
 LDFLAGS_LINUX = $(GTK_LIBS_LINUX) $(SDL_LIBS_LINUX) -pthread
-LDFLAGS_EDITOR_LINUX = $(GTK_LIBS_LINUX) -pthread
+LDFLAGS_EDITOR_LINUX = $(GTK_LIBS_LINUX) $(SDL_LIBS_LINUX) -pthread
 
-# Windows linker flags - Fixed to avoid multiple definition errors
+# Windows linker flags - Updated for editor to include SDL
 LDFLAGS_WIN = $(GTK_LIBS_WIN) $(SDL_LIBS_WIN) -lwinmm
-LDFLAGS_EDITOR_WIN = $(GTK_LIBS_WIN) -lwinmm
+LDFLAGS_EDITOR_WIN = $(GTK_LIBS_WIN) $(SDL_LIBS_WIN) -lwinmm
 
 # Object files
 OBJS_LINUX = $(SRCS_COMMON:.cpp=.o)
@@ -266,7 +266,7 @@ edwilly-collect-dlls: $(BUILD_DIR_WIN)/$(TARGET_EDITOR_WIN)
 	else \
 		echo "Warning: collect_dlls.sh not found in current directory or $(BUILD_DIR_WIN)/"; \
 		echo "You may need to manually copy required DLLs."; \
-		echo "Required DLLs typically include: libgcc_s_seh-1.dll, libstdc++-6.dll, libgtkmm-3.0-1.dll, libgtk-3-0.dll"; \
+		echo "Required DLLs now include SDL: libgcc_s_seh-1.dll, libstdc++-6.dll, libgtkmm-3.0-1.dll, libgtk-3-0.dll, SDL2.dll, SDL2_mixer.dll"; \
 	fi
 
 .PHONY: willy-collect-debug-dlls
@@ -300,11 +300,11 @@ edwilly-collect-debug-dlls: $(BUILD_DIR_WIN_DEBUG)/$(TARGET_EDITOR_WIN_DEBUG)
 copy-data-linux:
 	@echo "Copying data files to Linux build directory..."
 	@for file in $(DATA_FILES); do \
-		if [ -f $file ]; then \
-			cp $file $(BUILD_DIR_LINUX)/; \
-			echo "Copied $file to $(BUILD_DIR_LINUX)/"; \
+		if [ -f $$file ]; then \
+			cp $$file $(BUILD_DIR_LINUX)/; \
+			echo "Copied $$file to $(BUILD_DIR_LINUX)/"; \
 		else \
-			echo "Warning: $file not found"; \
+			echo "Warning: $$file not found"; \
 		fi; \
 	done
 	mkdir -p $(BUILD_DIR_LINUX)/audio/
@@ -314,11 +314,11 @@ copy-data-linux:
 copy-data-linux-debug:
 	@echo "Copying data files to Linux debug build directory..."
 	@for file in $(DATA_FILES); do \
-		if [ -f $file ]; then \
-			cp $file $(BUILD_DIR_LINUX_DEBUG)/; \
-			echo "Copied $file to $(BUILD_DIR_LINUX_DEBUG)/"; \
+		if [ -f $$file ]; then \
+			cp $$file $(BUILD_DIR_LINUX_DEBUG)/; \
+			echo "Copied $$file to $(BUILD_DIR_LINUX_DEBUG)/"; \
 		else \
-			echo "Warning: $file not found"; \
+			echo "Warning: $$file not found"; \
 		fi; \
 	done
 	mkdir -p $(BUILD_DIR_LINUX_DEBUG)/audio/
@@ -328,11 +328,11 @@ copy-data-linux-debug:
 copy-data-windows:
 	@echo "Copying data files to Windows build directory..."
 	@for file in $(DATA_FILES); do \
-		if [ -f $file ]; then \
-			cp $file $(BUILD_DIR_WIN)/; \
-			echo "Copied $file to $(BUILD_DIR_WIN)/"; \
+		if [ -f $$file ]; then \
+			cp $$file $(BUILD_DIR_WIN)/; \
+			echo "Copied $$file to $(BUILD_DIR_WIN)/"; \
 		else \
-			echo "Warning: $file not found"; \
+			echo "Warning: $$file not found"; \
 		fi; \
 	done
 	mkdir -p $(BUILD_DIR_WIN)/audio/
@@ -342,32 +342,15 @@ copy-data-windows:
 copy-data-windows-debug:
 	@echo "Copying data files to Windows debug build directory..."
 	@for file in $(DATA_FILES); do \
-		if [ -f $file ]; then \
-			cp $file $(BUILD_DIR_WIN_DEBUG)/; \
-			echo "Copied $file to $(BUILD_DIR_WIN_DEBUG)/"; \
+		if [ -f $$file ]; then \
+			cp $$file $(BUILD_DIR_WIN_DEBUG)/; \
+			echo "Copied $$file to $(BUILD_DIR_WIN_DEBUG)/"; \
 		else \
-			echo "Warning: $file not found"; \
+			echo "Warning: $$file not found"; \
 		fi; \
 	done
-	mkdir -p $(BUILD_DIR_WIN)/audio/
-	cp audio/* $(BUILD_DIR_WIN)/audio/ -R -f
-
-# Audio directory copying (if you have audio files)
-.PHONY: copy-audio-linux
-copy-audio-linux:
-	@if [ -d audio ]; then \
-		echo "Copying audio files to Linux build directory..."; \
-		cp -r audio $(BUILD_DIR_LINUX)/; \
-		echo "Audio files copied to $(BUILD_DIR_LINUX)/audio/"; \
-	fi
-
-.PHONY: copy-audio-windows
-copy-audio-windows:
-	@if [ -d audio ]; then \
-		echo "Copying audio files to Windows build directory..."; \
-		cp -r audio $(BUILD_DIR_WIN)/; \
-		echo "Audio files copied to $(BUILD_DIR_WIN)/audio/"; \
-	fi
+	mkdir -p $(BUILD_DIR_WIN_DEBUG)/audio/
+	cp audio/* $(BUILD_DIR_WIN_DEBUG)/audio/ -R -f
 
 # Install targets (Linux only)
 .PHONY: install
@@ -427,13 +410,13 @@ test-windows: willy-windows edwilly-windows
 
 # Package targets
 .PHONY: package-linux
-package-linux: willy-linux edwilly-linux copy-audio-linux
+package-linux: willy-linux edwilly-linux
 	@echo "Creating Linux package..."
 	tar -czf willy-linux.tar.gz -C $(BUILD_DIR_LINUX) .
 	@echo "Linux package created: willy-linux.tar.gz"
 
 .PHONY: package-windows
-package-windows: willy-windows edwilly-windows copy-audio-windows
+package-windows: willy-windows edwilly-windows
 	@echo "Creating Windows package..."
 	cd $(BUILD_DIR_WIN) && zip -r ../willy-windows.zip .
 	@echo "Windows package created: $(BUILD_DIR)/willy-windows.zip"
@@ -478,4 +461,4 @@ help:
 	@echo ""
 	@echo "Editor vs Game:"
 	@echo "  Game (willy):   Full game with sound, requires SDL2"
-	@echo "  Editor (edwilly): Level editor only, no sound, only requires GTK"
+	@echo "  Editor (edwilly): Level editor with integrated game testing, now also requires SDL2"
