@@ -537,7 +537,7 @@ bool WillyGame::on_key_release(GdkEventKey* event) {
 
 void WillyGame::start_game() {
     current_state = GameState::PLAYING;
-    level = game_options.starting_level;  // Use the configured starting level (not hardcoded 1)
+    level = game_options.starting_level;  // Use the configured starting level
     score = 0;
     lives = game_options.starting_lives;  // Use the configured starting lives
     bonus = 1000;
@@ -548,8 +548,14 @@ void WillyGame::start_game() {
     down_pressed = false;
     life_adder = 0;
     
-    // Load the specified starting level (not hardcoded "level1")
+    // Check if the specified starting level exists, fall back to level 1 if not
     std::string level_name = "level" + std::to_string(level);
+    if (!level_loader->level_exists(level_name)) {
+        std::cout << "Warning: Level " << level << " does not exist, starting at level 1" << std::endl;
+        level = 1;
+        level_name = "level1";
+    }
+    
     load_level(level_name);
     update_status_bar();
 }
@@ -1628,47 +1634,6 @@ void WillyApplication::on_activate() {
     auto window = new WillyGame();
     add_window(*window);
     window->present();
-}
-
-// Function to run the game with specific options (called from editor)
-int run_edwilly_game(const GameOptions& options) {
-    // Set the global game_options to the provided options
-    game_options = options;
-    
-    // Print startup information
-    std::cout << "Willy the Worm - C++ GTK Edition\n";
-    std::cout << "Starting level: " << game_options.starting_level << "\n";
-    std::cout << "Levels file: " << game_options.levels_file << "\n";
-    std::cout << "Number of balls: " << game_options.number_of_balls << "\n";
-    std::cout << "FPS: " << game_options.fps << "\n";
-    std::cout << "Scale factor: " << game_options.scale_factor << "\n";
-    std::cout << "Starting lives: " << game_options.starting_lives << "\n";
-    if (game_options.use_wasd) std::cout << "Using WASD controls\n";
-    if (game_options.disable_flash) std::cout << "Death flash disabled\n";
-    if (game_options.mouse_support) std::cout << "Mouse support enabled\n";
-    if (!game_options.sound_enabled) std::cout << "Sound disabled\n";
-    std::cout << "\n";
-
-    // Create the game window directly instead of a new application
-    auto game_window = std::make_unique<WillyGame>();
-    
-    // Start the game at the intro screen
-    game_window->show_all();
-    game_window->present();
-    
-    // Run a local event loop until the game window is closed
-    while (game_window->get_visible()) {
-        // Process GTK events
-        while (Gtk::Main::events_pending()) {
-            Gtk::Main::iteration();
-        }
-        
-        // Small delay to prevent busy waiting
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    }
-    
-    std::cout << "Game window closed, returning to editor\n";
-    return 0;
 }
 
 // Function to run the game with specific options (called from editor)
