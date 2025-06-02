@@ -670,6 +670,7 @@ void WillyGame::reset_level() {
   moving_continuously = false;
   up_pressed = false;
   down_pressed = false;
+  fps = game_options.fps;
 }
 
 void WillyGame::game_over() {
@@ -681,7 +682,16 @@ void WillyGame::game_over() {
   }
 }
 
-void WillyGame::new_game() { current_state = GameState::INTRO; }
+void WillyGame::new_game() { 
+    current_state = GameState::INTRO; 
+    printf("FPS is %i\n", game_options.fps);
+    fps = game_options.fps;
+    
+    // Disconnect the old timer and create a new one with the correct FPS
+    timer_connection.disconnect();
+    timer_connection = Glib::signal_timeout().connect(
+        sigc::mem_fun(*this, &WillyGame::game_tick), 1000 / fps);
+}
 
 void WillyGame::quit_game() { hide(); }
 
