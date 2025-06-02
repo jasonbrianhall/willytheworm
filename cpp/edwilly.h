@@ -6,9 +6,9 @@
 
 // Editor-specific constants and structures
 struct EditorGameOptions {
-    std::string levels_file = "levels.json";
-    int scale_factor = 3;
-    bool show_help = false;
+  std::string levels_file = "levels.json";
+  int scale_factor = 3;
+  bool show_help = false;
 };
 
 // Forward declarations
@@ -17,8 +17,8 @@ class WillyEditorApplication;
 class SpriteIterator;
 
 // Function declarations
-void print_editor_help(const char* program_name);
-bool parse_editor_command_line(int argc, char* argv[]);
+void print_editor_help(const char *program_name);
+bool parse_editor_command_line(int argc, char *argv[]);
 
 // Global editor options
 extern EditorGameOptions editor_options;
