@@ -230,7 +230,6 @@ private:
   std::pair<int, int>
       previous_willy_position; // Track where Willy was last frame
   // Game state
-  GameState current_state;
   int scale_factor;
   int level;
   int score;
@@ -277,6 +276,11 @@ public:
   ~WillyGame();
   void on_window_resize();
   void calculate_scaling_factors();
+  void new_game();
+  void reset_level();
+  void quit_game();
+  GameState current_state;
+
 
 private:
   bool on_button_press(GdkEventButton *event);
@@ -302,10 +306,7 @@ private:
   void die();
   void complete_level();
   void complete_level_nobonus();
-  void reset_level();
   void game_over();
-  void new_game();
-  void quit_game();
   void update_status_bar();
   bool game_tick();
   bool on_draw(const Cairo::RefPtr<Cairo::Context> &cr);
