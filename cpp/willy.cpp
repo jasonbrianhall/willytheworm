@@ -691,6 +691,37 @@ void WillyGame::new_game() {
     timer_connection.disconnect();
     timer_connection = Glib::signal_timeout().connect(
         sigc::mem_fun(*this, &WillyGame::game_tick), 1000 / fps);
+    
+    // Reset all game state variables to initial values
+    level = game_options.starting_level;
+    score = 0;
+    lives = game_options.starting_lives;
+    bonus = 1000;
+    frame_count = 0;
+    continuous_direction = "";
+    moving_continuously = false;
+    up_pressed = false;
+    down_pressed = false;
+    life_adder = 0;
+    
+    // Reset Willy's position and state - get the proper start position from the level
+    willy_position = level_loader->get_willy_start_position(current_level);
+    previous_willy_position = willy_position;
+    willy_direction = "RIGHT";
+    willy_velocity = {0, 0};
+    jumping = false;
+    
+    // Clear all balls
+    balls.clear();
+    
+    // Reset the level data to original state (this restores all presents!)
+    level_loader->reset_levels();
+    
+    // Set the current level name
+    current_level = "level" + std::to_string(level);
+    
+    // Update the status bar
+    update_status_bar();
 }
 
 void WillyGame::quit_game() { hide(); }

@@ -167,25 +167,45 @@ public:
         );
     }
     
-    bool on_delete_event(GdkEventAny* event) override {
+    bool on_delete_event(GdkEventAny* /*event*/) override {
         hide();
         return true;
     }
 };
 
+// Declare control_panel at file scope after the class definition
+static ControlPanelWindow* control_panel = nullptr;
+
 void WillyGame::create_menubar() {
     // Instead of creating a menubar, create a control panel window
-    static ControlPanelWindow* control_panel = nullptr;
-    
     if (!control_panel) {
         control_panel = new ControlPanelWindow(this);
         
         // Position it to the left of the main window
         int main_x, main_y;
         get_position(main_x, main_y);
-        //control_panel->move(main_x - 200, main_y);
         control_panel->move(0, 0);
+        
+        // Don't show it initially - let user open it with F1
+        // control_panel->show();
+    }
+}
+
+void WillyGame::show_control_panel() {
+    if (!control_panel) {
+        // Create it if it doesn't exist
+        create_menubar();
+    }
+    
+    if (control_panel->is_visible()) {
+        // If visible, hide it
+        control_panel->hide();
+        std::cout << "Control panel hidden (press F1 to show)" << std::endl;
+    } else {
+        // If hidden, show it
         control_panel->show();
+        control_panel->present(); // Bring to front
+        std::cout << "Control panel shown (press F1 to hide)" << std::endl;
     }
 }
 

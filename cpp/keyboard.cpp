@@ -61,6 +61,9 @@ bool WillyGame::on_key_press(GdkEventKey *event) {
       if (!current_sound_state) {
         sound_manager->play_sound("bell.mp3");
       }
+    } else if (keyname == "F1") {
+       // Show/hide the control panel
+       show_control_panel();
     } else if (keyname == "F5") {
       redbg += 0.25;
       if (redbg > 1.0) {

@@ -270,6 +270,7 @@ private:
   bool mouse_up_held = false;
   bool mouse_down_held = false;
   int life_adder;
+  void show_control_panel();
 
 public:
   WillyGame();
