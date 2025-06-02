@@ -65,7 +65,6 @@ WillyGame::WillyGame()
 
   setup_ui();
   current_state = GameState::INTRO;
-
   // Set up timer with command line FPS
   timer_connection = Glib::signal_timeout().connect(
       sigc::mem_fun(*this, &WillyGame::game_tick), 1000 / fps);

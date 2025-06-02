@@ -134,8 +134,8 @@ WillyEditor::WillyEditor()
   setup_ui();
 
   // Store base game dimensions
-  base_game_width = GAME_SCREEN_WIDTH * GAME_CHAR_WIDTH * scale_factor;
-  base_game_height = (GAME_SCREEN_HEIGHT + 2) * GAME_CHAR_HEIGHT * scale_factor;
+  base_game_width = (GAME_SCREEN_WIDTH+1) * (GAME_CHAR_WIDTH) * scale_factor;
+  base_game_height = (GAME_SCREEN_HEIGHT) * GAME_CHAR_HEIGHT * scale_factor;
 
   // Calculate proper window size
   Gtk::Requisition menubar_min, menubar_nat;
