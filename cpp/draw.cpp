@@ -463,3 +463,16 @@ void WillyGame::draw_game_screen(const Cairo::RefPtr<Cairo::Context> &cr) {
 
   cr->restore();
 }
+
+void WillyGame::update_status_bar() {
+  if (current_state == GameState::PLAYING) {
+    std::string status_text =
+        "SCORE: " + std::to_string(score) +
+        "    BONUS: " + std::to_string(bonus) +
+        "    Level: " + std::to_string(level) +
+        "    Willy the Worms Left: " + std::to_string(lives);
+    status_bar.set_text(status_text);
+  } else {
+    status_bar.set_text("Willy the Worm - C++ GTK Edition");
+  }
+}
