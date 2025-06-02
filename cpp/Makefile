@@ -10,8 +10,8 @@ CXXFLAGS_COMMON = -std=c++17 -Wall -Wextra -s
 DEBUG_FLAGS = -g -DDEBUG
 
 # Source files
-SRCS_COMMON = willy.cpp loadlevels.cpp sound.cpp highscores.cpp spriteloader.cpp willy_main.cpp mouse.cpp scaling.cpp
-SRCS_EDITOR = edwilly.cpp loadlevels.cpp spriteloader.cpp willy.cpp sound.cpp highscores.cpp mouse.cpp scaling.cpp
+SRCS_COMMON = willy.cpp loadlevels.cpp sound.cpp highscores.cpp spriteloader.cpp willy_main.cpp mouse.cpp keyboard.cpp scaling.cpp
+SRCS_EDITOR = edwilly.cpp loadlevels.cpp spriteloader.cpp willy.cpp sound.cpp highscores.cpp mouse.cpp keyboard.cpp scaling.cpp
 
 # GTK flags for Linux
 GTK_CFLAGS_LINUX := $(shell pkg-config --cflags gtkmm-3.0)

@@ -5,6 +5,8 @@
 #include <iostream>
 #include <sstream>
 
+extern GameOptions game_options;
+
 // LevelLoader implementation
 LevelLoader::LevelLoader() {}
 
@@ -477,4 +479,33 @@ bool LevelLoader::save_levels(const std::string &filename) const {
     std::cout << "Error saving levels: " << e.what() << std::endl;
     return false;
   }
+}
+
+void WillyGame::load_level(const std::string &level_name) {
+  current_level = level_name;
+
+  // Check if level exists
+  if (!level_loader->level_exists(level_name)) {
+    std::cout << "Level " << level_name << " does not exist!" << std::endl;
+    return;
+  }
+
+  // Get Willy's starting position from the level
+  willy_position = level_loader->get_willy_start_position(level_name);
+
+  // Initialize balls at the ball pit position
+  balls.clear();
+  // std::pair<int, int> ball_pit_pos =
+  // level_loader->get_ball_pit_position(level_name);
+  std::pair<int, int> ball_pit_pos = find_ballpit_position();
+  printf("Ball %i %i\n", ball_pit_pos.first, ball_pit_pos.second);
+  for (int i = 0; i < game_options.number_of_balls; i++) {
+    balls.emplace_back(ball_pit_pos.first, ball_pit_pos.second);
+  }
+
+  std::cout << "Loaded level: " << level_name << std::endl;
+  std::cout << "Willy starts at: (" << willy_position.first << ", "
+            << willy_position.second << ")" << std::endl;
+  std::cout << "Ball pit at: (" << ball_pit_pos.first << ", "
+            << ball_pit_pos.second << ")" << std::endl;
 }
