@@ -967,7 +967,7 @@ int run_edwilly_game(const GameOptions &options) {
   if (!game_options.sound_enabled)
     std::cout << "Sound disabled\n";
   std::cout << "\n";
-
+  game_options.one_level=true;
   // Create the game window directly instead of a new application
   auto game_window = std::make_unique<WillyGame>();
 

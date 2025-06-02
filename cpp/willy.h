@@ -43,6 +43,7 @@ struct GameOptions {
   int scale_factor = 3;
   bool show_help = false;
   int starting_lives = 5;
+  bool one_level = false;
 };
 
 class SoundManager {

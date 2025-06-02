@@ -544,7 +544,12 @@ void WillyGame::check_collisions() {
     die();
   } else if (current_tile == "BELL") {
     sound_manager->play_sound("bell.mp3");
-    complete_level();
+    if (!game_options.one_level) {
+         complete_level();
+    } else {
+        die();
+    }
+    
   } else if (current_tile == "PRESENT") {
     score += 100;
     sound_manager->play_sound("present.mp3");
@@ -588,7 +593,10 @@ void WillyGame::check_collisions() {
 
 void WillyGame::die() {
   // Play death sound
-  sound_manager->play_sound("tack.mp3");
+  if(!game_options.one_level)
+  {
+       sound_manager->play_sound("tack.mp3");
+  }
 
   // Flash the screen
   if (!game_options.disable_flash) {
@@ -596,10 +604,15 @@ void WillyGame::die() {
   }
 
   lives--;
-  if (lives <= 0) {
+  if (lives <= 0 && !game_options.one_level) {
     game_over();
   } else {
-    reset_level();
+    if (!game_options.one_level) {
+        reset_level();
+    } else {
+        lives=1;
+        reset_level();
+    }
   }
 }
 
