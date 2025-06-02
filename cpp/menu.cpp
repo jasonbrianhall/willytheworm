@@ -29,8 +29,8 @@ public:
           quit_btn("Quit"),
           lives_label("Lives:"),
           balls_label("Balls:"),
-          fps_label("FPS:"),
-          level_label("Level:") {
+          fps_label("Game Speed:"),
+          level_label("Starting Level:") {
         
         set_title("Willy the Worm - Control Panel");
         set_default_size(180, 300);
@@ -63,7 +63,7 @@ public:
         balls_label.set_halign(Gtk::ALIGN_START);
         main_box.pack_start(balls_label, Gtk::PACK_SHRINK);
         
-        balls_scale.set_range(1, 100);
+        balls_scale.set_range(0, 100);
         balls_scale.set_value(game_options.number_of_balls);
         balls_scale.set_digits(0);
         balls_scale.set_hexpand(true);
@@ -183,8 +183,8 @@ void WillyGame::create_menubar() {
         // Position it to the left of the main window
         int main_x, main_y;
         get_position(main_x, main_y);
-        control_panel->move(main_x - 200, main_y);
-        
+        //control_panel->move(main_x - 200, main_y);
+        control_panel->move(0, 0);
         control_panel->show();
     }
 }
