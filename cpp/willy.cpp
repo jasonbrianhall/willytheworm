@@ -11,43 +11,50 @@ GameOptions game_options;
 // Ball implementation
 Ball::Ball(int r, int c) : row(r), col(c), direction("") {}
 
+// Replace the window decoration section in the WillyGame constructor with this:
+
 WillyGame::WillyGame()
     : vbox(Gtk::ORIENTATION_VERTICAL), current_state(GameState::INTRO),
-      scale_factor(game_options.scale_factor), // Use command line scale factor
-      level(game_options.starting_level), // Use command line starting level
+      scale_factor(game_options.scale_factor), 
+      level(game_options.starting_level), 
       score(0), lives(5), bonus(1000), willy_position({23, 7}),
-      previous_willy_position({23, 7}), // Initialize previous position tracker
+      previous_willy_position({23, 7}), 
       willy_direction("RIGHT"), willy_velocity({0, 0}), jumping(false),
-      fps(game_options.fps), // Use command line FPS
+      fps(game_options.fps), 
       frame_count(0), current_level("level1"), continuous_direction(""),
       moving_continuously(false), mouse_button_held(false), held_button(0),
       mouse_direction(""), mouse_up_held(false), mouse_down_held(false),
       up_pressed(false), down_pressed(false), life_adder(0), gen(rd()) {
 
+  // Set title and window properties FIRST
   set_title("Willy the Worm - C++ GTK Edition");
+  
+  // Force window decorations and properties
+  set_decorated(true);
+  set_deletable(true);  
+  set_resizable(true);
+  set_skip_taskbar_hint(false);
+  set_skip_pager_hint(false);
+  set_type_hint(Gdk::WINDOW_TYPE_HINT_NORMAL);
+  property_window_position().set_value(Gtk::WIN_POS_CENTER);
+  
+  // Force the window to be realized immediately so we can set native decorations
+  realize();
+  
+  // Now that window is realized, we can access the native window
+  auto window = get_window();
+  if (window) {
+    window->set_decorations(Gdk::DECOR_ALL);
+    window->set_functions(Gdk::FUNC_ALL);
+    window->set_type_hint(Gdk::WINDOW_TYPE_HINT_NORMAL);
+  }
+
+  // Initialize managers
   score_manager = std::make_unique<HighScoreManager>();
   sprite_loader = std::make_unique<SpriteLoader>(scale_factor);
   level_loader = std::make_unique<LevelLoader>();
   sound_manager = std::make_unique<SoundManager>();
-  set_title("Willy the Worm - C++ GTK Edition");
-  // After set_title(), add:
-  set_decorated(true);
-  set_skip_taskbar_hint(false);
-  set_skip_pager_hint(false);
-  property_window_position().set_value(Gtk::WIN_POS_CENTER);
-
-  // Ensure the window manager shows normal window chrome
-  if (get_window()) {
-    get_window()->set_decorations(Gdk::DECOR_ALL);
-    get_window()->set_functions(Gdk::FUNC_ALL);
-  }
-  // Explicitly enable window decorations
-  set_decorated(true);
-  set_deletable(true);
-  set_resizable(true);
-
-  // Set window type hint (helps on Windows)
-  set_type_hint(Gdk::WINDOW_TYPE_HINT_NORMAL);
+  
   // Initialize sound system
   if (!sound_manager->initialize()) {
     std::cout << "Warning: Sound system initialization failed" << std::endl;
@@ -63,8 +70,10 @@ WillyGame::WillyGame()
     level_loader->load_levels("levels.json");
   }
 
+  // Setup UI
   setup_ui();
   current_state = GameState::INTRO;
+  
   // Set up timer with command line FPS
   timer_connection = Glib::signal_timeout().connect(
       sigc::mem_fun(*this, &WillyGame::game_tick), 1000 / fps);
@@ -112,8 +121,9 @@ WillyGame::WillyGame()
   if (game_options.disable_flash)
     std::cout << "  Death flash: Disabled" << std::endl;
   if (game_options.mouse_support)
-    std::cout << "  Mouse support: Enabled (not yet implemented)" << std::endl;
+    std::cout << "  Mouse support: Enabled" << std::endl;
 }
+
 WillyGame::~WillyGame() { timer_connection.disconnect(); }
 
 bool WillyGame::check_movement_collision(int old_row, int old_col, int new_row,

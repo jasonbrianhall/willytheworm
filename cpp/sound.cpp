@@ -15,7 +15,7 @@ bool SoundManager::initialize() {
     return false;
   }
 
-  // Initialize SDL_mixer
+  // Initialize SDL_mixer with more channels for mixing
   if (Mix_OpenAudio(22050, MIX_DEFAULT_FORMAT, 2, 1024) < 0) {
     std::cout << "SDL_mixer initialization failed: " << Mix_GetError()
               << std::endl;
@@ -23,8 +23,11 @@ bool SoundManager::initialize() {
     return false;
   }
 
+  // Allocate multiple channels for simultaneous playback and mixing
+  Mix_AllocateChannels(16); // Allow up to 16 sounds to mix together
+
   initialized = true;
-  std::cout << "SDL Audio initialized successfully" << std::endl;
+  std::cout << "SDL Audio initialized successfully with mixing support" << std::endl;
   return true;
 }
 
@@ -33,6 +36,9 @@ void SoundManager::cleanup() {
     return;
 
   std::lock_guard<std::mutex> lock(sound_mutex);
+
+  // Stop all playing sounds
+  Mix_HaltChannel(-1);
 
   // Free all cached sounds
   for (auto &pair : sound_cache) {
@@ -99,14 +105,36 @@ void SoundManager::play_sound(const std::string &filename) {
       }
     }
 
-    // Play the sound
+    // Play the sound on any available channel - SDL_mixer will mix them automatically
     if (sound) {
-      if (Mix_PlayChannel(-1, sound, 0) == -1) {
+      int channel = Mix_PlayChannel(-1, sound, 0);
+      if (channel == -1) {
         std::cout << "Failed to play sound " << filename << ": "
                   << Mix_GetError() << std::endl;
-      }
+      } 
     }
   });
 
   sound_thread.detach(); // Let the thread run independently
+}
+
+// Additional methods for mixer control
+void SoundManager::stop_all_sounds() {
+  if (initialized) {
+    Mix_HaltChannel(-1);
+    std::cout << "All sounds stopped" << std::endl;
+  }
+}
+
+int SoundManager::get_playing_channels() {
+  if (!initialized) return 0;
+  return Mix_Playing(-1);
+}
+
+void SoundManager::set_master_volume(int volume) {
+  // Volume should be 0-128 (SDL_mixer range)
+  if (initialized && volume >= 0 && volume <= 128) {
+    Mix_Volume(-1, volume); // Set volume for all channels
+    std::cout << "Master volume set to: " << volume << std::endl;
+  }
 }
