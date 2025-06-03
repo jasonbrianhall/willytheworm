@@ -64,6 +64,9 @@ public:
   void play_sound(const std::string &filename);
   void set_sound_enabled(bool enabled) { sound_enabled = enabled; }
   bool is_sound_enabled() const { return sound_enabled; }
+  void stop_all_sounds();
+  void set_master_volume(int volume);
+  int get_playing_channels();
 };
 
 // High Score Management
