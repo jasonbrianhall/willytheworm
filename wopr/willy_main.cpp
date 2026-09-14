@@ -6,13 +6,12 @@
 //   g++ -std=c++17 -O2 willy_main.cpp wopr_willy.cpp wopr_render.cpp
 //       highscores.cpp -I. $(sdl2-config --cflags) -o willy $(sdl2-config --libs)
 //
-// The window is fixed at 1280x720. wopr_willy_render()/wopr_willy_update()
-// fall back to exactly that size whenever SDL_GL_GetCurrentWindow() has no
-// current GL context to report — which is always true here, since this
-// build uses SDL_Renderer (via wopr_render.cpp) instead of raw OpenGL.
-// Keeping the window at 1280x720 means that fallback is also the *correct*
-// size, so layout still lines up. A resizable window would need an actual
-// OpenGL context and a real gl_draw_* implementation instead.
+// The window opens at 1280x720 but is resizable, maximizable, and F11
+// toggles fullscreen. wopr_willy_render() sizes itself off whatever
+// SDL_GL_GetCurrentWindow() reports, which only works with a real GL
+// context current — see the SDL_HINT_RENDER_DRIVER note below for how
+// that's guaranteed here even though drawing itself goes through
+// SDL_Renderer, not raw OpenGL.
 
 #include "wopr.h"
 #include "wopr_render.h"
@@ -34,17 +33,30 @@ int main(int argc, char **argv) {
         "Willy the Worm",
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
         WINDOW_W, WINDOW_H,
-        SDL_WINDOW_SHOWN);
+        SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
     if (!window) {
         std::fprintf(stderr, "SDL_CreateWindow failed: %s\n", SDL_GetError());
         SDL_Quit();
         return 1;
     }
 
+    // wopr_willy_render() finds the window's real size via
+    // SDL_GL_GetCurrentWindow(), which only returns something once a real
+    // GL context is current. Forcing SDL's "opengl" render driver makes
+    // SDL_CreateRenderer create exactly that context under the hood, so
+    // resizing/maximizing/fullscreen all report the correct size. If the
+    // opengl driver isn't available we fall back to whatever's accelerated,
+    // then software — those paths still run, they just always render as if
+    // the window were 1280x720 (wopr_willy_render()'s built-in fallback).
+    SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
     SDL_Renderer *renderer = SDL_CreateRenderer(
         window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     if (!renderer) {
-        // Fall back to software rendering if no accelerated driver is available.
+        SDL_SetHint(SDL_HINT_RENDER_DRIVER, "");
+        renderer = SDL_CreateRenderer(
+            window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    }
+    if (!renderer) {
         renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
     }
     if (!renderer) {
@@ -74,6 +86,7 @@ int main(int argc, char **argv) {
     const int cols = (WINDOW_W - px*2) / cw;
 
     bool running = true;
+    bool fullscreen = false;
     Uint64 prev_ticks = SDL_GetPerformanceCounter();
     const Uint64 freq = SDL_GetPerformanceFrequency();
 
@@ -88,6 +101,12 @@ int main(int argc, char **argv) {
                     if (ev.key.keysym.sym == SDLK_F4 &&
                         (ev.key.keysym.mod & (KMOD_LALT | KMOD_RALT))) {
                         running = false;  // Alt+F4, since there's no WOPR shell to quit from
+                        break;
+                    }
+                    if (ev.key.keysym.sym == SDLK_F11) {
+                        fullscreen = !fullscreen;
+                        SDL_SetWindowFullscreen(window,
+                            fullscreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
                         break;
                     }
                     wopr_willy_keydown(&w, ev.key.keysym.sym);

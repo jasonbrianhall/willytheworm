@@ -1292,12 +1292,24 @@ void wopr_willy_render(WoprState *w, int px, int py, int cw, int ch, int /*cols*
 
         // One small Willy sprite per remaining life, equally spaced, in place
         // of the old "%2d" life count.
+        //
+        // WW_LIFE_ICON_Y_NUDGE: how far up (in units of icon_cs) to shift the
+        // icon row so it lines up with the text baseline. This differs by
+        // renderer: the real WOPR gl_draw_text() apparently anchors text one
+        // cell lower than ww_draw_sprite()'s top-left sprites (needed
+        // WW_LIFE_ICON_Y_NUDGE=1.0 to align), while the standalone
+        // wopr_render.cpp anchors both the same way (needs 0.0). Override at
+        // build time with -DWW_LIFE_ICON_Y_NUDGE=1.0f for the WOPR build.
+        #ifndef WW_LIFE_ICON_Y_NUDGE
+        #define WW_LIFE_ICON_Y_NUDGE 0.0f
+        #endif
         float icon_cs  = (float)cw;
         float icon_x   = (float)px + (float)strlen(buf) * icon_cs;
         float icon_gap = icon_cs * 1.4f;
         int   lives_shown = s->lives > 0 ? s->lives : 0;
         for(int i = 0; i < lives_shown; i++) {
-            ww_draw_sprite(0 /* Willy, facing right */, icon_x + i*icon_gap, sy - icon_cs, icon_cs, icon_cs);
+            ww_draw_sprite(0 /* Willy, facing right */, icon_x + i*icon_gap,
+                            sy - WW_LIFE_ICON_Y_NUDGE*icon_cs, icon_cs, icon_cs);
         }
     }
 
