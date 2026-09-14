@@ -1,156 +1,218 @@
-#include "willy.h"
-#include <getopt.h>
+// willy_main.cpp — standalone launcher for Willy the Worm, no WOPR terminal
+// required. Wires the same wopr_willy_enter/update/render/keydown/mouse
+// entry points that wopr.cpp normally drives, straight to an SDL2 window.
+//
+// Build (see accompanying notes for the miniz.h include-path caveat).
+// wopr_render.cpp needs DejaVuMono.h (embedded font data) next to it, and
+// links against FreeType in addition to SDL2:
+//   g++ -std=c++17 -O2 willy_main.cpp wopr_willy.cpp wopr_render.cpp
+//       highscores.cpp -I. $(sdl2-config --cflags) $(pkg-config --cflags freetype2)
+//       -o willy $(sdl2-config --libs) $(pkg-config --libs freetype2)
+//
+// The window opens at 1280x720 but is resizable, maximizable, and F11
+// toggles fullscreen. wopr_willy_render() sizes itself off whatever
+// SDL_GL_GetCurrentWindow() reports, which only works with a real GL
+// context current — see the SDL_HINT_RENDER_DRIVER note below for how
+// that's guaranteed here even though drawing itself goes through
+// SDL_Renderer, not raw OpenGL.
 
-extern GameOptions game_options;
+#include "wopr.h"
+#include "wopr_render.h"
+#include <SDL2/SDL.h>
+#include <algorithm>
+#include <cstdio>
 
-void print_help(const char *program_name) {
-  std::cout << "Willy the Worm - C++ GTK Edition\n\n";
-  std::cout << "Usage: " << program_name << " [OPTIONS]\n\n";
-  std::cout << "Options:\n";
-  std::cout << "  -l LEVEL          Start at specific level (default: 1)\n";
-  std::cout
-      << "  -L LEVELFILE      Use custom levels file (default: levels.json)\n";
-  std::cout << "  -b BALLS          Set number of balls (default: 6)\n";
-  std::cout << "  -w                Use WASD keyboard controls instead of "
-               "arrow keys\n";
-  std::cout << "  -f                Disable death flash effect\n";
-  std::cout << "  -F FPS            Set frames per second (default: 10)\n";
-  std::cout << "  -m                Enable mouse support\n";
-  std::cout << "  -s                Start with sound disabled\n";
-  std::cout << "  -S SCALE          Set scale factor (default: 3)\n";
-  std::cout << "  -h, --help        Show this help message\n\n";
-  std::cout << "Controls:\n";
-  std::cout << "  Arrow Keys        Move Willy (or WASD with -w option)\n";
-  std::cout << "  Space             Jump\n";
-  std::cout << "  Mouse (with -m):  Hold mouse button relative to Willy:\n";
-  std::cout << "    - Hold above    Keep moving up (climb ladder)\n";
-  std::cout << "    - Hold below    Keep moving down (climb ladder)\n";
-  std::cout << "    - Hold left     Keep moving left\n";
-  std::cout << "    - Hold right    Keep moving right\n";
-  std::cout << "  Right Click       Jump (with -m option)\n";
-  std::cout << "  Middle Click      Stop Willy (with -m option)\n";
-  std::cout << "  Ctrl+L            Skip level\n";
-  std::cout << "  Ctrl+S            Toggle sound\n";
-  std::cout << "  F5/F6/F7          Change background colors\n";
-  std::cout << "  F11               Toggle fullscreen\n";
-  std::cout << "  Escape            Quit game\n\n";
-}
+static const int WINDOW_W = 1280;
+static const int WINDOW_H = 720;
 
-bool parse_command_line(int argc, char *argv[]) {
-  static struct option long_options[] = {
-      {"help", no_argument, nullptr, 'h'},
-      {"level", required_argument, nullptr, 'l'},
-      {"levels-file", required_argument, nullptr, 'L'},
-      {"balls", required_argument, nullptr, 'b'},
-      {"wasd", no_argument, nullptr, 'w'},
-      {"no-flash", no_argument, nullptr, 'f'},
-      {"fps", required_argument, nullptr, 'F'},
-      {"mouse", no_argument, nullptr, 'm'},
-      {"no-sound", no_argument, nullptr, 's'},
-      {"scale", required_argument, nullptr, 'S'},
-      {nullptr, 0, nullptr, 0}};
+int main(int argc, char **argv) {
+    (void)argc; (void)argv;
 
-  int option_index = 0;
-  int c;
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0) {
+        std::fprintf(stderr, "SDL_Init failed: %s\n", SDL_GetError());
+        return 1;
+    }
 
-  while ((c = getopt_long(argc, argv, "hl:L:b:wfF:msS:", long_options,
-                          &option_index)) != -1) {
-    printf("Option was %c\n", c);
-    switch (c) {
-    case 'h':
-      game_options.show_help = true;
-      return true;
+    SDL_Window *window = SDL_CreateWindow(
+        "Willy the Worm",
+        SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+        WINDOW_W, WINDOW_H,
+        SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
+    if (!window) {
+        std::fprintf(stderr, "SDL_CreateWindow failed: %s\n", SDL_GetError());
+        SDL_Quit();
+        return 1;
+    }
 
-    case 'l':
-    case 'b':
-    case 'F':
-    case 'S': {
-      try {
-        int value = std::stoi(optarg);
-        int min = (c == 'l') ? 1 : (c == 'b') ? 1 : (c == 'F') ? 1 : 1;
-        int max = (c == 'l') ? 999 : (c == 'b') ? 20 : (c == 'F') ? 120 : 10;
+    // wopr_willy_render() finds the window's real size via
+    // SDL_GL_GetCurrentWindow(), which only returns something once a real
+    // GL context is current. Forcing SDL's "opengl" render driver makes
+    // SDL_CreateRenderer create exactly that context under the hood, so
+    // resizing/maximizing/fullscreen all report the correct size. If the
+    // opengl driver isn't available we fall back to whatever's accelerated,
+    // then software — those paths still run, they just always render as if
+    // the window were 1280x720 (wopr_willy_render()'s built-in fallback).
+    SDL_SetHint(SDL_HINT_RENDER_DRIVER, "opengl");
+    SDL_Renderer *renderer = SDL_CreateRenderer(
+        window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    if (!renderer) {
+        SDL_SetHint(SDL_HINT_RENDER_DRIVER, "");
+        renderer = SDL_CreateRenderer(
+            window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    }
+    if (!renderer) {
+        renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
+    }
+    if (!renderer) {
+        std::fprintf(stderr, "SDL_CreateRenderer failed: %s\n", SDL_GetError());
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return 1;
+    }
 
-        if (value < min || value > max) {
-          std::cerr << "Error: "
-                    << ((c == 'l')   ? "Level"
-                        : (c == 'b') ? "Number of balls"
-                        : (c == 'F') ? "FPS"
-                                     : "Scale factor")
-                    << " must be between " << min << " and " << max << "\n";
-          return false;
+    if (!gl_render_init(renderer)) {
+        std::fprintf(stderr,
+            "Warning: embedded font failed to load (FreeType/DejaVuMono.h) — "
+            "text will not render, but the game will still run.\n");
+    }
+
+    WoprState w;  // plain aggregate from wopr.h — only .lines/.sub_state are used here
+    wopr_willy_enter(&w);
+    if (!w.sub_state) {
+        std::fprintf(stderr, "Willy failed to start:\n");
+        for (auto &line : w.lines) std::fprintf(stderr, "%s\n", line.c_str());
+        SDL_DestroyRenderer(renderer);
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return 1;
+    }
+
+    // Grid origin/cell metrics handed to wopr_willy_render()/_update(). cw/ch
+    // must match what wopr_render actually draws a text cell as — read after
+    // gl_render_init() since the embedded font determines the real size.
+    const int px = 40, py = 40;
+    const int cw = gl_font_cell_size(), ch = gl_font_cell_size();
+    const int cols = (WINDOW_W - px*2) / cw;
+
+    bool running = true;
+    bool fullscreen = false;
+    bool quit_confirm = false;
+    Uint64 prev_ticks = SDL_GetPerformanceCounter();
+    const Uint64 freq = SDL_GetPerformanceFrequency();
+
+    // Auto-hide the mouse cursor after a few seconds of no mouse activity;
+    // any movement or click brings it back.
+    const double CURSOR_IDLE_TIMEOUT = 3.0;
+    double cursor_idle_time = 0.0;
+    bool   cursor_hidden = false;
+
+    while (running) {
+        SDL_Event ev;
+        while (SDL_PollEvent(&ev)) {
+            switch (ev.type) {
+                case SDL_QUIT:
+                    running = false;
+                    break;
+                case SDL_KEYDOWN:
+                    if (ev.key.keysym.sym == SDLK_F4 &&
+                        (ev.key.keysym.mod & (KMOD_LALT | KMOD_RALT))) {
+                        running = false;  // Alt+F4, since there's no WOPR shell to quit from
+                        break;
+                    }
+                    if (quit_confirm) {
+                        // Game input is frozen while this dialog is up — only
+                        // Y/Enter confirm and N/Escape cancel get through.
+                        if (ev.key.keysym.sym == SDLK_y || ev.key.keysym.sym == SDLK_RETURN ||
+                            ev.key.keysym.sym == SDLK_KP_ENTER) {
+                            running = false;
+                        } else if (ev.key.keysym.sym == SDLK_n || ev.key.keysym.sym == SDLK_ESCAPE) {
+                            quit_confirm = false;
+                        }
+                        break;
+                    }
+                    if (ev.key.keysym.sym == SDLK_ESCAPE) {
+                        if (wopr_willy_escape_is_ingame(&w)) {
+                            wopr_willy_keydown(&w, ev.key.keysym.sym);
+                        } else {
+                            quit_confirm = true;
+                        }
+                        break;
+                    }
+                    if (ev.key.keysym.sym == SDLK_F11) {
+                        fullscreen = !fullscreen;
+                        SDL_SetWindowFullscreen(window,
+                            fullscreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
+                        break;
+                    }
+                    wopr_willy_keydown(&w, ev.key.keysym.sym);
+                    break;
+                case SDL_MOUSEBUTTONDOWN:
+                    cursor_idle_time = 0.0;
+                    if (cursor_hidden) { SDL_ShowCursor(SDL_ENABLE); cursor_hidden = false; }
+                    if (!quit_confirm)
+                        wopr_willy_mousedown(&w, ev.button.x, ev.button.y, ev.button.button);
+                    break;
+                case SDL_MOUSEMOTION:
+                    cursor_idle_time = 0.0;
+                    if (cursor_hidden) { SDL_ShowCursor(SDL_ENABLE); cursor_hidden = false; }
+                    if (!quit_confirm)
+                        wopr_willy_mousemove(&w, ev.motion.x, ev.motion.y);
+                    break;
+                case SDL_MOUSEBUTTONUP:
+                    cursor_idle_time = 0.0;
+                    if (cursor_hidden) { SDL_ShowCursor(SDL_ENABLE); cursor_hidden = false; }
+                    if (!quit_confirm)
+                        wopr_willy_mouseup(&w, ev.button.x, ev.button.y, ev.button.button);
+                    break;
+                default:
+                    break;
+            }
         }
 
-        if (c == 'l')
-          game_options.starting_level = value;
-        else if (c == 'b')
-          game_options.number_of_balls = value;
-        else if (c == 'F')
-          game_options.fps = value;
-        else if (c == 'S')
-          game_options.scale_factor = value;
-      } catch (const std::exception &) {
-        std::cerr << "Error: Invalid value for "
-                  << ((c == 'l')   ? "Level"
-                      : (c == 'b') ? "Number of balls"
-                      : (c == 'F') ? "FPS"
-                                   : "Scale factor")
-                  << ": " << optarg << "\n";
-        return false;
-      }
-      break;
+        Uint64 now = SDL_GetPerformanceCounter();
+        double dt = (double)(now - prev_ticks) / (double)freq;
+        prev_ticks = now;
+        if (dt > 0.1) dt = 0.1;  // clamp huge stalls (window drag, breakpoint, etc.)
+
+        cursor_idle_time += dt;
+        if (!cursor_hidden && cursor_idle_time >= CURSOR_IDLE_TIMEOUT) {
+            SDL_ShowCursor(SDL_DISABLE);
+            cursor_hidden = true;
+        }
+
+        if (!quit_confirm) wopr_willy_update(&w, dt);  // frozen behind the dialog
+
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+        SDL_RenderClear(renderer);
+        wopr_willy_render(&w, px, py, cw, ch, cols);
+
+        if (quit_confirm) {
+            int ww_, wh_;
+            SDL_GetWindowSize(window, &ww_, &wh_);
+            const char *msg  = "QUIT WILLY THE WORM?";
+            const char *hint = "Y TO QUIT  -  N OR ESC TO CANCEL";
+            float pad   = 32.f;
+            float box_w = std::max(gl_text_width(msg, 1.f), gl_text_width(hint, 1.f)) + pad * 2.f;
+            float box_h = 90.f;
+            float box_x = (float)ww_ * 0.5f - box_w * 0.5f;
+            float box_y = (float)wh_ * 0.5f - box_h * 0.5f;
+            gl_draw_rect(box_x, box_y, box_w, box_h, 0.f, 0.f, 0.f, 0.85f);
+            gl_draw_rect(box_x, box_y, box_w, 2.f, 1.f, 1.f, 1.f, 1.f);
+            gl_draw_rect(box_x, box_y + box_h - 2.f, box_w, 2.f, 1.f, 1.f, 1.f, 1.f);
+            gl_draw_text(msg,  box_x + (box_w - gl_text_width(msg, 1.f)) * 0.5f,
+                         box_y + 24.f, 1.f, 1.f, 0.f, 1.f, 1.f);
+            gl_draw_text(hint, box_x + (box_w - gl_text_width(hint, 1.f)) * 0.5f,
+                         box_y + 54.f, 0.7f, 0.7f, 0.7f, 1.f, 1.f);
+            gl_flush_verts();
+        }
+
+        SDL_RenderPresent(renderer);
     }
 
-    case 'L':
-      game_options.levels_file = optarg;
-      printf("Here\n");
-      break;
-
-    case 'w':
-      game_options.use_wasd = true;
-      break;
-
-    case 'f':
-      game_options.disable_flash = true;
-      break;
-
-    case 'm':
-      game_options.mouse_support = true;
-      break;
-
-    case 's':
-      game_options.sound_enabled = false;
-      break;
-
-    case '?':
-      return false; // getopt_long already prints error messages
-
-    default:
-      std::cerr << "Error: Unknown option encountered.\n";
-      return false;
-    }
-  }
-
-  // Check for unexpected arguments
-  if (optind < argc) {
-    std::cerr << "Error: Unexpected argument: " << argv[optind] << "\n";
-    return false;
-  }
-
-  return true;
-}
-
-int main(int argc, char *argv[]) {
-  // Parse command line arguments BEFORE creating GTK app
-  if (!parse_command_line(argc, argv)) {
-    print_help(argv[0]);
-    return 1;
-  }
-
-  if (game_options.show_help) {
-    print_help(argv[0]);
+    wopr_willy_free(&w);
+    gl_render_shutdown();
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
     return 0;
-  }
-
-  // Run the game with the parsed options
-  return run_willy_game(game_options);
 }
