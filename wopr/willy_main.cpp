@@ -2,9 +2,12 @@
 // required. Wires the same wopr_willy_enter/update/render/keydown/mouse
 // entry points that wopr.cpp normally drives, straight to an SDL2 window.
 //
-// Build (see accompanying notes for the miniz.h include-path caveat):
+// Build (see accompanying notes for the miniz.h include-path caveat).
+// wopr_render.cpp needs DejaVuMono.h (embedded font data) next to it, and
+// links against FreeType in addition to SDL2:
 //   g++ -std=c++17 -O2 willy_main.cpp wopr_willy.cpp wopr_render.cpp
-//       highscores.cpp -I. $(sdl2-config --cflags) -o willy $(sdl2-config --libs)
+//       highscores.cpp -I. $(sdl2-config --cflags) $(pkg-config --cflags freetype2)
+//       -o willy $(sdl2-config --libs) $(pkg-config --libs freetype2)
 //
 // The window opens at 1280x720 but is resizable, maximizable, and F11
 // toggles fullscreen. wopr_willy_render() sizes itself off whatever
@@ -67,7 +70,11 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    gl_render_init(renderer);
+    if (!gl_render_init(renderer)) {
+        std::fprintf(stderr,
+            "Warning: embedded font failed to load (FreeType/DejaVuMono.h) — "
+            "text will not render, but the game will still run.\n");
+    }
 
     WoprState w;  // plain aggregate from wopr.h — only .lines/.sub_state are used here
     wopr_willy_enter(&w);
@@ -81,9 +88,10 @@ int main(int argc, char **argv) {
     }
 
     // Grid origin/cell metrics handed to wopr_willy_render()/_update(). cw/ch
-    // must match what wopr_render actually draws a text cell as.
+    // must match what wopr_render actually draws a text cell as — read after
+    // gl_render_init() since the embedded font determines the real size.
     const int px = 40, py = 40;
-    const int cw = WOPR_MIN_FONT_CELL, ch = WOPR_MIN_FONT_CELL;
+    const int cw = gl_font_cell_size(), ch = gl_font_cell_size();
     const int cols = (WINDOW_W - px*2) / cw;
 
     bool running = true;
@@ -202,6 +210,7 @@ int main(int argc, char **argv) {
     }
 
     wopr_willy_free(&w);
+    gl_render_shutdown();
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
