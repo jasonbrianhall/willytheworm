@@ -87,6 +87,7 @@ int main(int argc, char **argv) {
 
     bool running = true;
     bool fullscreen = false;
+    bool quit_confirm = false;
     Uint64 prev_ticks = SDL_GetPerformanceCounter();
     const Uint64 freq = SDL_GetPerformanceFrequency();
 
@@ -103,6 +104,25 @@ int main(int argc, char **argv) {
                         running = false;  // Alt+F4, since there's no WOPR shell to quit from
                         break;
                     }
+                    if (quit_confirm) {
+                        // Game input is frozen while this dialog is up — only
+                        // Y/Enter confirm and N/Escape cancel get through.
+                        if (ev.key.keysym.sym == SDLK_y || ev.key.keysym.sym == SDLK_RETURN ||
+                            ev.key.keysym.sym == SDLK_KP_ENTER) {
+                            running = false;
+                        } else if (ev.key.keysym.sym == SDLK_n || ev.key.keysym.sym == SDLK_ESCAPE) {
+                            quit_confirm = false;
+                        }
+                        break;
+                    }
+                    if (ev.key.keysym.sym == SDLK_ESCAPE) {
+                        if (wopr_willy_escape_is_ingame(&w)) {
+                            wopr_willy_keydown(&w, ev.key.keysym.sym);
+                        } else {
+                            quit_confirm = true;
+                        }
+                        break;
+                    }
                     if (ev.key.keysym.sym == SDLK_F11) {
                         fullscreen = !fullscreen;
                         SDL_SetWindowFullscreen(window,
@@ -112,13 +132,16 @@ int main(int argc, char **argv) {
                     wopr_willy_keydown(&w, ev.key.keysym.sym);
                     break;
                 case SDL_MOUSEBUTTONDOWN:
-                    wopr_willy_mousedown(&w, ev.button.x, ev.button.y, ev.button.button);
+                    if (!quit_confirm)
+                        wopr_willy_mousedown(&w, ev.button.x, ev.button.y, ev.button.button);
                     break;
                 case SDL_MOUSEMOTION:
-                    wopr_willy_mousemove(&w, ev.motion.x, ev.motion.y);
+                    if (!quit_confirm)
+                        wopr_willy_mousemove(&w, ev.motion.x, ev.motion.y);
                     break;
                 case SDL_MOUSEBUTTONUP:
-                    wopr_willy_mouseup(&w, ev.button.x, ev.button.y, ev.button.button);
+                    if (!quit_confirm)
+                        wopr_willy_mouseup(&w, ev.button.x, ev.button.y, ev.button.button);
                     break;
                 default:
                     break;
@@ -130,11 +153,30 @@ int main(int argc, char **argv) {
         prev_ticks = now;
         if (dt > 0.1) dt = 0.1;  // clamp huge stalls (window drag, breakpoint, etc.)
 
-        wopr_willy_update(&w, dt);
+        if (!quit_confirm) wopr_willy_update(&w, dt);  // frozen behind the dialog
 
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
         wopr_willy_render(&w, px, py, cw, ch, cols);
+
+        if (quit_confirm) {
+            int ww_, wh_;
+            SDL_GetWindowSize(window, &ww_, &wh_);
+            const char *msg  = "QUIT WILLY THE WORM?";
+            const char *hint = "Y TO QUIT  -  N OR ESC TO CANCEL";
+            float box_w = 440.f, box_h = 90.f;
+            float box_x = (float)ww_ * 0.5f - box_w * 0.5f;
+            float box_y = (float)wh_ * 0.5f - box_h * 0.5f;
+            gl_draw_rect(box_x, box_y, box_w, box_h, 0.f, 0.f, 0.f, 0.85f);
+            gl_draw_rect(box_x, box_y, box_w, 2.f, 1.f, 1.f, 1.f, 1.f);
+            gl_draw_rect(box_x, box_y + box_h - 2.f, box_w, 2.f, 1.f, 1.f, 1.f, 1.f);
+            gl_draw_text(msg,  box_x + (box_w - gl_text_width(msg, 1.f)) * 0.5f,
+                         box_y + 24.f, 1.f, 1.f, 0.f, 1.f, 1.f);
+            gl_draw_text(hint, box_x + (box_w - gl_text_width(hint, 1.f)) * 0.5f,
+                         box_y + 54.f, 0.7f, 0.7f, 0.7f, 1.f, 1.f);
+            gl_flush_verts();
+        }
+
         SDL_RenderPresent(renderer);
     }
 

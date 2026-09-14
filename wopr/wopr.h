@@ -229,6 +229,12 @@ void wopr_willy_mousedown(WoprState *w, int x, int y, int button);
 void wopr_willy_mousemove(WoprState *w, int x, int y);
 void wopr_willy_mouseup(WoprState *w, int x, int y, int button);
 void wopr_willy_textinput(WoprState *w, const char *text);
+// True while Willy is somewhere that gives Escape its own meaning (currently
+// just the highscore name-entry screen, where Escape skips submitting a
+// name). Callers driving their own Escape-to-quit UI — see willy_main.cpp —
+// should check this and let wopr_willy_keydown() handle Escape first when
+// it's true, instead of intercepting the keypress themselves.
+bool wopr_willy_escape_is_ingame(WoprState *w);
 
 // Strategic Defense Initiative (Missile Command)
 void wopr_sdi_enter(WoprState *w);

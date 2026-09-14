@@ -1293,15 +1293,15 @@ void wopr_willy_render(WoprState *w, int px, int py, int cw, int ch, int /*cols*
         // One small Willy sprite per remaining life, equally spaced, in place
         // of the old "%2d" life count.
         //
-        // WW_LIFE_ICON_Y_NUDGE: how far up (in units of icon_cs) to shift the
-        // icon row so it lines up with the text baseline. This differs by
-        // renderer: the real WOPR gl_draw_text() apparently anchors text one
-        // cell lower than ww_draw_sprite()'s top-left sprites (needed
-        // WW_LIFE_ICON_Y_NUDGE=1.0 to align), while the standalone
-        // wopr_render.cpp anchors both the same way (needs 0.0). Override at
-        // build time with -DWW_LIFE_ICON_Y_NUDGE=1.0f for the WOPR build.
-        #ifndef WW_LIFE_ICON_Y_NUDGE
-        #define WW_LIFE_ICON_Y_NUDGE 0.0f
+        // The vertical nudge below lines the icon row up with the text
+        // baseline. This differs by renderer: the real WOPR gl_draw_text()
+        // anchors text one cell lower than ww_draw_sprite()'s top-left
+        // sprites (needs the nudge), while the standalone wopr_render.cpp
+        // anchors both the same way (needs none). -DWOPR selects which.
+        #ifdef WOPR
+        static const float WW_LIFE_ICON_Y_NUDGE = 1.0f;
+        #else
+        static const float WW_LIFE_ICON_Y_NUDGE = 0.0f;
         #endif
         float icon_cs  = (float)cw;
         float icon_x   = (float)px + (float)strlen(buf) * icon_cs;
@@ -1652,3 +1652,9 @@ void wopr_willy_free(WoprState *w) {
 }
 
 void wopr_willy_textinput(WoprState *w, const char *t) { (void)w;(void)t; }
+
+bool wopr_willy_escape_is_ingame(WoprState *w) {
+    if(!w->sub_state) return false;
+    WillyWoprState *s = static_cast<WillyWoprState*>(w->sub_state);
+    return s->sub == WSub::NAME_ENTRY;  // Escape there skips submitting a name
+}
