@@ -1074,10 +1074,12 @@ void wopr_willy_render(WoprState *w, int px, int py, int cw, int ch, int /*cols*
             {{{"", -1}}, 1},
             {{{"", -1}}, 1},
 
+#ifdef WOPR
             {{{"Cheat keys: Ctrl+L adds a life,  Ctrl+N skips to next level.", -1}}, 1},
             {{{"", -1}}, 1},
             {{{"", -1}}, 1},
 
+#endif
             {{{"Press Enter to Continue", -1}}, 1},
         };
 
