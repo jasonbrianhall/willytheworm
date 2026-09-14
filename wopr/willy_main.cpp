@@ -16,6 +16,7 @@
 #include "wopr.h"
 #include "wopr_render.h"
 #include <SDL2/SDL.h>
+#include <algorithm>
 #include <cstdio>
 
 static const int WINDOW_W = 1280;
@@ -91,6 +92,12 @@ int main(int argc, char **argv) {
     Uint64 prev_ticks = SDL_GetPerformanceCounter();
     const Uint64 freq = SDL_GetPerformanceFrequency();
 
+    // Auto-hide the mouse cursor after a few seconds of no mouse activity;
+    // any movement or click brings it back.
+    const double CURSOR_IDLE_TIMEOUT = 3.0;
+    double cursor_idle_time = 0.0;
+    bool   cursor_hidden = false;
+
     while (running) {
         SDL_Event ev;
         while (SDL_PollEvent(&ev)) {
@@ -132,14 +139,20 @@ int main(int argc, char **argv) {
                     wopr_willy_keydown(&w, ev.key.keysym.sym);
                     break;
                 case SDL_MOUSEBUTTONDOWN:
+                    cursor_idle_time = 0.0;
+                    if (cursor_hidden) { SDL_ShowCursor(SDL_ENABLE); cursor_hidden = false; }
                     if (!quit_confirm)
                         wopr_willy_mousedown(&w, ev.button.x, ev.button.y, ev.button.button);
                     break;
                 case SDL_MOUSEMOTION:
+                    cursor_idle_time = 0.0;
+                    if (cursor_hidden) { SDL_ShowCursor(SDL_ENABLE); cursor_hidden = false; }
                     if (!quit_confirm)
                         wopr_willy_mousemove(&w, ev.motion.x, ev.motion.y);
                     break;
                 case SDL_MOUSEBUTTONUP:
+                    cursor_idle_time = 0.0;
+                    if (cursor_hidden) { SDL_ShowCursor(SDL_ENABLE); cursor_hidden = false; }
                     if (!quit_confirm)
                         wopr_willy_mouseup(&w, ev.button.x, ev.button.y, ev.button.button);
                     break;
@@ -153,6 +166,12 @@ int main(int argc, char **argv) {
         prev_ticks = now;
         if (dt > 0.1) dt = 0.1;  // clamp huge stalls (window drag, breakpoint, etc.)
 
+        cursor_idle_time += dt;
+        if (!cursor_hidden && cursor_idle_time >= CURSOR_IDLE_TIMEOUT) {
+            SDL_ShowCursor(SDL_DISABLE);
+            cursor_hidden = true;
+        }
+
         if (!quit_confirm) wopr_willy_update(&w, dt);  // frozen behind the dialog
 
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
@@ -164,7 +183,9 @@ int main(int argc, char **argv) {
             SDL_GetWindowSize(window, &ww_, &wh_);
             const char *msg  = "QUIT WILLY THE WORM?";
             const char *hint = "Y TO QUIT  -  N OR ESC TO CANCEL";
-            float box_w = 440.f, box_h = 90.f;
+            float pad   = 32.f;
+            float box_w = std::max(gl_text_width(msg, 1.f), gl_text_width(hint, 1.f)) + pad * 2.f;
+            float box_h = 90.f;
             float box_x = (float)ww_ * 0.5f - box_w * 0.5f;
             float box_y = (float)wh_ * 0.5f - box_h * 0.5f;
             gl_draw_rect(box_x, box_y, box_w, box_h, 0.f, 0.f, 0.f, 0.85f);

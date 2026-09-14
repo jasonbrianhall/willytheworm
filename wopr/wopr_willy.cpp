@@ -1025,7 +1025,11 @@ void wopr_willy_render(WoprState *w, int px, int py, int cw, int ch, int /*cols*
 
         const ILine L[] = {
 
+#ifdef WOPR
             {{{"Willy the Worm (WOPR Port)", -1}}, 1},
+#else
+            {{{"Willy the Worm", -1}}, 1},
+#endif
             {{{"", -1}}, 1},
             {{{"", -1}}, 1},
             {{{"By Jason Hall", -1}}, 1},
