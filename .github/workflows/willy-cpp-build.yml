@@ -287,7 +287,7 @@ jobs:
             </Directory>
 
             <DirectoryRef Id="INSTALLFOLDER">
-              <Component Id="MainExecutable" Guid="*" Win64="yes">
+              <Component Id="MainExecutable" Guid="FF071EC7-3745-40E0-8C9C-404979903504" Win64="yes">
                 <File Id="willy_exe" Name="willy.exe" Source="willy.exe" KeyPath="yes" />
 
                 <Shortcut Id="StartMenuShortcut"
@@ -303,7 +303,7 @@ jobs:
             </DirectoryRef>
 
             <DirectoryRef Id="AudioFolder">
-              <Component Id="AudioFiles" Guid="*" Win64="yes">
+              <Component Id="AudioFiles" Guid="379B70EB-279B-4CBD-9B7C-D9127BD0F873" Win64="yes">
                 $($audioEntries -join "`r`n")
                 <RegistryValue Root="HKCU" Key="Software\WillyTheWormCPP\Audio" Name="installed"
                                Type="integer" Value="1" KeyPath="yes" />
@@ -311,7 +311,7 @@ jobs:
             </DirectoryRef>
 
             <DirectoryRef Id="ApplicationProgramsFolder">
-              <Component Id="StartMenuFolder" Guid="*" Win64="yes">
+              <Component Id="StartMenuFolder" Guid="4F2D2907-3CBF-479D-8CC9-8E08820958BD" Win64="yes">
                 <RemoveFolder Id="ApplicationProgramsFolderRemove" On="uninstall" />
                 <RegistryValue Root="HKCU" Key="Software\WillyTheWormCPP\Shortcuts" Name="StartMenu"
                                Type="integer" Value="1" KeyPath="yes" />
@@ -319,7 +319,7 @@ jobs:
             </DirectoryRef>
 
             <DirectoryRef Id="DesktopFolder">
-              <Component Id="DesktopShortcut" Guid="*" Win64="yes">
+              <Component Id="DesktopShortcut" Guid="F244BC2C-2506-4FBA-B79C-6240078A524C" Win64="yes">
                 <Condition>DESKTOP_SHORTCUT=1</Condition>
                 <Shortcut Id="DesktopShortcutMain"
                           Directory="DesktopFolder"
