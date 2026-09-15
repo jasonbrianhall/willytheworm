@@ -288,7 +288,7 @@ jobs:
 
             <DirectoryRef Id="INSTALLFOLDER">
               <Component Id="MainExecutable" Guid="FF071EC7-3745-40E0-8C9C-404979903504" Win64="yes">
-                <File Id="willy_exe" Name="willy.exe" Source="willy.exe" KeyPath="yes" />
+                <File Id="willy_exe" Name="willy.exe" Source="willy.exe" />
 
                 <Shortcut Id="StartMenuShortcut"
                           Directory="ApplicationProgramsFolder"
@@ -298,6 +298,9 @@ jobs:
                           WorkingDirectory="INSTALLFOLDER"
                           Icon="WillyIcon"
                           IconIndex="0" />
+
+                <RegistryValue Root="HKCU" Key="Software\WillyTheWormCPP" Name="installed"
+                               Type="integer" Value="1" KeyPath="yes" />
                 $($fileEntries -join "`r`n")
               </Component>
             </DirectoryRef>
