@@ -1,0 +1,8 @@
+{
+  "name": "willy-the-worm",
+  "version": "1.0.0",
+  "dependencies": [
+    "sdl2",
+    "freetype"
+  ]
+}
