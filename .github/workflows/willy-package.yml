@@ -1,4 +1,4 @@
-name: Build and Release Willy the Worm
+name: Build and Release Willy the Worm (Python + Native C++)
 
 on:
   push:
@@ -13,6 +13,10 @@ on:
       - '**.yml'
       - '**.yaml'
       - 'audio/**'
+      - 'cpp/**.cpp'
+      - 'cpp/**.h'
+      - 'cpp/CMakeLists.txt'
+      - 'cpp/vcpkg.json'
   pull_request:
     branches:
       - main
@@ -25,11 +29,16 @@ on:
       - '**.yml'
       - '**.yaml'
       - 'audio/**'
+      - 'cpp/**.cpp'
+      - 'cpp/**.h'
+      - 'cpp/CMakeLists.txt'
+      - 'cpp/vcpkg.json'
   workflow_dispatch:
 
 env:
   PRODUCT_VERSION: "1.0.${{ github.run_number }}"
-  UPGRADE_CODE: "D0A8E7F1-3B92-4C67-B8E5-1A4F26D95C03"
+  UPGRADE_CODE_PYTHON: "D0A8E7F1-3B92-4C67-B8E5-1A4F26D95C03"
+  UPGRADE_CODE_CPP: "F4C8B2E1-9D3A-4F6B-A1E5-7C2D8B4F9A3E"
 
 jobs:
   create-source-release:
@@ -164,7 +173,7 @@ jobs:
                      Language="1033" 
                      Version="${{ needs.create-source-release.outputs.version }}" 
                      Manufacturer="Jason Hall" 
-                     UpgradeCode="${{ env.UPGRADE_CODE }}"> 
+                     UpgradeCode="${{ env.UPGRADE_CODE_PYTHON }}"> 
               
               <Package InstallerVersion="500" 
                        Compressed="yes" 
@@ -456,21 +465,565 @@ jobs:
           name: WillyTheWorm-Portable.zip
           path: WillyTheWorm-Portable.zip
 
+  build-windows:
+    runs-on: windows-latest
+    outputs:
+      version: ${{ env.PRODUCT_VERSION }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: x64
+            cmake_arch: x64
+            triplet: x64-windows
+          - name: arm64
+            cmake_arch: ARM64
+            triplet: arm64-windows
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Bootstrap vcpkg
+      run: |
+        git clone --branch 2026.07.29 --depth 1 https://github.com/microsoft/vcpkg.git C:\vcpkg
+        C:\vcpkg\bootstrap-vcpkg.bat
+        echo "VCPKG_ROOT=C:\vcpkg" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+        echo "VCPKG_BINARY_SOURCES=clear;files,C:\vcpkg_bincache,readwrite" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+    - name: Restore vcpkg binary cache
+      uses: actions/cache/restore@v4
+      with:
+        path: C:\vcpkg_bincache
+        key: vcpkg-bincache-willy-${{ matrix.triplet }}-${{ hashFiles('cpp/vcpkg.json') }}
+        restore-keys: |
+          vcpkg-bincache-willy-${{ matrix.triplet }}-
+
+    - name: Install Dependencies (vcpkg)
+      working-directory: cpp
+      run: |
+        C:\vcpkg\vcpkg.exe install --triplet ${{ matrix.triplet }} --x-install-root=C:\vcpkg\installed
+
+    - name: Save vcpkg binary cache
+      if: always()
+      uses: actions/cache/save@v4
+      with:
+        path: C:\vcpkg_bincache
+        key: vcpkg-bincache-willy-${{ matrix.triplet }}-${{ hashFiles('cpp/vcpkg.json') }}
+
+    - name: Configure (CMake, MSVC)
+      run: |
+        cmake -S cpp -B build -A ${{ matrix.cmake_arch }} -DCMAKE_TOOLCHAIN_FILE=C:\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=${{ matrix.triplet }} -DVCPKG_INSTALLED_DIR=C:\vcpkg\installed -DCMAKE_BUILD_TYPE=Release
+
+    - name: Build
+      run: |
+        cmake --build build --config Release --parallel
+
+    - name: Convert PNG Icon to ICO Format
+      working-directory: build\Release
+      run: |
+        if (Test-Path "..\..\icon.png") {
+          magick "..\..\icon.png" -resize 256x256 -colors 256 icon.ico
+          Write-Host "Icon converted successfully"
+        } else {
+          Write-Host "icon.png not found at repo root"
+        }
+
+    - name: Prepare Build Artifacts
+      working-directory: build\Release
+      run: |
+        Copy-Item ..\..\README.md . -ErrorAction SilentlyContinue
+        Copy-Item ..\..\LICENSE.md . -ErrorAction SilentlyContinue
+        Copy-Item ..\..\icon.png . -ErrorAction SilentlyContinue
+        Copy-Item ..\..\levels.json . -ErrorAction SilentlyContinue
+        Copy-Item ..\..\original_levels.json . -ErrorAction SilentlyContinue
+        Copy-Item ..\..\willy.chr . -ErrorAction SilentlyContinue
+        Copy-Item ..\..\audio -Destination . -Recurse -ErrorAction SilentlyContinue
+
+        if (-not (Test-Path "willy.exe")) {
+          Write-Error "willy.exe not found!"; exit 1
+        }
+        Write-Host "willy.exe found"
+
+        Copy-Item "C:\vcpkg\installed\${{ matrix.triplet }}\bin\*.dll" . -ErrorAction SilentlyContinue
+
+        Write-Host "Portable package contents:"
+        Get-ChildItem *.exe, *.dll | Format-Table Name, Length
+
+        Compress-Archive -Path * -DestinationPath ..\..\WillyTheWorm-CPP-Portable-${{ matrix.name }}.zip -Force
+
+    - name: Upload Build Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: willy-cpp-build-${{ matrix.name }}
+        path: WillyTheWorm-CPP-Portable-${{ matrix.name }}.zip
+        retention-days: 7
+
+  build-debug-standalone:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Bootstrap vcpkg
+      run: |
+        git clone --branch 2026.07.29 --depth 1 https://github.com/microsoft/vcpkg.git C:\vcpkg
+        C:\vcpkg\bootstrap-vcpkg.bat
+        echo "VCPKG_ROOT=C:\vcpkg" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+        echo "VCPKG_BINARY_SOURCES=clear;files,C:\vcpkg_bincache,readwrite" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+    - name: Restore vcpkg binary cache
+      uses: actions/cache/restore@v4
+      with:
+        path: C:\vcpkg_bincache
+        key: vcpkg-bincache-willy-x64-windows-${{ hashFiles('cpp/vcpkg.json') }}
+        restore-keys: |
+          vcpkg-bincache-willy-x64-windows-
+
+    - name: Install Dependencies (vcpkg)
+      working-directory: cpp
+      run: |
+        C:\vcpkg\vcpkg.exe install --triplet x64-windows --x-install-root=C:\vcpkg\installed
+
+    - name: Save vcpkg binary cache
+      if: always()
+      uses: actions/cache/save@v4
+      with:
+        path: C:\vcpkg_bincache
+        key: vcpkg-bincache-willy-x64-windows-${{ hashFiles('cpp/vcpkg.json') }}
+
+    - name: Configure (CMake, MSVC, Debug + ASan)
+      run: |
+        cmake -S cpp -B build-debug -A x64 -DCMAKE_TOOLCHAIN_FILE=C:\vcpkg\scripts\buildsystems\vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows -DVCPKG_INSTALLED_DIR=C:\vcpkg\installed -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="/fsanitize=address" -DCMAKE_C_FLAGS="/fsanitize=address"
+
+    - name: Build (Debug)
+      run: |
+        cmake --build build-debug --config Debug --parallel
+
+    - name: Stage Debug Artifacts
+      working-directory: build-debug\Debug
+      run: |
+        Copy-Item "C:\vcpkg\installed\x64-windows\debug\bin\*.dll" . -ErrorAction SilentlyContinue
+        Copy-Item "C:\vcpkg\installed\x64-windows\bin\*.dll" . -ErrorAction SilentlyContinue
+
+        # Debug CRT (VCRUNTIME140D.dll, msvcp140d.dll, ucrtbased.dll, vcruntime140_1d.dll)
+        # isn't redistributable, so grab it straight from the VS Build Tools on this runner.
+        $debugCrtDir = Get-ChildItem "C:\Program Files\Microsoft Visual Studio" -Recurse -Directory -Filter "Microsoft.VC*.DebugCRT" -ErrorAction SilentlyContinue |
+                       Where-Object { $_.FullName -match '\\x64\\' } |
+                       Select-Object -First 1
+        if ($debugCrtDir) {
+          Write-Host "Found Debug CRT at $($debugCrtDir.FullName)"
+          Copy-Item "$($debugCrtDir.FullName)\*.dll" . -Force
+        } else {
+          Write-Warning "Debug CRT redist folder not found on this runner image -- VCRUNTIME140D.dll etc. will be missing from the zip."
+        }
+
+        # ASan (/fsanitize=address) needs its runtime DLL next to the exe.
+        $asanDll = Get-ChildItem "C:\Program Files\Microsoft Visual Studio" -Recurse -Filter "clang_rt.asan_dynamic-x86_64.dll" -ErrorAction SilentlyContinue |
+                   Where-Object { $_.FullName -match '\\Hostx64\\x64\\' } |
+                   Select-Object -First 1
+        if ($asanDll) {
+          Write-Host "Found ASan runtime at $($asanDll.FullName)"
+          Copy-Item $asanDll.FullName . -Force
+        } else {
+          Write-Warning "ASan runtime DLL not found -- instrumented exe likely won't launch."
+        }
+
+        Get-ChildItem *.exe, *.pdb, *.dll | Format-Table Name, Length
+        Compress-Archive -Path *.exe, *.pdb, *.dll -DestinationPath ..\..\WillyTheWorm-CPP-Debug-x64.zip -Force
+
+    - name: Upload Debug Build
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: willy-cpp-debug-x64
+        path: WillyTheWorm-CPP-Debug-x64.zip
+        retention-days: 7
+
+  build-msi-windows:
+    # WiX v3 has no ARM64 target support, so the MSI stays x64-only.
+    needs: build-windows
+    runs-on: windows-latest
+    permissions:
+      contents: write
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Download Build Artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: willy-cpp-build-x64
+        path: .
+
+    - name: Extract Build Files
+      run: |
+        Expand-Archive -Path "WillyTheWorm-CPP-Portable-x64.zip" -DestinationPath "artifacts/build/windows/" -Force
+
+    - name: Setup WiX Toolset
+      run: |
+        Invoke-WebRequest -Uri "https://github.com/wixtoolset/wix3/releases/download/wix3112rtm/wix311-binaries.zip" -OutFile "wix.zip"
+        Expand-Archive -Path "wix.zip" -DestinationPath "wix"
+        echo "$env:GITHUB_WORKSPACE\wix" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+    - name: Generate MSI Installer
+      working-directory: artifacts/build/windows
+      run: |
+        $version = "${{ env.PRODUCT_VERSION }}"
+        $upgradeCode = "${{ env.UPGRADE_CODE_CPP }}"
+
+        # Every top-level file except the exe and the MSI-only icon.ico
+        # (README, LICENSE, icon.png, DLLs, levels.json, willy.chr, ...)
+        $otherFiles = Get-ChildItem -File | Where-Object { $_.Name -notin @("willy.exe", "icon.ico") }
+        $fileEntries = $otherFiles | ForEach-Object {
+          $safeId = $_.Name -replace '[^a-zA-Z0-9]', '_'
+          "                <File Id=`"$safeId`" Name=`"$($_.Name)`" Source=`"$($_.Name)`"/>"
+        }
+
+        $audioEntries = @()
+        if (Test-Path "audio") {
+          $audioEntries = Get-ChildItem "audio" -File | ForEach-Object {
+            $safeId = "audio_" + ($_.Name -replace '[^a-zA-Z0-9]', '_')
+            "                  <File Id=`"$safeId`" Name=`"$($_.Name)`" Source=`"audio\$($_.Name)`"/>"
+          }
+        }
+
+        @"
+        <?xml version="1.0" encoding="UTF-8"?>
+        <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+
+          <Product Id="*"
+                   Name="Willy the Worm"
+                   Language="1033"
+                   Version="$version"
+                   Manufacturer="Jason Hall"
+                   UpgradeCode="$upgradeCode">
+
+            <Package InstallerVersion="500" Compressed="yes" InstallScope="perMachine"
+                     Description="Willy the Worm - Native C++ Edition"
+                     Manufacturer="Jason Hall" />
+
+            <MajorUpgrade DowngradeErrorMessage="A newer version of Willy the Worm is already installed."
+                          Schedule="afterInstallInitialize" />
+            <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
+
+            <Icon Id="WillyIcon" SourceFile="icon.ico" />
+            <Property Id="ARPPRODUCTICON" Value="WillyIcon" />
+            <Property Id="ARPHELPLINK" Value="https://github.com/yourusername/willy-the-worm" />
+            <Property Id="ARPURLINFOABOUT" Value="https://github.com/yourusername/willy-the-worm" />
+            <Property Id="ARPCOMMENTS" Value="Native C++ port of Willy the Worm" />
+
+            <WixVariable Id="WixUILicenseRtf" Value="License.rtf" />
+            <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
+            <Property Id="DESKTOP_SHORTCUT" Value="1" />
+
+            <Directory Id="TARGETDIR" Name="SourceDir">
+              <Directory Id="ProgramFiles64Folder">
+                <Directory Id="INSTALLFOLDER" Name="Willy the Worm">
+                  <Directory Id="AudioFolder" Name="audio" />
+                </Directory>
+              </Directory>
+              <Directory Id="ProgramMenuFolder">
+                <Directory Id="ApplicationProgramsFolder" Name="Willy the Worm" />
+              </Directory>
+              <Directory Id="DesktopFolder" />
+            </Directory>
+
+            <DirectoryRef Id="INSTALLFOLDER">
+              <Component Id="MainExecutable" Guid="FF071EC7-3745-40E0-8C9C-404979903504" Win64="yes">
+                <File Id="willy_exe" Name="willy.exe" Source="willy.exe" />
+
+                <Shortcut Id="StartMenuShortcut"
+                          Directory="ApplicationProgramsFolder"
+                          Name="Willy the Worm"
+                          Description="Willy the Worm - Native C++ Edition"
+                          Target="[INSTALLFOLDER]willy.exe"
+                          WorkingDirectory="INSTALLFOLDER"
+                          Icon="WillyIcon"
+                          IconIndex="0" />
+
+                <RegistryValue Root="HKCU" Key="Software\WillyTheWormCPP" Name="installed"
+                               Type="integer" Value="1" KeyPath="yes" />
+                $($fileEntries -join "`r`n")
+              </Component>
+            </DirectoryRef>
+
+            <DirectoryRef Id="AudioFolder">
+              <Component Id="AudioFiles" Guid="379B70EB-279B-4CBD-9B7C-D9127BD0F873" Win64="yes">
+                $($audioEntries -join "`r`n")
+                <RegistryValue Root="HKCU" Key="Software\WillyTheWormCPP\Audio" Name="installed"
+                               Type="integer" Value="1" KeyPath="yes" />
+              </Component>
+            </DirectoryRef>
+
+            <DirectoryRef Id="ApplicationProgramsFolder">
+              <Component Id="StartMenuFolder" Guid="4F2D2907-3CBF-479D-8CC9-8E08820958BD" Win64="yes">
+                <RemoveFolder Id="ApplicationProgramsFolderRemove" On="uninstall" />
+                <RegistryValue Root="HKCU" Key="Software\WillyTheWormCPP\Shortcuts" Name="StartMenu"
+                               Type="integer" Value="1" KeyPath="yes" />
+              </Component>
+            </DirectoryRef>
+
+            <DirectoryRef Id="DesktopFolder">
+              <Component Id="DesktopShortcut" Guid="F244BC2C-2506-4FBA-B79C-6240078A524C" Win64="yes">
+                <Condition>DESKTOP_SHORTCUT=1</Condition>
+                <Shortcut Id="DesktopShortcutMain"
+                          Directory="DesktopFolder"
+                          Name="Willy the Worm"
+                          Description="Willy the Worm - Native C++ Edition"
+                          Target="[INSTALLFOLDER]willy.exe"
+                          WorkingDirectory="INSTALLFOLDER"
+                          Icon="WillyIcon"
+                          IconIndex="0" />
+
+                <RegistryValue Root="HKCU" Key="Software\WillyTheWormCPP\Shortcuts" Name="Desktop"
+                               Type="integer" Value="1" KeyPath="yes" />
+              </Component>
+            </DirectoryRef>
+
+            <Feature Id="MainFeature" Title="Willy the Worm" Level="1">
+              <ComponentRef Id="MainExecutable" />
+              <ComponentRef Id="AudioFiles" />
+              <ComponentRef Id="StartMenuFolder" />
+              <ComponentRef Id="DesktopShortcut" />
+            </Feature>
+
+            <UIRef Id="WixUI_InstallDir" />
+            <UIRef Id="WixUI_ErrorProgressText" />
+
+            <InstallExecuteSequence>
+              <Custom Action="SetARPINSTALLLOCATION" After="InstallValidate" />
+            </InstallExecuteSequence>
+            <CustomAction Id="SetARPINSTALLLOCATION" Property="ARPINSTALLLOCATION" Value="[INSTALLFOLDER]" />
+
+          </Product>
+        </Wix>
+        "@ | Out-File -FilePath "willy.wxs" -Encoding UTF8
+
+        if (-not (Test-Path "License.rtf")) {
+          @"
+        {\rtf1\ansi\ansicpg1252
+        {\colortbl;\red255\green255\blue255;}
+        \margl1440\margr1440\vieww11900\viewh8605\viewkind0
+        \pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\pardirnatural\partightenfactor0
+        \f0\fs20 \cf0 MIT License\
+        \
+        Copyright (c) 2025 Jason Hall\
+        \
+        Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:\
+        \
+        The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.\
+        \
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.}
+        "@ | Out-File -FilePath "License.rtf" -Encoding ASCII
+        }
+
+        Write-Host "Compiling WXS..."
+        & candle.exe -out "willy.wixobj" -arch x64 "willy.wxs"
+        if ($LASTEXITCODE -ne 0) { Write-Error "Candle failed"; exit 1 }
+
+        Write-Host "Linking MSI..."
+        & light.exe -out "WillyTheWorm-CPP.msi" -ext WixUIExtension -ext WixUtilExtension "willy.wixobj"
+        if ($LASTEXITCODE -ne 0) { Write-Error "Light failed"; exit 1 }
+
+        if (Test-Path "WillyTheWorm-CPP.msi") {
+          Write-Host "✅ MSI created: WillyTheWorm-CPP.msi ($((Get-Item 'WillyTheWorm-CPP.msi').Length) bytes)"
+        } else {
+          Write-Error "❌ MSI not created"; exit 1
+        }
+
+    - name: Upload MSI
+      uses: actions/upload-artifact@v4
+      with:
+        name: WillyTheWorm-CPP.msi
+        path: artifacts/build/windows/WillyTheWorm-CPP.msi
+        retention-days: 7
+
+  build-msix-windows:
+    needs: build-windows
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: x64
+            processor_architecture: x64
+          - name: arm64
+            processor_architecture: arm64
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Download Build Artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: willy-cpp-build-${{ matrix.name }}
+        path: .
+
+    - name: Extract Build Files
+      run: |
+        Expand-Archive -Path "WillyTheWorm-CPP-Portable-${{ matrix.name }}.zip" -DestinationPath "msix-source\" -Force
+
+    - name: Prepare MSIX Package Structure
+      run: |
+        New-Item -ItemType Directory -Force -Path "msix-package/Assets"
+        New-Item -ItemType Directory -Force -Path "msix-package/Files"
+
+        Copy-Item "msix-source/*" -Destination "msix-package/Files/" -Recurse -Force
+
+        if (-not (Test-Path "msix-package/Files/willy.exe")) {
+          Write-Error "willy.exe not found in package!"
+          exit 1
+        }
+
+        Write-Host "✅ willy.exe verified in MSIX package"
+        Write-Host "📦 MSIX Files directory contents:"
+        Get-ChildItem "msix-package/Files/" -File | ForEach-Object {
+          $size = "{0:N0}" -f $_.Length
+          Write-Host "  - $($_.Name) ($size bytes)"
+        }
+
+    - name: Create MSIX Store Compliant Assets
+      run: |
+        $iconPath = "msix-source/icon.png"
+
+        if (-not (Test-Path $iconPath)) {
+          Write-Error "icon.png not found - cannot create Store assets"
+          exit 1
+        }
+
+        Write-Host "Creating Microsoft Store compliant assets..."
+
+        & magick "$iconPath" -resize 50x50   "msix-package/Assets/StoreLogo.scale-100.png"
+        & magick "$iconPath" -resize 63x63   "msix-package/Assets/StoreLogo.scale-125.png"
+        & magick "$iconPath" -resize 75x75   "msix-package/Assets/StoreLogo.scale-150.png"
+        & magick "$iconPath" -resize 100x100 "msix-package/Assets/StoreLogo.scale-200.png"
+
+        & magick "$iconPath" -resize 44x44 "msix-package/Assets/Willy44x44.scale-100.png"
+        & magick "$iconPath" -resize 55x55 "msix-package/Assets/Willy44x44.scale-125.png"
+        & magick "$iconPath" -resize 66x66 "msix-package/Assets/Willy44x44.scale-150.png"
+        & magick "$iconPath" -resize 88x88 "msix-package/Assets/Willy44x44.scale-200.png"
+
+        & magick "$iconPath" -resize 150x150 "msix-package/Assets/WillyLogo.scale-100.png"
+        & magick "$iconPath" -resize 188x188 "msix-package/Assets/WillyLogo.scale-125.png"
+        & magick "$iconPath" -resize 225x225 "msix-package/Assets/WillyLogo.scale-150.png"
+        & magick "$iconPath" -resize 300x300 "msix-package/Assets/WillyLogo.scale-200.png"
+
+        & magick "$iconPath" -resize 150x150 -background "#1a1a2e" -gravity center -extent 310x150 "msix-package/Assets/WillyWide.scale-100.png"
+        & magick "$iconPath" -resize 188x188 -background "#1a1a2e" -gravity center -extent 388x188 "msix-package/Assets/WillyWide.scale-125.png"
+        & magick "$iconPath" -resize 225x225 -background "#1a1a2e" -gravity center -extent 465x225 "msix-package/Assets/WillyWide.scale-150.png"
+        & magick "$iconPath" -resize 300x300 -background "#1a1a2e" -gravity center -extent 620x300 "msix-package/Assets/WillyWide.scale-200.png"
+
+        Write-Host "✅ All Microsoft Store assets created successfully"
+
+    - name: Create MSIX Manifest
+      working-directory: msix-package
+      run: |
+        @"
+        <?xml version="1.0" encoding="utf-8"?>
+        <Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+                 xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+                 xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities">
+
+          <Identity
+            Name="JasonBrianHall.WillyTheWormCPP"
+            Publisher="CN=7A3CF65F-504C-42F2-BABD-6A0512A0A017"
+            Version="${{ needs.build-windows.outputs.version }}"
+            ProcessorArchitecture="${{ matrix.processor_architecture }}" />
+
+          <Properties>
+            <DisplayName>Willy the Worm</DisplayName>
+            <PublisherDisplayName>Jason Brian Hall</PublisherDisplayName>
+            <Description>A native C++ port of the classic Willy the Worm platform game.</Description>
+            <Logo>Assets\StoreLogo.scale-100.png</Logo>
+          </Properties>
+
+          <Dependencies>
+            <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.17763.0" MaxVersionTested="10.0.26100.0" />
+          </Dependencies>
+
+          <Resources>
+            <Resource Language="en-us" />
+          </Resources>
+
+          <Applications>
+            <Application Id="WillyTheWorm" Executable="Files\willy.exe" EntryPoint="Windows.FullTrustApplication">
+              <uap:VisualElements DisplayName="Willy the Worm"
+                                  Description="A native C++ port of the classic Willy the Worm platform game."
+                                  Square150x150Logo="Assets\WillyLogo.scale-100.png"
+                                  Square44x44Logo="Assets\Willy44x44.scale-100.png"
+                                  BackgroundColor="#1a1a2e">
+                <uap:DefaultTile Wide310x150Logo="Assets\WillyWide.scale-100.png"
+                                 ShortName="Willy the Worm">
+                  <uap:ShowNameOnTiles>
+                    <uap:ShowOn Tile="square150x150Logo"/>
+                    <uap:ShowOn Tile="wide310x150Logo"/>
+                  </uap:ShowNameOnTiles>
+                </uap:DefaultTile>
+                <uap:SplashScreen Image="Assets\WillyLogo.scale-100.png" />
+              </uap:VisualElements>
+            </Application>
+          </Applications>
+
+          <Capabilities>
+            <rescap:Capability Name="runFullTrust" />
+          </Capabilities>
+        </Package>
+        "@ | Out-File -FilePath "AppxManifest.xml" -Encoding UTF8
+
+    - name: Build MSIX Package
+      run: |
+        $makeAppxPath = "${env:ProgramFiles(x86)}\Windows Kits\10\bin\10.0.22621.0\x64\makeappx.exe"
+
+        if (-not (Test-Path $makeAppxPath)) {
+          $sdkVersions = Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin\" |
+            Where-Object { $_.Name -match "10\.0\.\d+\.\d+" } |
+            Sort-Object Name -Descending
+          foreach ($version in $sdkVersions) {
+            $testPath = "${env:ProgramFiles(x86)}\Windows Kits\10\bin\$($version.Name)\x64\makeappx.exe"
+            if (Test-Path $testPath) { $makeAppxPath = $testPath; break }
+          }
+        }
+
+        if (-not (Test-Path $makeAppxPath)) {
+          Write-Error "MakeAppx.exe not found."
+          exit 1
+        }
+
+        Write-Host "Using MakeAppx at: $makeAppxPath"
+        & "$makeAppxPath" pack /d "msix-package" /p "WillyTheWorm-CPP-${{ matrix.name }}.msix" /o
+
+        if ($LASTEXITCODE -ne 0) { Write-Error "MSIX creation failed"; exit 1 }
+
+        if (Test-Path "WillyTheWorm-CPP-${{ matrix.name }}.msix") {
+          Write-Host "✅ MSIX created: WillyTheWorm-CPP-${{ matrix.name }}.msix ($((Get-Item "WillyTheWorm-CPP-${{ matrix.name }}.msix").Length) bytes)"
+          Write-Host "Package is unsigned and ready for Microsoft Store submission"
+        } else {
+          Write-Error "❌ MSIX not created"; exit 1
+        }
+
+    - name: Upload MSIX
+      uses: actions/upload-artifact@v4
+      with:
+        name: WillyTheWorm-CPP-${{ matrix.name }}.msix
+        path: WillyTheWorm-CPP-${{ matrix.name }}.msix
+        retention-days: 7
+
   create-release:
-    needs: [create-source-release, build-windows-installer]
+    needs: [create-source-release, build-windows-installer, build-windows, build-msi-windows, build-msix-windows, build-debug-standalone]
     runs-on: ubuntu-latest
     permissions:
       contents: write
     if: github.event_name == 'push'
-    
+
     steps:
-    - name: Download MSI Artifact
+    - name: Download Python MSI Installer
       uses: actions/download-artifact@v4
       with:
         name: WillyTheWorm.msi
         path: release
 
-    - name: Download Portable Artifact
+    - name: Download Python Portable Artifact
       uses: actions/download-artifact@v4
       with:
         name: WillyTheWorm-Portable.zip
@@ -482,6 +1035,32 @@ jobs:
         name: source-package
         path: release
 
+    - name: Download C++ MSI Installer
+      uses: actions/download-artifact@v4
+      with:
+        name: WillyTheWorm-CPP.msi
+        path: release
+
+    - name: Download C++ MSIX Artifacts
+      uses: actions/download-artifact@v4
+      with:
+        pattern: WillyTheWorm-CPP-*.msix
+        path: release
+        merge-multiple: true
+
+    - name: Download C++ Portable Artifacts
+      uses: actions/download-artifact@v4
+      with:
+        pattern: willy-cpp-build-*
+        path: release
+        merge-multiple: true
+
+    - name: Download C++ Debug Artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: willy-cpp-debug-x64
+        path: release
+
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v2
       with:
@@ -489,6 +1068,12 @@ jobs:
           release/WillyTheWorm.msi
           release/WillyTheWorm-Portable.zip
           release/willy-the-worm-source.zip
+          release/WillyTheWorm-CPP.msi
+          release/WillyTheWorm-CPP-x64.msix
+          release/WillyTheWorm-CPP-arm64.msix
+          release/WillyTheWorm-CPP-Portable-x64.zip
+          release/WillyTheWorm-CPP-Portable-arm64.zip
+          release/WillyTheWorm-CPP-Debug-x64.zip
         tag_name: ${{ github.ref == 'refs/heads/main' && format('v{0}', github.run_number) || format('dev-v{0}', github.run_number) }}
         name: ${{ github.ref == 'refs/heads/main' && format('Release v{0}', github.run_number) || format('Dev Build v{0}', github.run_number) }}
         draft: false
@@ -496,45 +1081,31 @@ jobs:
         make_latest: ${{ github.ref == 'refs/heads/main' }}
         body: |
           ## ${{ github.ref == 'refs/heads/main' && 'Stable Release' || 'Development Build' }}
-          
-          **Version:** ${{ needs.create-source-release.outputs.version }}  
-          **Commit:** ${{ github.sha }}  
-          **Build:** #${{ github.run_number }}  
-          
+
+          **Version:** ${{ env.PRODUCT_VERSION }}
+          **Commit:** ${{ github.sha }}
+          **Build:** #${{ github.run_number }}
+
           ### 🐛 Willy the Worm
-          Classic platform game collection with level editor and control panel.
-          
-          ### 📦 Downloads
-          - **WillyTheWorm.msi** - Windows installer with uninstall support
-          - **WillyTheWorm-Portable.zip** - Portable version (no installation required)
-          - **willy-the-worm-source.zip** - Source code archive
-          
-          ### 🎮 Applications Included
-          - 🐛 **Willy the Worm** - The classic platform game
-          - ✏️ **Willy Level Editor** - Create and edit custom levels
-          - ⚙️ **Willy Control Panel** - Game settings and configuration
-          
-          ### ✨ Installer Features
-          - ✅ User/Machine installation scope choice
-          - ✅ Custom installation directory
-          - ✅ Start menu shortcuts for all applications with individual descriptions
-          - ✅ Optional desktop shortcuts for game, editor, and control panel
-          - ✅ Proper uninstall support with registry cleanup
-          - ✅ MIT License agreement
-          - ✅ Add/Remove Programs integration
-          - ✅ Uninstall shortcut in Start Menu
-          - ✅ Audio files properly organized
-          
-          ### 🛠️ Technical Details
-          - Built with: Python 3.10 + PyInstaller
-          - MSI compiled on: Windows Latest
-          - All dependencies bundled
-          - Sound effects and game assets included
-          - Level files and character data included
-          - Source code included for developers
-          
-          ### 🎵 Audio Files Included
-          - Bell, Boop, Jump, Ladder, Present, and Tack sound effects
-          
+          Classic platform game collection, available as both the original Python/pygame build and a native C++ (SDL2, MSVC) build.
+
+          ### 📦 Python Edition (PyInstaller)
+          - **WillyTheWorm.msi** — Windows installer with uninstall support
+          - **WillyTheWorm-Portable.zip** — Portable version (no installation required)
+          - **willy-the-worm-source.zip** — Source code archive
+
+          Includes the game, level editor, and control panel, with all audio and level data bundled.
+
+          ### 🚀 Native C++ Edition (SDL2 + MSVC)
+          - **WillyTheWorm-CPP.msi** — Windows installer (x64 only)
+          - **WillyTheWorm-CPP-x64.msix** / **WillyTheWorm-CPP-arm64.msix** — Unsigned packages ready for Microsoft Store submission
+          - **WillyTheWorm-CPP-Portable-x64.zip** / **WillyTheWorm-CPP-Portable-arm64.zip** — Portable versions, no installation required
+          - **WillyTheWorm-CPP-Debug-x64.zip** — Debug build with AddressSanitizer, for troubleshooting crashes
+
+          ### 🏪 Microsoft Store Submission
+          The MSIX package is **unsigned** and ready for submission via Partner Center. Before uploading:
+          1. Update the `Identity Name` and `Publisher` in the manifest with your Partner Center values
+          2. Upload the unsigned MSIX — Microsoft handles signing during certification
+
           ---
           *Built with ❤️ using GitHub Actions*
