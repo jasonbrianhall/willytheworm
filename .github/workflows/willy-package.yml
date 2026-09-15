@@ -36,7 +36,7 @@ on:
   workflow_dispatch:
 
 env:
-  PRODUCT_VERSION: "1.0.${{ github.run_number }}"
+  PRODUCT_VERSION: "1.0.${{ github.run_number }}.0"
   UPGRADE_CODE_PYTHON: "D0A8E7F1-3B92-4C67-B8E5-1A4F26D95C03"
   UPGRADE_CODE_CPP: "F4C8B2E1-9D3A-4F6B-A1E5-7C2D8B4F9A3E"
 
