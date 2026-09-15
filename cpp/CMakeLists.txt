@@ -33,7 +33,7 @@ set(SRCS
     miniz.c miniz_tdef.c miniz_tinfl.c miniz_zip.c
 )
 
-add_executable(willy ${SRCS})
+add_executable(willy WIN32 ${SRCS})
 
 if(MSVC)
     target_compile_options(willy PRIVATE /MP)
