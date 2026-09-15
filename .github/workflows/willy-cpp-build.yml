@@ -298,13 +298,13 @@ jobs:
                           WorkingDirectory="INSTALLFOLDER"
                           Icon="WillyIcon"
                           IconIndex="0" />
-$($fileEntries -join "`r`n")
+                $($fileEntries -join "`r`n")
               </Component>
             </DirectoryRef>
 
             <DirectoryRef Id="AudioFolder">
               <Component Id="AudioFiles" Guid="*" Win64="yes">
-$($audioEntries -join "`r`n")
+                $($audioEntries -join "`r`n")
                 <RegistryValue Root="HKCU" Key="Software\WillyTheWormCPP\Audio" Name="installed"
                                Type="integer" Value="1" KeyPath="yes" />
               </Component>
