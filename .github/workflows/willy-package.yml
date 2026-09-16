@@ -926,7 +926,7 @@ jobs:
                  xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities">
 
           <Identity
-            Name="JasonBrianHall.WillyTheWormCPP"
+            Name="JasonBrianHall.WillytheWorm"
             Publisher="CN=7A3CF65F-504C-42F2-BABD-6A0512A0A017"
             Version="${{ needs.build-windows.outputs.version }}"
             ProcessorArchitecture="${{ matrix.processor_architecture }}" />
