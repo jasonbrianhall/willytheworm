@@ -49,11 +49,15 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    // Best-effort — a missing icon isn't worth failing startup over.
+#ifndef WOPR
+    // Best-effort — a missing icon isn't worth failing startup over. Skipped
+    // when built as part of the full WOPR terminal (WOPR defined), which
+    // sets its own window icon elsewhere.
     if (SDL_Surface *icon = load_window_icon()) {
         SDL_SetWindowIcon(window, icon);
         SDL_FreeSurface(icon);
     }
+#endif
 
     // wopr_willy_render() finds the window's real size via
     // SDL_GL_GetCurrentWindow(), which only returns something once a real
