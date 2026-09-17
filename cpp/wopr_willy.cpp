@@ -1206,7 +1206,11 @@ void wopr_willy_render(WoprState *w, int px, int py, int cw, int ch, int /*cols*
         float cs = (float)cw;
         auto top = willy_highscores().getScoresByDifficulty(WILLY_SCORE_CATEGORY);
 
+#ifdef WOPR
         const char *title = "WOPR NIGHTCRAWLERS - TOP SCORES";
+#else
+        const char *title = "NIGHTCRAWLERS - TOP SCORES";
+#endif
         float y = (float)wh * 0.12f;
         gl_draw_text(title, ww_center_x(ww,cs,title), y, 1.f,1.f,0.f,1.f,1.f);
         y += cs * 2.f;
