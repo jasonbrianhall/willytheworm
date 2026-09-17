@@ -29,7 +29,7 @@ endif()
 # SOURCES (mirrors compile.sh)
 # ============================================================================
 set(SRCS
-    willy_main.cpp wopr_willy.cpp wopr_render.cpp highscores.cpp
+    willy_main.cpp wopr_willy.cpp wopr_render.cpp highscores.cpp icon.cpp
     miniz.c miniz_tdef.c miniz_tinfl.c miniz_zip.c
 )
 

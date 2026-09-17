@@ -6,8 +6,12 @@
 // wopr_render.cpp needs DejaVuMono.h (embedded font data) next to it, and
 // links against FreeType in addition to SDL2:
 //   g++ -std=c++17 -O2 willy_main.cpp wopr_willy.cpp wopr_render.cpp
-//       highscores.cpp -I. $(sdl2-config --cflags) $(pkg-config --cflags freetype2)
+//       highscores.cpp icon.cpp -I. $(sdl2-config --cflags) $(pkg-config --cflags freetype2)
 //       -o willy $(sdl2-config --libs) $(pkg-config --libs freetype2)
+//
+// icon.cpp/icon.h decode the embedded 256x256 window icon (icon_data.h,
+// generated from icon.png) into an SDL_Surface for SDL_SetWindowIcon() —
+// no PNG/SDL_image dependency needed.
 //
 // The window opens at 1280x720 but is resizable, maximizable, and F11
 // toggles fullscreen. wopr_willy_render() sizes itself off whatever
@@ -18,6 +22,7 @@
 
 #include "wopr.h"
 #include "wopr_render.h"
+#include "icon.h"
 #include <SDL2/SDL.h>
 #include <algorithm>
 #include <cstdio>
@@ -42,6 +47,12 @@ int main(int argc, char **argv) {
         std::fprintf(stderr, "SDL_CreateWindow failed: %s\n", SDL_GetError());
         SDL_Quit();
         return 1;
+    }
+
+    // Best-effort — a missing icon isn't worth failing startup over.
+    if (SDL_Surface *icon = load_window_icon()) {
+        SDL_SetWindowIcon(window, icon);
+        SDL_FreeSurface(icon);
     }
 
     // wopr_willy_render() finds the window's real size via
