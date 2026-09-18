@@ -530,11 +530,15 @@ static bool can_move(WillyWoprState *s,int r,int c) {
 }
 
 // willy_game_is_on_solid_ground
-static bool on_solid(WillyWoprState *s) {
+// ladder_counts: whether standing on a LADDER tile itself should count as
+// solid ground. Normally true (climbing stops a fall); pass false when
+// checking mid-flight, so a jump arc can pass over a ladder without the
+// ladder-as-ground rule quietly halting it.
+static bool on_solid(WillyWoprState *s, bool ladder_counts = true) {
     if(s->wy >= W_MAXROWS-1) return true;
     const std::string &cur  = wg(s,s->wy,s->wx);
     const std::string &below= wg(s,s->wy+1,s->wx);
-    return (cur=="LADDER") || is_pipe(below);
+    return (ladder_counts && cur=="LADDER") || is_pipe(below);
 }
 
 // willy_game_jump — sets vertical velocity only, never touches horizontal state
@@ -786,15 +790,24 @@ static void ww_tick(WillyWoprState *s) {
     // Mid-air ladder snap: only when Willy is airborne, hits a LADDER tile,
     // AND a key was explicitly pressed this tick (grab_ladder). Passive flight
     // passes through ladders freely — you must press a key to grab.
+    bool was_airborne_before_snap = (s->willy_velocity_y != 0);
+    bool grabbed_ladder_now = false;
     if(on_ladder && s->willy_velocity_y != 0 && s->grab_ladder) {
         s->willy_velocity_y = 0;
         s->jumping = false;
         s->moving_continuously = false;
         s->continuous_direction.clear();
+        grabbed_ladder_now = true;
     }
     s->grab_ladder = false; // consumed — clear every tick
 
-    if(!on_ladder) {
+    // A ladder tile only "catches" Willy if he grabbed it this tick or wasn't
+    // already flying through the air. Otherwise (mid-jump, no grab) treat it
+    // as empty space below so the gravity/jump code lets the arc continue
+    // straight over it instead of halting the jump.
+    bool on_solid_ladder = on_ladder && (grabbed_ladder_now || !was_airborne_before_snap);
+
+    if(!on_solid_ladder) {
         if(s->willy_velocity_y < 0) {
             // Moving upward (jumping) — just advance velocity toward 0, no gravity yet
             int ny = s->wy - 1;
@@ -802,8 +815,10 @@ static void ww_tick(WillyWoprState *s) {
             s->willy_velocity_y++;
             s->fall_speed = 0;  // airborne going up, reset fall counter
         } else {
-            // Not jumping upward — apply gravity
-            if(!on_solid(s)) {
+            // Not jumping upward — apply gravity. ladder_counts=false: if
+            // we're here at all with on_ladder true, it's the pass-through
+            // case above, so the ladder must not be treated as ground.
+            if(!on_solid(s, /*ladder_counts=*/false)) {
                 s->willy_velocity_y += 1;
             } else {
                 if(s->willy_velocity_y > 0) {
