@@ -545,11 +545,12 @@ static bool on_solid(WillyWoprState *s, bool ladder_counts = true) {
 static void do_jump(WillyWoprState *s) {
     if(s->willy_velocity_y != 0) return; // already airborne, ignore
     const std::string &cur  = wg(s,s->wy,s->wx);
-    // On a ladder: only allow jump if standing on solid ground (pipe below),
-    // i.e. bottom rung — otherwise space does nothing.
-    if(cur=="LADDER" && !is_pipe(wg(s,s->wy+1,s->wx))) return;
     const std::string &below= wg(s,s->wy+1,s->wx);
-    bool can_jump = (cur=="UPSPRING") || is_pipe(below) || (s->wy==W_MAXROWS-1);
+    // Deviation from the original Pascal game: there, space only worked on a
+    // ladder's bottom rung (standing on a pipe). Here any rung counts, since
+    // being unable to jump off a ladder anywhere but the very bottom was
+    // just an annoying restriction, not something worth preserving.
+    bool can_jump = (cur=="UPSPRING") || is_pipe(below) || (cur=="LADDER") || (s->wy==W_MAXROWS-1);
     if(can_jump) {
         s->jumping = true;
         // Pascal jcount goes 1-7: 3 up steps + 1 flat + 3 down = 3 rows height
