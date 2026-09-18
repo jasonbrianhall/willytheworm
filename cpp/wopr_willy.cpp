@@ -794,28 +794,55 @@ static void ww_tick(WillyWoprState *s) {
         }
     }
 
-    // Horizontal movement — moving_continuously persists through jumps
+    // Horizontal movement — moving_continuously persists through jumps.
+    //
+    // authentic_mode, active jump: WILLY.PAS computes wxdir and wydir
+    // together and applies them as ONE atomic step — it checks only the
+    // single combined target cell (wx+wxdir, wy+wydir); if that's blocked,
+    // NEITHER axis moves that tick. Our engine normally checks horizontal
+    // and vertical as two independent steps, which behaves differently on
+    // terrain like stairs: a corner that would only block the diagonal step
+    // can end up blocking (or wrongly permitting) just one axis instead of
+    // freezing both. So for this case we only compute the intended
+    // horizontal delta here and defer applying it to the gravity/jump block
+    // below, where it's combined with the vertical delta into one check.
+    // Crucially, WILLY.PAS also never cancels lfrt (the persistent movement
+    // direction) on a mid-jump block — that only happens while grounded
+    // (jcount=0) — so a diagonal block here does NOT clear
+    // moving_continuously; it just skips this tick and retries next tick,
+    // when the vertical offset (and so the target cell) will differ.
+    int  intended_dx = 0;
+    bool combine_with_vertical = s->authentic_mode && s->jumping && !moved_ladder;
     if(!moved_ladder) {
-        // authentic_mode: WILLY.PAS lines 306-311 force wxdir to 0 every
-        // tick Willy is airborne without an active jump (jcount=0) — a
-        // plain fall off a ledge has zero horizontal drift, full stop.
-        // An active jump (s->jumping true) is unaffected here; its own
-        // fixed-length arc is enforced below, in the gravity block.
+        // authentic_mode: WILLY.PAS lines 306-311 only zero the *derived*
+        // wxdir for this one tick — the persistent lfrt (which way Willy is
+        // currently moving) is untouched. That's different from the ladder
+        // grab (lines 322-328), which explicitly does `lfrt:=0`, a real
+        // permanent stop. Clearing moving_continuously/continuous_direction
+        // here (a permanent stop) was wrong: it meant the direction was
+        // gone for good the moment a fall's drift got suppressed — even a
+        // jump whose fixed arc simply timed out mid-air — so landing
+        // afterward left Willy standing still with nothing to resume him
+        // short of a fresh keypress. Suppressing just this tick's move
+        // while leaving the state intact lets him pick the same direction
+        // back up the instant he's grounded again, same as the original.
         bool passive_fall = (!s->jumping && s->willy_velocity_y != 0);
-        if(s->authentic_mode && passive_fall) {
-            s->moving_continuously = false;
-            s->continuous_direction.clear();
-        }
-        if(s->moving_continuously && !s->continuous_direction.empty()) {
-            bool hit = false;
-            if(s->continuous_direction=="LEFT") {
-                if(can_move(s,s->wy,s->wx-1)) s->wx--;
-                else hit=true;
-            } else if(s->continuous_direction=="RIGHT") {
-                if(can_move(s,s->wy,s->wx+1)) s->wx++;
-                else hit=true;
+        bool suppress_drift = s->authentic_mode && passive_fall;
+        if(s->moving_continuously && !s->continuous_direction.empty() && !suppress_drift) {
+            if(combine_with_vertical) {
+                intended_dx = (s->continuous_direction=="LEFT")  ? -1
+                            : (s->continuous_direction=="RIGHT") ?  1 : 0;
+            } else {
+                bool hit = false;
+                if(s->continuous_direction=="LEFT") {
+                    if(can_move(s,s->wy,s->wx-1)) s->wx--;
+                    else hit=true;
+                } else if(s->continuous_direction=="RIGHT") {
+                    if(can_move(s,s->wy,s->wx+1)) s->wx++;
+                    else hit=true;
+                }
+                if(hit) { s->moving_continuously=false; s->continuous_direction.clear(); }
             }
-            if(hit) { s->moving_continuously=false; s->continuous_direction.clear(); }
         }
     }
 
@@ -852,7 +879,12 @@ static void ww_tick(WillyWoprState *s) {
         if(s->willy_velocity_y < 0) {
             // Moving upward (jumping) — just advance velocity toward 0, no gravity yet
             int ny = s->wy - 1;
-            if(can_move(s,ny,s->wx)) s->wy = ny;
+            if(combine_with_vertical) {
+                int nx = s->wx + intended_dx;
+                if(can_move(s,ny,nx)) { s->wy = ny; s->wx = nx; }
+            } else {
+                if(can_move(s,ny,s->wx)) s->wy = ny;
+            }
             s->willy_velocity_y++;
             s->fall_speed = 0;  // airborne going up, reset fall counter
         } else if(s->authentic_mode && s->jumping && s->willy_velocity_y==0 &&
@@ -863,30 +895,56 @@ static void ww_tick(WillyWoprState *s) {
             // would otherwise start falling the very same tick it reaches
             // the apex, which costs the jump a whole tick — and so a whole
             // tile — of horizontal reach versus the original. Fires once
-            // per jump.
+            // per jump. Horizontal drift still applies this tick (jcount=4
+            // still runs wxdir:=lfrt, only wydir is held at 0).
+            if(combine_with_vertical && intended_dx != 0) {
+                int nx = s->wx + intended_dx;
+                if(can_move(s,s->wy,nx)) s->wx = nx;
+            }
             s->jump_apex_flat_pending = false;
             s->fall_speed = 0;
         } else {
-            // Not jumping upward — apply gravity. ladder_counts=false: if
-            // we're here at all with on_ladder true, it's the pass-through
-            // case above, so the ladder must not be treated as ground.
-            if(!on_solid(s, /*ladder_counts=*/false)) {
+            // Not jumping upward — gravity/descent.
+            //
+            // Landing is detected the same way regardless of which path got
+            // Willy here — still actively jumping (combine_with_vertical),
+            // or already in a passive fall because the jump's fixed arc
+            // timed out before he actually reached the ground (the common
+            // case: most jumps land before their 7th tick). Whichever it
+            // is, the instant he's resting on solid ground this ends here
+            // and immediately tries a horizontal step in whatever direction
+            // is currently held — landing shouldn't cost a beat of movement
+            // no matter how Willy got down.
+            bool now_landed = on_solid(s, /*ladder_counts=*/false);
+            if(!now_landed) {
                 s->willy_velocity_y += 1;
-            } else {
-                if(s->willy_velocity_y > 0) {
-                    // Just landed — play thud scaled to fall distance
-                    if(s->fall_speed > 1) ww_snd_climb(s->wy);
-                    s->fall_speed = 0;
-                    s->jump_arc_tick = 0;
-                    s->jump_apex_flat_pending = false;
-                    s->willy_velocity_y=0; s->jumping=false;
-                }
-            }
-            if(s->willy_velocity_y > 0) {
                 int ny = s->wy + 1;
-                if(can_move(s,ny,s->wx)) {
-                    s->wy = ny;
-                    s->fall_speed++;
+                if(combine_with_vertical) {
+                    int nx = s->wx + intended_dx;
+                    if(can_move(s,ny,nx)) { s->wy = ny; s->wx = nx; s->fall_speed++; }
+                    // else: diagonal step blocked by something other than
+                    // landing (e.g. a wall to the side) — freeze this tick
+                    // only. WILLY.PAS never clears lfrt on a mid-jump block,
+                    // so we don't touch moving_continuously either; retried
+                    // next tick with a different vertical offset.
+                } else {
+                    if(can_move(s,ny,s->wx)) { s->wy = ny; s->fall_speed++; }
+                }
+            } else if(s->willy_velocity_y > 0 || s->jumping) {
+                // Just landed — play thud scaled to fall distance
+                if(s->fall_speed > 1) ww_snd_climb(s->wy);
+                s->fall_speed = 0;
+                s->jump_arc_tick = 0;
+                s->jump_apex_flat_pending = false;
+                s->willy_velocity_y = 0;
+                s->jumping = false;
+                if(s->moving_continuously && !s->continuous_direction.empty()) {
+                    int dx = (s->continuous_direction=="LEFT")  ? -1
+                           : (s->continuous_direction=="RIGHT") ?  1 : 0;
+                    if(dx != 0) {
+                        int nx = s->wx + dx;
+                        if(can_move(s,s->wy,nx)) s->wx = nx;
+                    }
                 }
             }
         }
