@@ -1012,8 +1012,17 @@ static void ww_tick(WillyWoprState *s) {
     if(cur_tile=="UPSPRING") {
         // Force a bounce regardless of whether Willy is already airborne —
         // landing on a spring from above must always launch him back up.
-        s->jumping          = true;
-        s->willy_velocity_y = -4;   // stronger than a normal jump (-3)
+        // Every bounce is a fresh jump: restart the authentic-mode arc.
+        // Without this, landing on a spring mid-jump kept the old
+        // jump_arc_tick, so the arc timed out a tick or two into the bounce,
+        // jumping went false while still rising, and the passive-fall drift
+        // suppression sent Willy straight up instead of onward.
+        s->jumping                = true;
+        s->jump_arc_tick          = 0;
+        s->jump_apex_flat_pending = true;
+        // WILLY.PAS's spring just does jcount:=1 (same as a normal jump);
+        // the extra height is this port's embellishment, off in authentic.
+        s->willy_velocity_y = s->authentic_mode ? -3 : -4;
         s->fall_speed       = 0;
         ww_snd_climb(s->wy - 1);
     }
