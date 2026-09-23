@@ -405,6 +405,22 @@ static const WWBgColor WW_BG_COLORS[] = {
     {0.35f, 0.18f, 0.00f, "AMBER"},
     {0.25f, 0.00f, 0.25f, "MAGENTA"},
     {0.00f, 0.25f, 0.30f, "CYAN"},
+    {0.45f, 0.00f, 0.00f, "RED"},
+    {0.30f, 0.00f, 0.08f, "MAROON"},
+    {0.30f, 0.15f, 0.05f, "BROWN"},
+    {0.30f, 0.28f, 0.00f, "OLIVE"},
+    {0.05f, 0.30f, 0.10f, "FOREST"},
+    {0.00f, 0.30f, 0.25f, "TEAL"},
+    {0.00f, 0.20f, 0.45f, "SKY"},
+    {0.10f, 0.10f, 0.35f, "NAVY"},
+    {0.22f, 0.00f, 0.45f, "INDIGO"},
+    {0.35f, 0.00f, 0.35f, "PURPLE"},
+    {0.40f, 0.05f, 0.25f, "PLUM"},
+    {0.20f, 0.20f, 0.20f, "GRAY"},
+    {0.15f, 0.20f, 0.28f, "SLATE"},
+    {0.00f, 0.00f, 0.67f, "CGA BLUE"},
+    {0.67f, 0.00f, 0.67f, "CGA MAGENTA"},
+    {0.00f, 0.45f, 0.45f, "CGA CYAN"},
 };
 static const int WW_BG_COLOR_COUNT = (int)(sizeof(WW_BG_COLORS)/sizeof(WW_BG_COLORS[0]));
 static const int WW_BG_MONO_IDX    = 1; // "BLACK" — used when color monitor = No
@@ -470,6 +486,10 @@ struct WillyWoprState {
     // Off (false) = modern/permissive, matching behavior before this toggle
     // existed.
     bool authentic_mode = false;
+
+    // Ctrl+B toggles the ballpit: when true, no new balls spawn. Balls
+    // already on screen keep rolling. Persists across levels and games.
+    bool balls_paused = false;
 
     // Movement — mirrors moving_continuously / continuous_direction / up_pressed / down_pressed
     bool        moving_continuously = false;
@@ -1049,12 +1069,17 @@ static void ww_tick(WillyWoprState *s) {
     auto pit = s->levels.ballpit(s->cur_level);
     int pit_r=pit.first, pit_c=pit.second;
 
-    // Relocate any ball that fell into a secondary ballpit
-    for(auto &b:s->balls) {
+    // Relocate any ball that fell into a secondary ballpit. With Ctrl+B's
+    // balls_paused on, the ball is removed instead of recycled, so the
+    // screen drains; turning it back off lets the spawner refill it.
+    for(size_t i=0; i<s->balls.size(); ) {
+        auto &b = s->balls[i];
         std::string t=wg(s,b.row,b.col);
         if(t=="BALLPIT" && (b.row!=pit_r||b.col!=pit_c)) {
+            if(s->balls_paused) { s->balls.erase(s->balls.begin()+i); continue; }
             b.row=pit_r; b.col=pit_c; b.dir.clear();
         }
+        i++;
     }
 
     for(auto &b:s->balls) {
@@ -1483,10 +1508,17 @@ void wopr_willy_render(WoprState *w, int px, int py, int cw, int ch, int /*cols*
 
         // Small right-aligned reminder while Ctrl+A's authentic mode is on —
         // easy to forget it's toggled since it only changes jump/fall feel.
+        float tag_right = (float)ww - (float)px;
         if(s->authentic_mode) {
             const char *tag = "AUTHENTIC";
             float tag_w = gl_text_width(tag, 1.f);
-            gl_draw_text(tag, (float)ww - (float)px - tag_w, sy, 1.f,1.f,0.f,1.f,1.f);
+            gl_draw_text(tag, tag_right - tag_w, sy, 1.f,1.f,0.f,1.f,1.f);
+            tag_right -= tag_w + gl_text_width("  ", 1.f);
+        }
+        if(s->balls_paused) {
+            const char *tag = "NO BALLS";
+            float tag_w = gl_text_width(tag, 1.f);
+            gl_draw_text(tag, tag_right - tag_w, sy, 1.f,0.5f,0.f,1.f,1.f);
         }
     }
 
@@ -1525,8 +1557,8 @@ void wopr_willy_update(WoprState *w, double dt) {
     s->ball_spawn_acc += dt;
     auto pit_pos = s->levels.ballpit(s->cur_level);
     auto &cur_lv = s->levels.levels[s->cur_level];
-    if((int)s->balls.size()<s->max_balls && s->ball_spawn_acc>=s->ball_spawn_delay
-       && cur_lv.has_ballpit) {
+    if(!s->balls_paused && (int)s->balls.size()<s->max_balls
+       && s->ball_spawn_acc>=s->ball_spawn_delay && cur_lv.has_ballpit) {
         s->ball_spawn_acc=0.0;
         std::uniform_real_distribution<double> dd(0.5,2.0);
         s->ball_spawn_delay=dd(s->rng);
@@ -1561,6 +1593,13 @@ bool wopr_willy_keydown(WoprState *w, SDL_Keycode sym) {
     // mid-fall, so it can be A/B tested live.
     if(sym==SDLK_a && (SDL_GetModState() & KMOD_CTRL)) {
         s->authentic_mode = !s->authentic_mode;
+        return true;
+    }
+
+    // Developer option (undocumented, like Ctrl+L / Ctrl+N): Ctrl+B toggles
+    // new-ball spawning.
+    if(sym==SDLK_b && (SDL_GetModState() & KMOD_CTRL)) {
+        s->balls_paused = !s->balls_paused;
         return true;
     }
 
