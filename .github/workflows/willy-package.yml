@@ -1138,7 +1138,7 @@ jobs:
           ### 💾 Booter Edition (bare metal, for virtual machines)
           - **WillyTheWorm-Booter-Floppy.img** — 1.44 MB boot floppy that starts straight into the game with no operating system
 
-          Attach it as the floppy drive of a virtual machine and boot from it, e.g. `qemu-system-x86_64 -m 256 -fda WillyTheWorm-Booter-Floppy.img -boot a -audiodev pa,id=snd0 -device intel-hda -device hda-output,audiodev=snd0`, or add it as a floppy controller in VirtualBox. Tested in QEMU and VirtualBox with Intel HD Audio or AC97 sound and a PS/2 or USB keyboard. **Not yet tested on real hardware.** Needs a 64-bit (x86-64) CPU and a VM set to boot from floppy. High scores are kept only until reboot; Esc then Y reboots.
+          Attach it as the floppy drive of a virtual machine and boot from it, e.g. `qemu-system-x86_64 -m 256 -fda WillyTheWorm-Booter-Floppy.img -boot a -audiodev pa,id=snd0 -device intel-hda -device hda-output,audiodev=snd0`, or add it as a floppy controller in VirtualBox. Tested in QEMU and VirtualBox with Intel HD Audio or AC97 sound and a PS/2 or USB keyboard. **Not yet tested on real hardware.** Needs a 64-bit (x86-64) CPU, at least 16 MB of RAM, and a VM set to boot from floppy. High scores are kept only until reboot; Esc then Y reboots.
 
           ### 🏪 Microsoft Store Submission
           The MSIX package is **unsigned** and ready for submission via Partner Center. Before uploading:

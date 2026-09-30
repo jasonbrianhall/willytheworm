@@ -45,9 +45,49 @@ struct __attribute__((packed)) MultibootInfo {
     uint32_t fb_pitch, fb_width, fb_height;
     uint8_t fb_bpp, fb_type;
 };
+struct __attribute__((packed)) MultibootMmap { uint32_t size; uint64_t addr, len; uint32_t type; };
 extern "C" uint32_t mb_magic, mb_info;
+extern "C" char __kernel_start[], __kernel_end[];
+extern "C" void heap_add(void* p, size_t n);
+extern "C" size_t heap_free_bytes(void), heap_peak_bytes(void);
 extern "C" uint64_t phys_limit;
 uint64_t phys_limit = 0x100000000ull;
+
+// ---------------------------------------------------------------- memory
+// Give the heap every usable RAM region the boot loader reports, minus the
+// kernel image and anything below 1 MiB. Uses the Multiboot memory map
+// (GRUB, QEMU, and the UEFI loader, which translates the UEFI map), else the
+// "upper memory" size.
+static void heap_init(const MultibootInfo* mbi) {
+    const uint64_t k0 = (uintptr_t)__kernel_start & ~0xFFFull;
+    const uint64_t k1 = ((uintptr_t)__kernel_end + 0xFFF) & ~0xFFFull;
+    uint64_t total = 0;
+    auto add = [&](uint64_t a, uint64_t e) {
+        if (e > phys_limit) e = phys_limit;
+        if (a < 0x100000) a = 0x100000;
+        if (a < k1 && e > k0) {                              // skip the kernel image
+            if (a < k0) { heap_add((void*)(uintptr_t)a, (size_t)(k0 - a)); total += k0 - a; }
+            a = k1;
+        }
+        if (e > a) { heap_add((void*)(uintptr_t)a, (size_t)(e - a)); total += e - a; }
+    };
+    if (mbi->flags & (1 << 6)) {
+        uintptr_t p = mbi->mmap_addr, end = p + mbi->mmap_length;
+        // Copy the map first: the heap may be handed the memory it sits in.
+        static MultibootMmap map[128];
+        int n = 0;
+        while (p < end && n < 128) {
+            const MultibootMmap* m = (const MultibootMmap*)p;
+            map[n++] = *m;
+            p += m->size + 4;
+        }
+        for (int i = 0; i < n; i++)
+            if (map[i].type == 1) add(map[i].addr, map[i].addr + map[i].len);
+    } else if (mbi->flags & 1) {
+        add(0x100000, 0x100000 + (uint64_t)mbi->mem_upper * 1024);
+    }
+    printf("Heap: %lu MB of RAM\n", (unsigned long)(total >> 20));
+}
 
 // ---------------------------------------------------------------- video
 // The desktop build opens a 1280x720 window; ask for the same when we set
@@ -302,6 +342,18 @@ extern "C" void kmain() {
 
     const MultibootInfo* mbi = (const MultibootInfo*)(uintptr_t)mb_info;
     if (mb_magic != 0x2BADB002) { printf("Not booted by a Multiboot loader\n"); return; }
+    // Keep what we need from the boot information before the heap can
+    // reuse the memory it lives in.
+    static MultibootInfo info;
+    info = *mbi;
+    static char cmdbuf[512];
+    const char* cmdline = nullptr;
+    if (info.flags & (1 << 2)) {
+        strncpy(cmdbuf, (const char*)(uintptr_t)info.cmdline, sizeof(cmdbuf) - 1);
+        cmdline = cmdbuf;
+    }
+    mbi = &info;
+    heap_init(mbi);
     if (!video_init(mbi)) { printf("No usable 32-bit framebuffer found\n"); return; }
 
     back_w = fb_w; back_h = fb_h;
@@ -310,7 +362,6 @@ extern "C" void kmain() {
     memset(back, 0, (size_t)back_w * back_h * 4);
     render_set_screen(back_w, back_h);
 
-    const char* cmdline = (mbi->flags & (1 << 2)) ? (const char*)(uintptr_t)mbi->cmdline : nullptr;
     audio_init(cmdline);
     usb_init(cmdline);
     bool debug = false;
@@ -368,8 +419,9 @@ extern "C" void kmain() {
             frames++;
             if (ticks - last_report >= TICK_HZ) {
                 last_report = ticks;
-                printf("heartbeat: ticks %u frames %u audio %s pos %u\n",
-                       ticks, frames, audio_name(), audio_play_pos());
+                printf("heartbeat: ticks %u frames %u audio %s pos %u heap peak %lu KB free %lu KB\n",
+                       ticks, frames, audio_name(), audio_play_pos(),
+                       (unsigned long)(heap_peak_bytes() >> 10), (unsigned long)(heap_free_bytes() >> 10));
             }
         }
     }

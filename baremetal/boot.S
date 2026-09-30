@@ -23,7 +23,7 @@ pdpt:   .skip 4096
 pdir:   .skip 4096 * 4
 #endif
 stack_bottom:
-        .skip 4 << 20                # 4 MiB: the game keeps 66 KB level grids on the stack
+        .skip 512 << 10              # 512 KiB: the level loader keeps 66 KB grids on the stack
 .global stack_top
 stack_top:
 

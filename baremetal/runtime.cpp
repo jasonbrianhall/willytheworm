@@ -172,28 +172,51 @@ int puts(const char* s) { serial_puts(s); serial_putc('\n'); return 0; }
 int putchar(int c) { serial_putc((char)c); return c; }
 
 // ---------------------------------------------------------------- heap
-// First-fit free list over a static arena. The level packs are held as maps
-// of std::string grids, so give it plenty of room.
+// First-fit free list. It starts on a small static arena (enough for global
+// constructors); kmain then hands it the machine's free RAM with heap_add(),
+// so the kernel image itself stays small and boots in VMs with little memory.
 struct Block { size_t size; Block* next; size_t free; size_t pad; };
-static uint8_t heap_area[64 << 20] __attribute__((aligned(16)));
+static uint8_t boot_arena[1 << 20] __attribute__((aligned(16)));
 static Block* heap_head;
 static Block* heap_rover;
+static size_t heap_total, heap_used, heap_peak;
+
+static inline bool adjacent(Block* a, Block* b) { return (uint8_t*)(a + 1) + a->size == (uint8_t*)b; }
+
+static void add_region(void* p, size_t n) {
+    uintptr_t a = ((uintptr_t)p + 15) & ~(uintptr_t)15;
+    uintptr_t e = ((uintptr_t)p + n) & ~(uintptr_t)15;
+    if (e <= a || e - a < sizeof(Block) + 4096) return;
+    Block* b = (Block*)a;
+    b->size = e - a - sizeof(Block);
+    b->free = 1;
+    // Keep the list in address order so neighbouring blocks can merge.
+    Block** pp = &heap_head;
+    while (*pp && *pp < b) pp = &(*pp)->next;
+    b->next = *pp;
+    *pp = b;
+    if (!heap_rover) heap_rover = b;
+    heap_total += b->size;
+}
+
+void heap_add(void* p, size_t n) {
+    if (!heap_head) add_region(boot_arena, sizeof(boot_arena));
+    add_region(p, n);
+}
+size_t heap_free_bytes(void) { return heap_total - heap_used; }
+size_t heap_peak_bytes(void) { return heap_peak; }
 
 void* malloc(size_t n) {
     n = (n + 15) & ~(size_t)15;
     if (!n) n = 16;
-    if (!heap_head) {
-        heap_head = heap_rover = (Block*)heap_area;
-        heap_head->size = sizeof(heap_area) - sizeof(Block);
-        heap_head->next = nullptr;
-        heap_head->free = 1;
-    }
+    if (!heap_head) add_region(boot_arena, sizeof(boot_arena));
     for (int pass = 0; pass < 2; pass++) {
         for (Block* b = pass ? heap_head : heap_rover; b; b = b->next) {
             if (!b->free) continue;
-            while (b->next && b->next->free) {             // coalesce lazily
+            while (b->next && b->next->free && adjacent(b, b->next)) {   // coalesce lazily
                 if (heap_rover == b->next) heap_rover = b;
                 b->size += sizeof(Block) + b->next->size;
+                heap_total += sizeof(Block);
                 b->next = b->next->next;
             }
             if (b->size < n) continue;
@@ -204,22 +227,28 @@ void* malloc(size_t n) {
                 rest->free = 1;
                 b->next = rest;
                 b->size = n;
+                heap_total -= sizeof(Block);
             }
             b->free = 0;
             heap_rover = b;
+            heap_used += b->size;
+            if (heap_used > heap_peak) heap_peak = heap_used;
             return b + 1;
         }
     }
-    printf("malloc: out of memory (%lu bytes)\n", (unsigned long)n);
+    printf("malloc: out of memory (%lu bytes, %lu of %lu KB in use)\n",
+           (unsigned long)n, (unsigned long)(heap_used >> 10), (unsigned long)(heap_total >> 10));
     return nullptr;
 }
 void free(void* p) {
     if (!p) return;
     Block* b = (Block*)p - 1;
     b->free = 1;
-    while (b->next && b->next->free) {
+    heap_used -= b->size;
+    while (b->next && b->next->free && adjacent(b, b->next)) {
         if (heap_rover == b->next) heap_rover = b;
         b->size += sizeof(Block) + b->next->size;
+        heap_total += sizeof(Block);
         b->next = b->next->next;
     }
 }

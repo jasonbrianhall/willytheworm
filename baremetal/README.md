@@ -29,6 +29,8 @@ Secure Boot needs it signed (same steps as the Super Mario Bros. bare-metal buil
 **Sound:** Intel HD Audio if present, otherwise AC97 (`make run SOUND=ac97`).
 Boot options: `audio=hda|ac97|off`, `usb=off`, `debug` (serial heartbeat).
 
+**Memory:** 16 MB of RAM is enough; the heap uses whatever RAM the machine has.
+
 **Keyboard:** PS/2, or USB keyboards on an xHCI controller. Esc asks to quit,
 and quitting reboots. No mouse. High scores last until reboot.
 
