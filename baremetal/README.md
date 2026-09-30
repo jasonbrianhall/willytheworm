@@ -1,0 +1,40 @@
+# Bare-metal Willy the Worm
+
+Boots straight into the game on x86_64 PCs: no OS, no libc, no SDL. GRUB,
+QEMU's `-kernel` or a UEFI loader starts a small kernel that runs the
+unchanged `../cpp/wopr_willy.cpp` on the framebuffer. Levels and sprites are
+compiled in, so there is nothing else to load.
+
+```
+sudo apt install build-essential qemu-system-x86 grub-pc-bin grub-common xorriso mtools gnu-efi ovmf
+# Fedora: gcc-c++ qemu-system-x86 grub2-tools grub2-tools-extra grub2-pc-modules xorriso mtools gnu-efi-devel edk2-ovmf
+make run          # QEMU, direct kernel boot
+make iso          # willy.iso: bootable CD / USB stick (dd it)
+make floppy       # willy-floppy.img: 1.44 MB boot floppy
+make efi          # willy.efi: UEFI application (make run-efi tests it under OVMF)
+```
+
+To boot `willy.efi` from Fedora's GRUB, copy it to `/boot/efi/EFI/willy/` and
+add to `/etc/grub.d/40_custom`, then run `grub2-mkconfig`:
+
+```
+menuentry "Willy the Worm (bare metal)" {
+    search --no-floppy --set=root --file /EFI/willy/willy.efi
+    chainloader /EFI/willy/willy.efi
+}
+```
+
+Secure Boot needs it signed (same steps as the Super Mario Bros. bare-metal build).
+
+**Sound:** Intel HD Audio if present, otherwise AC97 (`make run SOUND=ac97`).
+Boot options: `audio=hda|ac97|off`, `usb=off`, `debug` (serial heartbeat).
+
+**Keyboard:** PS/2, or USB keyboards on an xHCI controller. Esc asks to quit,
+and quitting reboots. No mouse. High scores last until reboot.
+
+**How it builds:** the game is compiled against the normal libstdc++/glibc
+headers. `overrides/` stands in for SDL2 and the file streams, `render.cpp`
+draws the game's rectangles and text (DejaVu Sans Mono pre-rasterized at the
+desktop size by `tools/gen_font.py`), and `runtime.cpp`/`stdhooks.cpp` supply
+the handful of library symbols the headers need. The boot code and the
+HDA/AC97, PCI and xHCI drivers come from the Super Mario Bros. bare-metal build.
