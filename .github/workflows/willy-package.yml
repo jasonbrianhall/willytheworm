@@ -17,6 +17,7 @@ on:
       - 'cpp/**.h'
       - 'cpp/CMakeLists.txt'
       - 'cpp/vcpkg.json'
+      - 'baremetal/**'
   pull_request:
     branches:
       - main
@@ -33,6 +34,7 @@ on:
       - 'cpp/**.h'
       - 'cpp/CMakeLists.txt'
       - 'cpp/vcpkg.json'
+      - 'baremetal/**'
   workflow_dispatch:
 
 env:
@@ -1009,8 +1011,29 @@ jobs:
         path: WillyTheWorm-CPP-${{ matrix.name }}.msix
         retention-days: 7
 
+  build-booter:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential grub-pc-bin grub-common
+
+    - name: Build Boot Floppy
+      working-directory: baremetal
+      run: make floppy
+
+    - name: Upload Boot Floppy
+      uses: actions/upload-artifact@v4
+      with:
+        name: WillyTheWorm-Booter-Floppy.img
+        path: baremetal/willy-floppy.img
+        retention-days: 7
+
   create-release:
-    needs: [create-source-release, build-windows-installer, build-windows, build-msi-windows, build-msix-windows, build-debug-standalone]
+    needs: [create-source-release, build-windows-installer, build-windows, build-msi-windows, build-msix-windows, build-debug-standalone, build-booter]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -1061,6 +1084,15 @@ jobs:
         name: willy-cpp-debug-x64
         path: release
 
+    - name: Download Boot Floppy
+      uses: actions/download-artifact@v4
+      with:
+        name: WillyTheWorm-Booter-Floppy.img
+        path: release
+
+    - name: Rename Boot Floppy
+      run: mv release/willy-floppy.img release/WillyTheWorm-Booter-Floppy.img
+
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v2
       with:
@@ -1074,6 +1106,7 @@ jobs:
           release/WillyTheWorm-CPP-Portable-x64.zip
           release/WillyTheWorm-CPP-Portable-arm64.zip
           release/WillyTheWorm-CPP-Debug-x64.zip
+          release/WillyTheWorm-Booter-Floppy.img
         tag_name: ${{ github.ref == 'refs/heads/main' && format('v{0}', github.run_number) || format('dev-v{0}', github.run_number) }}
         name: ${{ github.ref == 'refs/heads/main' && format('Release v{0}', github.run_number) || format('Dev Build v{0}', github.run_number) }}
         draft: false
@@ -1087,7 +1120,7 @@ jobs:
           **Build:** #${{ github.run_number }}
 
           ### 🐛 Willy the Worm
-          Classic platform game collection, available as both the original Python/pygame build and a native C++ (SDL2, MSVC) build.
+          Classic platform game collection, available as the original Python/pygame build, a native C++ (SDL2, MSVC) build, and a bootable floppy image for virtual machines.
 
           ### 📦 Python Edition (PyInstaller)
           - **WillyTheWorm.msi** — Windows installer with uninstall support
@@ -1101,6 +1134,11 @@ jobs:
           - **WillyTheWorm-CPP-x64.msix** / **WillyTheWorm-CPP-arm64.msix** — Unsigned packages ready for Microsoft Store submission
           - **WillyTheWorm-CPP-Portable-x64.zip** / **WillyTheWorm-CPP-Portable-arm64.zip** — Portable versions, no installation required
           - **WillyTheWorm-CPP-Debug-x64.zip** — Debug build with AddressSanitizer, for troubleshooting crashes
+
+          ### 💾 Booter Edition (bare metal, for virtual machines)
+          - **WillyTheWorm-Booter-Floppy.img** — 1.44 MB boot floppy that starts straight into the game with no operating system
+
+          Attach it as the floppy drive of a virtual machine and boot from it, e.g. `qemu-system-x86_64 -m 256 -fda WillyTheWorm-Booter-Floppy.img -boot a -audiodev pa,id=snd0 -device intel-hda -device hda-output,audiodev=snd0`, or add it as a floppy controller in VirtualBox. Tested in QEMU and VirtualBox with Intel HD Audio or AC97 sound and a PS/2 or USB keyboard. **Not yet tested on real hardware.** Needs a 64-bit (x86-64) CPU and a VM set to boot from floppy. High scores are kept only until reboot; Esc then Y reboots.
 
           ### 🏪 Microsoft Store Submission
           The MSIX package is **unsigned** and ready for submission via Partner Center. Before uploading:
