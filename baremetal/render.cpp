@@ -2,7 +2,7 @@
 // wopr_willy.cpp uses, rendered in software into the kernel's back buffer.
 // Text uses the desktop build's DejaVu Sans Mono at the same 20 px size,
 // pre-rasterized with anti-aliasing (dejavu20.h, 12x24 cells) and scaled by
-// an integer factor on big screens. Screens narrower than 1280 px get the
+// an integer factor on big screens. Screens narrower than 1024 px get the
 // 8x16 VGA console font (font.h) instead so the status line still fits.
 #include <stdint.h>
 #include "wopr_render.h"
@@ -16,7 +16,7 @@ static inline int cell_w() { return (g_vga ? 8 : FONT_CELL_W) * g_fs; }
 static inline int cell_h() { return (g_vga ? 16 : FONT_CELL_H) * g_fs; }
 
 void render_set_screen(uint32_t w, uint32_t h) {
-    g_vga = w < 1280;
+    g_vga = w < 1024 || h < 600;
     int s = g_vga ? 1 : (int)(w / 1280 < h / 720 ? w / 1280 : h / 720);
     g_fs = s < 1 ? 1 : s;
 }

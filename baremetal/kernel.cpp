@@ -92,8 +92,10 @@ static void heap_init(const MultibootInfo* mbi) {
 // ---------------------------------------------------------------- video
 // The desktop build opens a 1280x720 window; ask for the same when we set
 // the mode ourselves (Bochs/QEMU VBE).
+#ifndef SCREEN_W
 #define SCREEN_W 1280u
 #define SCREEN_H 720u
+#endif
 static volatile uint32_t* fb;
 static uint32_t fb_w, fb_h, fb_pitch;   // pitch in pixels
 uint32_t* back;
