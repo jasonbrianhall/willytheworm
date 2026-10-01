@@ -10,7 +10,7 @@ sudo apt install build-essential qemu-system-x86 grub-pc-bin grub-common xorriso
 # Fedora: gcc-c++ qemu-system-x86 grub2-tools grub2-tools-extra grub2-pc-modules xorriso mtools gnu-efi-devel edk2-ovmf
 make run          # QEMU, direct kernel boot
 make iso          # willy.iso: bootable CD / USB stick (dd it)
-make floppy       # willy-floppy.img: 1.44 MB boot floppy
+make floppy       # willy-floppy.img: 1.44 MB FAT12 boot floppy (needs mtools, dosfstools)
 make efi          # willy.efi: UEFI application (make run-efi tests it under OVMF)
 ```
 
@@ -32,7 +32,7 @@ Boot options: `audio=hda|ac97|off`, `usb=off`, `debug` (serial heartbeat).
 **Memory:** 16 MB of RAM is enough; the heap uses whatever RAM the machine has.
 
 **Keyboard:** PS/2, or USB keyboards on an xHCI controller. Esc asks to quit,
-and quitting reboots. No mouse. High scores last until reboot.
+and quitting reboots. No mouse. High scores are kept on the boot floppy (`/willy/scores.txt`) when Willy boots from it; otherwise, or with the boot option `floppy=off`, they last until reboot.
 
 **How it builds:** the game is compiled against the normal libstdc++/glibc
 headers. `overrides/` stands in for SDL2 and the file streams, `render.cpp`

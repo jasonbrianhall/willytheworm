@@ -21,6 +21,7 @@ BUILD    ?= build/x86_64
 GRUB_MKIMAGE  ?= $(shell command -v grub2-mkimage || command -v grub-mkimage)
 GRUB_MKRESCUE ?= $(shell command -v grub2-mkrescue || command -v grub-mkrescue)
 GRUB_I386     ?= $(firstword $(wildcard /usr/lib/grub/i386-pc /usr/lib/grub2/i386-pc))
+MKFS_FAT      ?= $(shell command -v mkfs.fat || command -v mkfs.vfat || echo /usr/sbin/mkfs.fat)
 
 # PIE=1 builds the position-independent kernel that willy.efi embeds.
 ifeq ($(PIE),1)
@@ -49,7 +50,7 @@ FLOPPY := willy-floppy.img
 
 GAME_CXX := wopr_willy highscores
 GAME_C   := miniz miniz_tdef miniz_tinfl miniz_zip
-PLATFORM := kernel render runtime stdhooks audio pci usb
+PLATFORM := kernel render runtime stdhooks audio pci usb floppy fat12 storage
 
 OBJS := $(BUILD)/boot.o $(BUILD)/irq.o \
         $(addprefix $(BUILD)/,$(addsuffix .o,$(PLATFORM))) \
@@ -140,20 +141,25 @@ $(ISO): $(KERNEL) grub.cfg
 	cp grub.cfg $(BUILD)/iso/boot/grub/grub.cfg
 	$(GRUB_MKRESCUE) -o $@ $(BUILD)/iso 2>/dev/null
 
-# GRUB's core image with the kernel and grub.cfg packed inside it (as a
-# compressed memdisk), behind GRUB's boot sector. No filesystem.
+# A FAT12 floppy: GRUB's boot sector (keeping the FAT header) in sector 0,
+# GRUB's core image in the reserved sectors after it, and the kernel
+# (gzipped; GRUB unpacks it) and grub.cfg as files. The high-score table is
+# kept in /willy on the same disk (storage.cpp). Needs mtools and dosfstools.
 floppy: $(FLOPPY)
 $(FLOPPY): $(KERNEL) grub.cfg
-	@rm -rf $(BUILD)/fd && mkdir -p $(BUILD)/fd/boot/grub
-	cp $(KERNEL) $(BUILD)/fd/boot/willy.elf
-	cp grub.cfg $(BUILD)/fd/boot/grub/grub.cfg
-	tar -C $(BUILD)/fd -cf $(BUILD)/memdisk.tar boot
-	$(GRUB_MKIMAGE) -O i386-pc -o $(BUILD)/core.img -p '(memdisk)/boot/grub' \
-	    -m $(BUILD)/memdisk.tar memdisk tar normal configfile multiboot vbe video video_fb boot
-	cat $(GRUB_I386)/boot.img $(BUILD)/core.img > $@
-	@test $$(stat -c %s $@) -le 1474560 || { echo "$@: too big for a 1.44 MB floppy"; rm -f $@; exit 1; }
-	truncate -s 1474560 $@
-	@echo "$@: $$(( ($$(stat -c %s $(BUILD)/core.img) + 512) * 100 / 1474560 ))% of a 1.44 MB floppy used"
+	$(GRUB_MKIMAGE) -O i386-pc -o $(BUILD)/core.img -p /boot/grub \
+	    biosdisk fat gzio normal configfile multiboot vbe video video_fb boot
+	gzip -9 -n -c $(KERNEL) > $(BUILD)/kernel.gz
+	rm -f $@
+	$(MKFS_FAT) -C -F 12 -f 2 -r 224 -R $$(( $$(stat -c %s $(BUILD)/core.img) / 512 + 2 )) -n WILLY $@ 1440 >/dev/null
+	mmd -i $@ ::/boot ::/boot/grub ::/willy
+	mcopy -i $@ $(BUILD)/kernel.gz ::/boot/willy.elf
+	mcopy -i $@ grub.cfg ::/boot/grub/grub.cfg
+	cp $(GRUB_I386)/boot.img $(BUILD)/boot.img
+	dd if=$@ of=$(BUILD)/boot.img bs=1 skip=3 seek=3 count=59 conv=notrunc status=none
+	dd if=$(BUILD)/boot.img of=$@ bs=512 count=1 conv=notrunc status=none
+	dd if=$(BUILD)/core.img of=$@ bs=512 seek=1 conv=notrunc status=none
+	@echo "$@: GRUB $$(( $$(stat -c %s $(BUILD)/core.img) / 1024 )) KB + kernel $$(( $$(stat -c %s $(BUILD)/kernel.gz) / 1024 )) KB (gzipped); $$(( $$(mdir -i $@ :: | sed -n 's/ *\([0-9 ]*\) bytes free/\1/p' | tr -d ' ') / 1024 )) KB free"
 
 # ---------------------------------------------------------------- QEMU
 # SOUND=hda (default), ac97 or none. ARGS adds kernel options, e.g. ARGS=debug.

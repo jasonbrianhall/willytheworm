@@ -15,6 +15,8 @@
 #include "audio.hpp"
 #include "pci.hpp"
 #include "usb.hpp"
+#include "floppy.hpp"
+#include "storage.hpp"
 #include "wopr.h"
 #include "wopr_render.h"
 #include <SDL2/SDL.h>
@@ -379,6 +381,7 @@ extern "C" void kmain() {
     }
 
     interrupts_init();
+    storage_init(info.flags, info.boot_device, cmdline);   // after interrupts: the drive needs the timer
     printf("Running. Esc quits (reboots).\n");
 
     const int px = 40, py = 40;
@@ -394,6 +397,7 @@ extern "C" void kmain() {
         if (elapsed > 6) elapsed = 6;                  // clamp stalls, like the SDL build's 0.1 s
         double dt = (double)elapsed / TICK_HZ;
 
+        floppy_poll();
         usb_poll();
         while (SDL_Keycode k = next_key()) {
             if (quit_confirm) {

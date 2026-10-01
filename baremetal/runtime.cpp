@@ -51,6 +51,18 @@ int strncmp(const char* a, const char* b, size_t n) {
     for (; n; n--, a++, b++) { if (*a != *b || !*a) return (uint8_t)*a - (uint8_t)*b; }
     return 0;
 }
+char* strchr(const char* s, int c) {
+    for (;; s++) { if (*s == (char)c) return (char*)s; if (!*s) return nullptr; }
+}
+char* strrchr(const char* s, int c) {
+    const char* r = nullptr;
+    for (;; s++) { if (*s == (char)c) r = s; if (!*s) return (char*)r; }
+}
+char* strstr(const char* h, const char* n) {
+    size_t k = strlen(n);
+    for (; *h; h++) if (!strncmp(h, n, k)) return (char*)h;
+    return k ? nullptr : (char*)h;
+}
 char* strcpy(char* d, const char* s) { char* r = d; while ((*d++ = *s++)) {} return r; }
 char* strncpy(char* d, const char* s, size_t n) {
     size_t i = 0;
@@ -289,5 +301,7 @@ void operator delete(void* p, size_t) noexcept { free(p); }
 void operator delete[](void* p, size_t) noexcept { free(p); }
 
 // No environment: highscores.cpp falls back to "." (and never touches disk).
-extern "C" char* getenv(const char*) { return nullptr; }
+// HOME is the folder on the boot floppy where the game keeps its files
+// (highscores.cpp saves HOME/scores.txt).
+extern "C" char* getenv(const char* name) { return strcmp(name, "HOME") == 0 ? (char*)"/willy" : nullptr; }
 extern "C" int mkdir(const char*, unsigned) { return -1; }
