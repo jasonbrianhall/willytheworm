@@ -10,5 +10,6 @@ uint32_t audio_play_pos();
 void audio_submit(const int16_t* samples, int n);   // signed 16-bit mono at audio_rate()
 int audio_frames_wanted(int nominal);               // frames to submit for `nominal` frames of game time
 uint32_t audio_delay_ms();                          // queued ahead of the speaker right now
+uint32_t audio_underruns();                         // times the card ran out of sound since boot
 constexpr int audio_rate() { return 48000; }
 const char* audio_name();

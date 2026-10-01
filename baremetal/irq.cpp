@@ -3,12 +3,15 @@
 #include <stdint.h>
 #include "hw.hpp"
 
-volatile uint32_t ticks;
+// The PIT runs at 240 Hz: `fine_ticks` counts every interrupt (sound is
+// topped up that often), `ticks` every 4th (60 Hz, the game's frame clock).
+volatile uint32_t ticks, fine_ticks;
 volatile uint8_t kbd_buf[256];
 volatile uint8_t kbd_head, kbd_tail;
 
 extern "C" void irq_timer() {
-    ticks = ticks + 1;
+    fine_ticks = fine_ticks + 1;
+    if ((fine_ticks & 3) == 0) ticks = ticks + 1;
     outb(0x20, 0x20);
 }
 

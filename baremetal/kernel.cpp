@@ -200,6 +200,8 @@ static bool video_init(const MultibootInfo* mbi) {
     return ok;
 }
 
+static void pump_audio_now();                   // below: feeds the sound card
+
 // Copy the back buffer out, skipping rows that haven't changed since the
 // last frame (a checksum per row): most of Willy's screen is still.
 static void present() {
@@ -212,6 +214,7 @@ static void present() {
         if (!row_sum || !line) return;
     }
     for (uint32_t y = 0; y < back_h; y++) {
+        if ((y & 31) == 31) pump_audio_now();         // a full redraw takes a while: keep the sound fed
         const uint32_t* src = &back[y * back_w];
         uint32_t sum = 0x811C9DC5u;
         for (uint32_t x = 0; x < back_w; x++) sum = (sum ^ src[x]) * 16777619u;
@@ -261,7 +264,7 @@ static void set_gate(int n, void (*h)()) {
 #endif
 }
 
-extern volatile uint32_t ticks;
+extern volatile uint32_t ticks, fine_ticks;
 extern volatile uint8_t kbd_buf[256];
 extern volatile uint8_t kbd_head, kbd_tail;
 #define TICK_HZ 60
@@ -281,7 +284,7 @@ static void interrupts_init() {
     outb(0x21, 1);    outb(0xA1, 1);
     outb(0x21, 0xFC); outb(0xA1, 0xFF);
 
-    uint16_t div = 1193182 / TICK_HZ;
+    uint16_t div = 1193182 / (TICK_HZ * 4);            // see irq.cpp: 240 Hz, ticks at 60
     outb(0x43, 0x36); outb(0x40, div & 0xFF); outb(0x40, div >> 8);
 
     for (int i = 0; i < 64 && (inb(0x64) & 1); i++) inb(0x60);
@@ -407,7 +410,7 @@ static void pump_audio(int out_frames) {
         audio_submit(out, out_frames);
         return;
     }
-    static int16_t src[512];
+    static int16_t src[64];                            // small bites: a new tone isn't queued behind much
     static int src_len, src_idx;                       // src[src_idx] is the next unread sample
     static int16_t prev, cur;                          // interpolation endpoints
     static uint32_t frac;                              // 16.16 position between prev and cur
@@ -417,7 +420,7 @@ static void pump_audio(int out_frames) {
             frac -= 0x10000;
             if (src_idx >= src_len) {
                 aud_cb(aud_user, (Uint8*)src, (int)sizeof(src));
-                src_len = 512;
+                src_len = 64;
                 src_idx = 0;
             }
             prev = cur;
@@ -427,6 +430,17 @@ static void pump_audio(int out_frames) {
         frac += step;
     }
     audio_submit(out, out_frames);
+}
+
+// Feed the card for the time since the last feed, in 240 Hz steps (see
+// irq.cpp), so it only needs a short cushion of queued sound.
+static void pump_audio_now() {
+    static uint32_t last_fine;
+    uint32_t f = fine_ticks, d = f - last_fine;
+    if (!d) return;
+    last_fine = f;
+    if (d > 24) d = 24;                                // after a long stall, don't flood
+    pump_audio(audio_frames_wanted((int)(audio_rate() * d / (TICK_HZ * 4))));
 }
 
 // ---------------------------------------------------------------- quit dialog
@@ -543,7 +557,8 @@ extern "C" void kmain() {
     bool quit_confirm = false;
     uint32_t last = ticks;
     for (;;) {
-        while (ticks == last) __asm__ volatile("hlt");
+        // Top the sound up every 240 Hz tick while waiting for the next frame.
+        while (ticks == last) { pump_audio_now(); __asm__ volatile("hlt"); }
         uint32_t now = ticks, elapsed = now - last;
         last = now;
         if (elapsed > 6) elapsed = 6;                  // clamp stalls, like the SDL build's 0.1 s
@@ -566,7 +581,7 @@ extern "C" void kmain() {
         }
 
         if (!quit_confirm) wopr_willy_update(&w, dt);
-        pump_audio(audio_frames_wanted((int)(audio_rate() * elapsed / TICK_HZ)));
+        pump_audio_now();                              // sounds the update just queued
 
         wopr_willy_render(&w, px, py, cw, ch, cols);
         if (quit_confirm) draw_quit_dialog();
@@ -577,8 +592,8 @@ extern "C" void kmain() {
             frames++;
             if (ticks - last_report >= TICK_HZ) {
                 last_report = ticks;
-                printf("heartbeat: ticks %u frames %u audio %s pos %u delay %u ms heap peak %lu KB free %lu KB\n",
-                       ticks, frames, audio_name(), audio_play_pos(), audio_delay_ms(),
+                printf("heartbeat: ticks %u frames %u audio %s pos %u delay %u ms underruns %u heap peak %lu KB free %lu KB\n",
+                       ticks, frames, audio_name(), audio_play_pos(), audio_delay_ms(), audio_underruns(),
                        (unsigned long)(heap_peak_bytes() >> 10), (unsigned long)(heap_free_bytes() >> 10));
             }
         }

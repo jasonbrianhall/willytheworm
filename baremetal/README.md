@@ -24,10 +24,13 @@ ones). USB is left out; about 8 MB of RAM. Needs g++-multilib.
 `tools/rbtree_test.sh` checks `rbtree.cpp`, the kernel's own `std::map`
 balancing (libstdc++'s 32-bit `tree.o` uses Pentium Pro instructions).
 
-Sound runs about 40 ms ahead of the speaker, held steady: the game's 60 Hz
-timer and the sound card's clock drift apart, so each frame's audio is
-stretched or squeezed slightly to keep the gap fixed. With the `debug` boot
-option the once-a-second heartbeat on the serial port shows it.
+Sound is topped up at 240 Hz and kept 20 ms ahead of the speaker (50 ms on
+the i386 build), held steady: the game's timer and the sound card's clock
+drift apart, so each batch is stretched or squeezed slightly to keep the gap
+fixed. The boot option `latency=N` (milliseconds) changes it: lower if sound
+feels late, higher if it crackles. With the `debug` boot option the
+once-a-second heartbeat on the serial port shows the delay and counts
+underruns.
 
 To boot `willy.efi` from Fedora's GRUB, copy it to `/boot/efi/EFI/willy/` and
 add to `/etc/grub.d/40_custom`, then run `grub2-mkconfig`:

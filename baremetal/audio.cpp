@@ -306,9 +306,24 @@ AudioDriver audio_init(const char* cmdline) {
     }
     if (driver == AUDIO_NONE) { printf("Audio: none\n"); return driver; }
 
-    target_ahead = kRate / 25;   // 40 ms: 2.4 frames of latency
+    // Sound is topped up at 240 Hz (kernel.cpp), so a short cushion is enough:
+    // 20 ms. A 386 can spend longer than that on one frame, so it gets 50 ms.
+#ifdef __x86_64__
+    int ms = 20;
+#else
+    int ms = 50;
+#endif
+    // Boot option latency=N (milliseconds, 5..200) overrides it: lower if
+    // sound feels late, higher if it crackles (the debug heartbeat counts underruns).
+    for (const char* p = cmdline; p && *p; p++)
+        if (!strncmp(p, "latency=", 8)) {
+            int v = 0;
+            for (const char* q = p + 8; *q >= '0' && *q <= '9'; q++) v = v * 10 + (*q - '0');
+            if (v >= 5 && v <= 200) ms = v;
+        }
+    target_ahead = (uint32_t)(kRate * ms / 1000);
     write_pos = (audio_play_pos() + target_ahead) % RING_FRAMES;
-    printf("Audio: %s at %d Hz\n", audio_name(), kRate);
+    printf("Audio: %s at %d Hz, %d ms latency\n", audio_name(), kRate, ms);
     return driver;
 }
 
@@ -326,11 +341,14 @@ uint32_t audio_play_pos() {
 // left alone, the gap drifts (and with it the delay you hear). So each batch
 // is stretched or squeezed by up to ~3% to pull the gap back, and only a
 // real stall forces a jump.
+static uint32_t underruns;
+uint32_t audio_underruns() { return underruns; }
 int audio_frames_wanted(int nominal) {
     if (driver == AUDIO_NONE || nominal <= 0) return nominal;
     uint32_t play = audio_play_pos();
     uint32_t ahead = (write_pos + RING_FRAMES - play) % RING_FRAMES;
     if (ahead < target_ahead / 8 || ahead > target_ahead * 2) {
+        if (ahead < target_ahead / 8 || ahead >= RING_FRAMES / 2) underruns++;   // ran dry: a gap you can hear
         write_pos = (play + target_ahead + RING_FRAMES - nominal % RING_FRAMES) % RING_FRAMES;   // restart the gap
         return nominal;
     }
