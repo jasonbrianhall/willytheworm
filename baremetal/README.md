@@ -1,6 +1,6 @@
 # Bare-metal Willy the Worm
 
-Boots straight into the game on x86_64 PCs: no OS, no libc, no SDL. GRUB,
+Boots straight into the game on x86_64 PCs, or a 386 or later with a 387 (`ARCH=i386`): no OS, no libc, no SDL. GRUB,
 QEMU's `-kernel` or a UEFI loader starts a small kernel that runs the
 unchanged `../cpp/wopr_willy.cpp` on the framebuffer. Levels and sprites are
 compiled in, so there is nothing else to load.
@@ -13,6 +13,21 @@ make iso          # willy.iso: bootable CD / USB stick (dd it)
 make floppy       # willy-floppy.img: 1.44 MB FAT12 boot floppy (needs mtools, dosfstools)
 make efi          # willy.efi: UEFI application (make run-efi tests it under OVMF)
 ```
+
+`make ARCH=i386 floppy` (or `iso`, `run`) builds the 32-bit kernel, named
+`willy-i386.*`, next to the 64-bit one. It runs on a 386 or later but needs a
+387 or 486DX, as the game uses floating point throughout (without one it
+says so). It asks for 1024x768 at 8 bits per pixel, the mode 1 MB VESA cards
+of the time offer, and draws at whatever depth it gets (8 to 32 bits); the
+card needs VBE 2.0 with a linear framebuffer (UniVBE adds that to older
+ones). USB is left out; about 8 MB of RAM. Needs g++-multilib.
+`tools/rbtree_test.sh` checks `rbtree.cpp`, the kernel's own `std::map`
+balancing (libstdc++'s 32-bit `tree.o` uses Pentium Pro instructions).
+
+Sound runs about 40 ms ahead of the speaker, held steady: the game's 60 Hz
+timer and the sound card's clock drift apart, so each frame's audio is
+stretched or squeezed slightly to keep the gap fixed. With the `debug` boot
+option the once-a-second heartbeat on the serial port shows it.
 
 To boot `willy.efi` from Fedora's GRUB, copy it to `/boot/efi/EFI/willy/` and
 add to `/etc/grub.d/40_custom`, then run `grub2-mkconfig`:

@@ -306,7 +306,7 @@ AudioDriver audio_init(const char* cmdline) {
     }
     if (driver == AUDIO_NONE) { printf("Audio: none\n"); return driver; }
 
-    target_ahead = kRate / 15;   // ~4 frames of latency
+    target_ahead = kRate / 25;   // 40 ms: 2.4 frames of latency
     write_pos = (audio_play_pos() + target_ahead) % RING_FRAMES;
     printf("Audio: %s at %d Hz\n", audio_name(), kRate);
     return driver;
@@ -320,18 +320,37 @@ uint32_t audio_play_pos() {
     }
 }
 
-void audio_submit(const int16_t* samples, int n) {
-    if (driver == AUDIO_NONE) return;
+// How many frames to write now, for `nominal` frames' worth of game time,
+// so the write position stays a steady target_ahead in front of the card.
+// The game runs on the PIT's 60 Hz and the card plays on its own crystal;
+// left alone, the gap drifts (and with it the delay you hear). So each batch
+// is stretched or squeezed by up to ~3% to pull the gap back, and only a
+// real stall forces a jump.
+int audio_frames_wanted(int nominal) {
+    if (driver == AUDIO_NONE || nominal <= 0) return nominal;
     uint32_t play = audio_play_pos();
     uint32_t ahead = (write_pos + RING_FRAMES - play) % RING_FRAMES;
-    // If we've drifted too close (underrun) or too far (overrun), resync.
-    if (ahead < target_ahead / 4 || ahead > target_ahead * 3)
-        write_pos = (play + target_ahead) % RING_FRAMES;
+    if (ahead < target_ahead / 8 || ahead > target_ahead * 2) {
+        write_pos = (play + target_ahead + RING_FRAMES - nominal % RING_FRAMES) % RING_FRAMES;   // restart the gap
+        return nominal;
+    }
+    int err = (int)(ahead + nominal) - (int)target_ahead;      // + : more delay than wanted
+    int m = nominal - err / 8, lim = nominal / 32 + 1;
+    return m < nominal - lim ? nominal - lim : m > nominal + lim ? nominal + lim : m;
+}
+
+void audio_submit(const int16_t* samples, int n) {
+    if (driver == AUDIO_NONE) return;
     for (int i = 0; i < n; i++) {
         ring[write_pos * 2] = samples[i];
         ring[write_pos * 2 + 1] = samples[i];
         write_pos = (write_pos + 1) % RING_FRAMES;
     }
+}
+
+uint32_t audio_delay_ms() {
+    if (driver == AUDIO_NONE) return 0;
+    return (write_pos + RING_FRAMES - audio_play_pos()) % RING_FRAMES * 1000 / kRate;
 }
 
 const char* audio_name() {

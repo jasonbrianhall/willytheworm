@@ -17,6 +17,7 @@
 #include "usb.hpp"
 #include "floppy.hpp"
 #include "storage.hpp"
+#include "font.h"
 #include "wopr.h"
 #include "wopr_render.h"
 #include <SDL2/SDL.h>
@@ -46,6 +47,8 @@ struct __attribute__((packed)) MultibootInfo {
     uint64_t fb_addr;
     uint32_t fb_pitch, fb_width, fb_height;
     uint8_t fb_bpp, fb_type;
+    uint8_t fb_pad[2];      // GRUB aligns what follows to 4 bytes
+    uint8_t fb_color[6];    // type 1 (RGB): red, green, blue (position, size) pairs
 };
 struct __attribute__((packed)) MultibootMmap { uint32_t size; uint64_t addr, len; uint32_t type; };
 extern "C" uint32_t mb_magic, mb_info;
@@ -66,6 +69,7 @@ static void heap_init(const MultibootInfo* mbi) {
     uint64_t total = 0;
     auto add = [&](uint64_t a, uint64_t e) {
         if (e > phys_limit) e = phys_limit;
+        if (e > (uint64_t)(uintptr_t)-1) e = (uint64_t)(uintptr_t)-1;   // i386: 32-bit pointers
         if (a < 0x100000) a = 0x100000;
         if (a < k1 && e > k0) {                              // skip the kernel image
             if (a < k0) { heap_add((void*)(uintptr_t)a, (size_t)(k0 - a)); total += k0 - a; }
@@ -92,56 +96,169 @@ static void heap_init(const MultibootInfo* mbi) {
 }
 
 // ---------------------------------------------------------------- video
-// The desktop build opens a 1280x720 window; ask for the same when we set
-// the mode ourselves (Bochs/QEMU VBE).
-#ifndef SCREEN_W
-#define SCREEN_W 1280u
-#define SCREEN_H 720u
+// The mode to set when no boot loader set one (QEMU -kernel, via Bochs VBE):
+// the desktop build's 1280x720 window, or what the Makefile picks per ARCH.
+#ifndef FB_W
+#define FB_W 1280
+#define FB_H 720
+#define FB_BPP 32
 #endif
-static volatile uint32_t* fb;
-static uint32_t fb_w, fb_h, fb_pitch;   // pitch in pixels
+
+// The game draws into `back` as 0xRRGGBB at the screen's size; present()
+// converts it to whatever the framebuffer is: 8 (palettized), 15, 16, 24 or
+// 32 bits per pixel. 386-era VESA cards with 1 MB manage 1024x768 only at 8.
+static uint8_t* fb;
+static uint32_t fb_w, fb_h, fb_pitch;   // pitch in bytes
+static int fb_bytes = 4;                // per pixel
+static bool fb_indexed;
+static uint8_t r_pos = 16, r_len = 8, g_pos = 8, g_len = 8, b_pos = 0, b_len = 8;
 uint32_t* back;
 uint32_t back_w, back_h;
 
-static bool bga_init(uint32_t w, uint32_t h) {
+// 8-bit modes: the first 192 colours to appear get exact palette entries
+// (VGA DAC); after that, colours map onto a fixed 4x4x4 cube in entries
+// 192..255 (anti-aliased text can make more shades than a palette holds).
+static uint32_t pal_key[1024];          // colour -> entry, open addressing
+static uint8_t pal_val[1024];
+static int pal_n, pal_keys;
+static void dac_set(int i, uint32_t c) {
+    outb(0x3C8, (uint8_t)i);
+    outb(0x3C9, (c >> 18) & 63); outb(0x3C9, (c >> 10) & 63); outb(0x3C9, (c >> 2) & 63);
+}
+static uint8_t pal_index(uint32_t c) {
+    uint32_t h = (c * 2654435761u) >> 22;
+    for (;; h = (h + 1) & 1023) {
+        if (pal_key[h] == c) return pal_val[h];
+        if (pal_key[h] == 0xFFFFFFFF) break;
+    }
+    uint8_t idx;
+    if (pal_n < 192) { idx = (uint8_t)pal_n++; dac_set(idx, c); }
+    else idx = (uint8_t)(192 + ((c >> 22) & 3) * 16 + ((c >> 14) & 3) * 4 + ((c >> 6) & 3));
+    if (pal_keys < 900) { pal_key[h] = c; pal_val[h] = idx; pal_keys++; }
+    return idx;
+}
+static void pal_reset() {
+    for (auto& k : pal_key) k = 0xFFFFFFFF;
+    pal_n = pal_keys = 0;
+    for (int i = 0; i < 64; i++)                          // the cube: 0, 85, 170, 255 per channel
+        dac_set(192 + i, (uint32_t)((i >> 4) * 85) << 16 | (uint32_t)(((i >> 2) & 3) * 85) << 8 | (uint32_t)((i & 3) * 85));
+    pal_index(0x000000);                                  // entry 0: black
+}
+static uint32_t native(uint32_t c) {
+    c &= 0xFFFFFF;
+    if (fb_indexed) return pal_index(c);
+    uint32_t r = c >> 16, g = (c >> 8) & 255, b = c & 255;
+    return (r >> (8 - r_len)) << r_pos | (g >> (8 - g_len)) << g_pos | (b >> (8 - b_len)) << b_pos;
+}
+// Video memory sits on a slow bus (ISA on a 386): move dwords.
+static void copy_out(void* d, const void* s, size_t n) {
+    size_t words = n / 4, rest = n % 4;
+    __asm__ volatile("rep movsl" : "+D"(d), "+S"(s), "+c"(words) :: "memory");
+    __asm__ volatile("rep movsb" : "+D"(d), "+S"(s), "+c"(rest) :: "memory");
+}
+
+static bool bga_init(uint32_t w, uint32_t h, uint32_t bpp) {
     uint32_t base = 0;
     PciDevice vga;
     if (pci_find_id(0x1234, 0x1111, &vga))                  // QEMU/Bochs std VGA
         base = pci_read(vga, 0x10) & 0xFFFFFFF0;
     outw(0x1CE, 0); if (!base || inw(0x1CF) < 0xB0C0) return false;
     auto w16 = [](uint16_t i, uint16_t v) { outw(0x1CE, i); outw(0x1CF, v); };
-    w16(4, 0); w16(1, w); w16(2, h); w16(3, 32); w16(4, 0x41);
-    fb = (volatile uint32_t*)(uintptr_t)base;
-    fb_w = w; fb_h = h; fb_pitch = w;
+    w16(4, 0); w16(1, w); w16(2, h); w16(3, bpp); w16(4, 0x41);
+    fb = (uint8_t*)(uintptr_t)base;
+    fb_bytes = (bpp + 7) / 8;
+    fb_w = w; fb_h = h; fb_pitch = w * fb_bytes;
+    fb_indexed = bpp == 8;
+    if (bpp == 16) { r_pos = 11; r_len = 5; g_pos = 5; g_len = 6; b_pos = 0; b_len = 5; }
+    if (bpp == 15) { r_pos = 10; r_len = 5; g_pos = 5; g_len = 5; b_pos = 0; b_len = 5; }
     return true;
 }
 
 static bool video_init(const MultibootInfo* mbi) {
-    if ((mbi->flags & (1 << 12)) && mbi->fb_type == 1 && mbi->fb_bpp == 32 && mbi->fb_addr < phys_limit) {
-        fb = (volatile uint32_t*)(uintptr_t)mbi->fb_addr;
-        fb_w = mbi->fb_width; fb_h = mbi->fb_height; fb_pitch = mbi->fb_pitch / 4;
-        printf("Using bootloader framebuffer %ux%u\n", fb_w, fb_h);
-        return true;
+    bool ok = false;
+    if ((mbi->flags & (1 << 12)) && mbi->fb_addr < phys_limit) {
+        int bpp = mbi->fb_bpp;
+        if (mbi->fb_type == 0 && bpp == 8) {
+            fb_indexed = ok = true;
+        } else if (mbi->fb_type == 1 && (bpp == 15 || bpp == 16 || bpp == 24 || bpp == 32)) {
+            const uint8_t* c = mbi->fb_color;
+            r_pos = c[0]; r_len = c[1]; g_pos = c[2]; g_len = c[3]; b_pos = c[4]; b_len = c[5];
+            ok = r_len && r_len <= 8 && g_len && g_len <= 8 && b_len && b_len <= 8;
+        }
+        if (ok) {
+            fb = (uint8_t*)(uintptr_t)mbi->fb_addr;
+            fb_w = mbi->fb_width; fb_h = mbi->fb_height; fb_pitch = mbi->fb_pitch;
+            fb_bytes = (bpp + 7) / 8;
+            printf("Using bootloader framebuffer %ux%u, %d bits\n", fb_w, fb_h, bpp);
+        }
     }
-    if (bga_init(SCREEN_W, SCREEN_H)) { printf("Using Bochs/QEMU VBE %ux%u\n", SCREEN_W, SCREEN_H); return true; }
-    return false;
+    if (!ok && bga_init(FB_W, FB_H, FB_BPP)) {
+        printf("Using Bochs/QEMU VBE %ux%u, %d bits\n", FB_W, FB_H, FB_BPP);
+        ok = true;
+    }
+    if (ok && fb_indexed) pal_reset();
+    return ok;
 }
 
+// Copy the back buffer out, skipping rows that haven't changed since the
+// last frame (a checksum per row): most of Willy's screen is still.
 static void present() {
-    for (uint32_t y = 0; y < back_h; y++)
-        memcpy((void*)&fb[y * fb_pitch], &back[y * back_w], back_w * 4);
+    static uint32_t* row_sum;
+    static uint8_t* line;
+    static bool have_sums;
+    if (!row_sum) {
+        row_sum = (uint32_t*)malloc(back_h * sizeof(uint32_t));
+        line = (uint8_t*)malloc((size_t)back_w * 4);
+        if (!row_sum || !line) return;
+    }
+    for (uint32_t y = 0; y < back_h; y++) {
+        const uint32_t* src = &back[y * back_w];
+        uint32_t sum = 0x811C9DC5u;
+        for (uint32_t x = 0; x < back_w; x++) sum = (sum ^ src[x]) * 16777619u;
+        if (have_sums && row_sum[y] == sum) continue;
+        row_sum[y] = sum;
+        uint8_t* dst = fb + y * fb_pitch;
+        if (fb_bytes == 4 && !fb_indexed && r_pos == 16 && g_pos == 8 && b_pos == 0) {
+            copy_out(dst, src, back_w * 4);                // already in the screen's format
+            continue;
+        }
+        uint8_t* d = line;
+        uint32_t last = 0xFFFFFFFF, v = 0;
+        for (uint32_t x = 0; x < back_w; x++) {
+            uint32_t p = src[x];
+            if (p != last) { last = p; v = native(p); }
+            switch (fb_bytes) {
+            case 1: *d++ = (uint8_t)v; break;
+            case 2: *(uint16_t*)d = (uint16_t)v; d += 2; break;
+            case 3: d[0] = (uint8_t)v; d[1] = (uint8_t)(v >> 8); d[2] = (uint8_t)(v >> 16); d += 3; break;
+            default: *(uint32_t*)d = v; d += 4; break;
+            }
+        }
+        copy_out(dst, line, back_w * fb_bytes);
+    }
+    have_sums = true;
 }
 
 // ---------------------------------------------------------------- interrupts
+#ifdef __x86_64__
 struct __attribute__((packed)) IdtEntry {
     uint16_t off_lo, sel; uint8_t ist, type; uint16_t off_mid; uint32_t off_hi, zero;
 };
+#else
+struct __attribute__((packed)) IdtEntry {         // 32-bit interrupt gate
+    uint16_t off_lo, sel; uint8_t zero, type; uint16_t off_hi;
+};
+#endif
 static IdtEntry idt[256];
 extern "C" void isr_timer(), isr_keyboard(), isr_spurious(), isr_fault();
 
 static void set_gate(int n, void (*h)()) {
     uintptr_t a = (uintptr_t)h;
+#ifdef __x86_64__
     idt[n] = { (uint16_t)a, 0x08, 0, 0x8E, (uint16_t)(a >> 16), (uint32_t)(a >> 32), 0 };
+#else
+    idt[n] = { (uint16_t)a, 0x08, 0, 0x8E, (uint16_t)(a >> 16) };
+#endif
 }
 
 extern volatile uint32_t ticks;
@@ -282,13 +399,18 @@ void SDL_PauseAudioDevice(SDL_AudioDeviceID, int pause_on) { aud_running = aud_o
 void SDL_CloseAudioDevice(SDL_AudioDeviceID) { aud_open = aud_running = false; }
 
 static void pump_audio(int out_frames) {
-    if (!aud_running || out_frames <= 0) return;
+    if (out_frames <= 0) return;
+    static int16_t out[4096];
+    if (out_frames > 4096) out_frames = 4096;
+    if (!aud_running) {                                // the card loops its buffer: keep it silent
+        memset(out, 0, out_frames * sizeof(int16_t));
+        audio_submit(out, out_frames);
+        return;
+    }
     static int16_t src[512];
     static int src_len, src_idx;                       // src[src_idx] is the next unread sample
     static int16_t prev, cur;                          // interpolation endpoints
     static uint32_t frac;                              // 16.16 position between prev and cur
-    static int16_t out[4096];
-    if (out_frames > 4096) out_frames = 4096;
     const uint32_t step = (uint32_t)(((uint64_t)aud_rate << 16) / audio_rate());
     for (int i = 0; i < out_frames; i++) {
         while (frac >= 0x10000) {
@@ -337,6 +459,33 @@ static void fatal(const char* l1, const char* l2) {
     for (;;) __asm__ volatile("cli; hlt");
 }
 
+#ifndef __x86_64__
+// Willy uses floating point everywhere (drawing included), so without an
+// FPU (a 386 or 486SX on its own) say so with the 8x16 font, integers only.
+extern "C" uint32_t fpu_present;                   // boot32.S
+static void no_fpu_screen() {
+    static const char* const lines[] = {
+        "WILLY THE WORM NEEDS A MATH COPROCESSOR",
+        "This PC has no 387 (or 486DX) floating-point unit.",
+    };
+    printf("No FPU: Willy needs a 387\n");
+    memset(back, 0, (size_t)back_w * back_h * 4);
+    for (int l = 0; l < 2; l++)
+        for (int i = 0; lines[l][i]; i++) {
+            char ch = lines[l][i] < 32 || lines[l][i] > 126 ? '?' : lines[l][i];
+            const unsigned char* g = font8x16[ch - 32];
+            for (int r = 0; r < 32; r++)                        // doubled: 16x32 cells
+                for (int b = 0; b < 16; b++)
+                    if (g[r / 2] & (0x80 >> (b / 2))) {
+                        uint32_t x = 40 + i * 16 + b, y = 40 + l * 48 + r;
+                        if (x < back_w && y < back_h) back[y * back_w + x] = l ? 0xFFFFFF : 0xFF6060;
+                    }
+        }
+    present();
+    for (;;) __asm__ volatile("cli; hlt");
+}
+#endif
+
 extern "C" void (*__init_array_start[])(), (*__init_array_end[])();
 
 extern "C" void kmain() {
@@ -358,12 +507,15 @@ extern "C" void kmain() {
     }
     mbi = &info;
     heap_init(mbi);
-    if (!video_init(mbi)) { printf("No usable 32-bit framebuffer found\n"); return; }
+    if (!video_init(mbi)) { printf("No usable framebuffer found\n"); return; }
 
     back_w = fb_w; back_h = fb_h;
     back = (uint32_t*)malloc((size_t)back_w * back_h * 4);
     if (!back) { printf("No memory for the back buffer\n"); return; }
     memset(back, 0, (size_t)back_w * back_h * 4);
+#ifndef __x86_64__
+    if (!fpu_present) no_fpu_screen();
+#endif
     render_set_screen(back_w, back_h);
 
     audio_init(cmdline);
@@ -414,7 +566,7 @@ extern "C" void kmain() {
         }
 
         if (!quit_confirm) wopr_willy_update(&w, dt);
-        pump_audio((int)(audio_rate() * elapsed / TICK_HZ));
+        pump_audio(audio_frames_wanted((int)(audio_rate() * elapsed / TICK_HZ)));
 
         wopr_willy_render(&w, px, py, cw, ch, cols);
         if (quit_confirm) draw_quit_dialog();
@@ -425,8 +577,8 @@ extern "C" void kmain() {
             frames++;
             if (ticks - last_report >= TICK_HZ) {
                 last_report = ticks;
-                printf("heartbeat: ticks %u frames %u audio %s pos %u heap peak %lu KB free %lu KB\n",
-                       ticks, frames, audio_name(), audio_play_pos(),
+                printf("heartbeat: ticks %u frames %u audio %s pos %u delay %u ms heap peak %lu KB free %lu KB\n",
+                       ticks, frames, audio_name(), audio_play_pos(), audio_delay_ms(),
                        (unsigned long)(heap_peak_bytes() >> 10), (unsigned long)(heap_free_bytes() >> 10));
             }
         }

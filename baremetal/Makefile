@@ -7,22 +7,35 @@
 #   make efi          willy.efi, a UEFI application
 #   make run-efi      boot willy.efi under OVMF
 #
+# ARCH=x86_64 (default) builds the 64-bit kernel, with UEFI support.
+# ARCH=i386 builds a 32-bit one for a 386 or later with a 387 (the game uses
+# floating point throughout); its outputs are willy-i386.elf, willy-i386.iso
+# and willy-i386-floppy.img. It asks for 1024x768 at 8 bits per pixel first,
+# which 1 MB VESA cards of the time can do, and needs g++-multilib.
+#
 # The game itself (../cpp/wopr_willy.cpp, highscores.cpp, miniz) is compiled
 # unchanged against the normal libstdc++ headers; overrides/ stands in for
-# SDL2 and the file streams, and runtime.cpp/stdhooks.cpp supply the few
-# library symbols those headers need. Nothing from libc/libstdc++ is linked
-# except libstdc++'s red-black tree helpers (tree.o, used by std::map).
+# SDL2 and the file streams, and runtime.cpp/stdhooks.cpp/rbtree.cpp supply
+# the few library symbols those headers need. Nothing from libc/libstdc++
+# is linked.
 
+ARCH     ?= x86_64
 CXX      ?= g++
 CC       ?= gcc
 GAME     := ../cpp
-BUILD    ?= build/x86_64
+BUILD    ?= build/$(ARCH)
 
 GRUB_MKIMAGE  ?= $(shell command -v grub2-mkimage || command -v grub-mkimage)
 GRUB_MKRESCUE ?= $(shell command -v grub2-mkrescue || command -v grub-mkrescue)
 GRUB_I386     ?= $(firstword $(wildcard /usr/lib/grub/i386-pc /usr/lib/grub2/i386-pc))
 MKFS_FAT      ?= $(shell command -v mkfs.fat || command -v mkfs.vfat || echo /usr/sbin/mkfs.fat)
 
+ifeq ($(ARCH),x86_64)
+MFLAG    := -m64
+SUFFIX   :=
+BOOT_S   := boot.S
+USB_OBJ  := usb
+LDEMU    :=
 # PIE=1 builds the position-independent kernel that willy.efi embeds.
 ifeq ($(PIE),1)
 CODEGEN  := -fpie
@@ -31,40 +44,53 @@ else
 CODEGEN  := -fno-pic -fno-pie -mcmodel=kernel
 BOOTDEFS :=
 endif
+ARCHFLAGS := $(CODEGEN) -mno-red-zone -msse2
+else ifeq ($(ARCH),i386)
+MFLAG    := -m32
+SUFFIX   := -i386
+BOOT_S   := boot32.S
+# No xHCI before PCI Express, and its driver's 2 MB DMA pool would be a
+# quarter of a typical 386's memory.
+USB_OBJ  := usb_none
+LDEMU    := -m elf_i386
+FBDEFS   := -DFB_W=1024 -DFB_H=768 -DFB_BPP=8
+BOOTDEFS := -march=i386 -DCPU_386 $(FBDEFS)
+ARCHFLAGS := -fno-pic -fno-pie -march=i386 -mtune=i486 -mfpmath=387 -mno-sse $(FBDEFS)
+else
+$(error ARCH must be x86_64 or i386)
+endif
 
-LIBGCC    := $(shell $(CXX) -m64 -print-libgcc-file-name)
-LIBSTDCXX := $(shell $(CXX) -m64 -print-file-name=libstdc++.a)
+LIBGCC    := $(shell $(CXX) $(MFLAG) -print-libgcc-file-name)
 
-BASE     := -m64 $(CODEGEN) -mno-red-zone -msse2 -O2 -fno-stack-protector -fno-asynchronous-unwind-tables \
+BASE     := $(MFLAG) $(ARCHFLAGS) -O2 -fno-stack-protector -fno-asynchronous-unwind-tables \
             -fno-builtin-printf -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -DNDEBUG
 CXXFLAGS := $(BASE) -std=gnu++17 -fno-rtti -fno-threadsafe-statics -D_GLIBCXX_ASSERTIONS \
             -Ioverrides -I$(GAME) -I. -Wno-write-strings
 # Interrupt handlers never touch SSE (the stubs only save integer registers).
 IRQFLAGS := $(filter-out -msse2,$(CXXFLAGS)) -mgeneral-regs-only
 CFLAGS   := $(BASE) -DMINIZ_NO_STDIO -DMINIZ_NO_TIME -DMINIZ_NO_ARCHIVE_APIS -I$(GAME) -w
-LDFLAGS  := -nostdlib -static -no-pie -T linker.ld -z max-page-size=0x1000 --no-warn-rwx-segments
+LDFLAGS  := $(LDEMU) -nostdlib -static -no-pie -T linker.ld -z max-page-size=0x1000 --no-warn-rwx-segments
 
-KERNEL := willy.elf
-ISO    := willy.iso
-FLOPPY := willy-floppy.img
+KERNEL := willy$(SUFFIX).elf
+ISO    := willy$(SUFFIX).iso
+FLOPPY := willy$(SUFFIX)-floppy.img
 
 GAME_CXX := wopr_willy highscores
 GAME_C   := miniz miniz_tdef miniz_tinfl miniz_zip
-PLATFORM := kernel render runtime stdhooks audio pci usb floppy fat12 storage
+PLATFORM := kernel render runtime stdhooks rbtree audio pci $(USB_OBJ) floppy fat12 storage
 
 OBJS := $(BUILD)/boot.o $(BUILD)/irq.o \
         $(addprefix $(BUILD)/,$(addsuffix .o,$(PLATFORM))) \
-        $(addprefix $(BUILD)/game/,$(addsuffix .o,$(GAME_CXX) $(GAME_C))) \
-        $(BUILD)/tree.o
+        $(addprefix $(BUILD)/game/,$(addsuffix .o,$(GAME_CXX) $(GAME_C)))
 
 HDRS := $(wildcard *.hpp) font.h dejavu20.h overrides/SDL2/SDL.h overrides/stream_shim.h \
         $(GAME)/wopr.h $(GAME)/wopr_render.h $(GAME)/highscores.h
 
 all: $(KERNEL)
 
-$(BUILD)/boot.o: boot.S
+$(BUILD)/boot.o: $(BOOT_S)
 	@mkdir -p $(BUILD)
-	$(CXX) -m64 $(BOOTDEFS) -c $< -o $@
+	$(CXX) $(MFLAG) $(BOOTDEFS) -c $< -o $@
 
 $(BUILD)/irq.o: irq.cpp hw.hpp
 	@mkdir -p $(BUILD)
@@ -82,17 +108,17 @@ $(BUILD)/game/%.o: $(GAME)/%.c
 	@mkdir -p $(BUILD)/game
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# std::map's node balancing lives in libstdc++ (tree.cc); it's position-
-# independent and has no dependencies, so take just that object.
-$(BUILD)/tree.o:
-	@mkdir -p $(BUILD)
-	cd $(BUILD) && ar x $(LIBSTDCXX) tree.o
-
+ifeq ($(ARCH),x86_64)
 # Link as ELF64, then wrap as ELF32 so QEMU's -kernel and GRUB's multiboot
 # loader both accept it. The 32-bit entry stub switches to long mode.
 $(KERNEL): $(OBJS) linker.ld
 	ld $(LDFLAGS) $(OBJS) $(LIBGCC) -o $(BUILD)/willy64.elf
 	objcopy -O elf32-i386 $(BUILD)/willy64.elf $@
+else
+# Already ELF32; the entry stub stays in 32-bit protected mode.
+$(KERNEL): $(OBJS) linker.ld
+	ld $(LDFLAGS) $(OBJS) $(LIBGCC) -o $@
+endif
 
 # ---------------------------------------------------------------- UEFI
 # willy.efi = a small UEFI loader (gnu-efi) with the kernel embedded.
@@ -172,7 +198,12 @@ QUSB_none   :=
 SOUND    ?= hda
 USB      ?= xhci
 KVM      ?= $(if $(wildcard /dev/kvm),-enable-kvm,)
+ifeq ($(ARCH),x86_64)
 QEMU     := qemu-system-x86_64 $(KVM) -m 256 -serial stdio $(QSOUND_$(SOUND)) $(QUSB_$(USB))
+else
+# The oldest CPU QEMU models is a 486; 8 MB.
+QEMU     := qemu-system-i386 -cpu 486 -m 8 -serial stdio $(QSOUND_$(SOUND))
+endif
 
 run: $(KERNEL)
 	$(QEMU) -kernel $(KERNEL) -append "audio=$(SOUND) $(ARGS)"
@@ -195,6 +226,6 @@ run-efi: willy.efi
 	        -drive if=pflash,format=raw,file=$(BUILD)/ovmf_vars.fd -drive format=raw,file=fat:rw:$(BUILD)/esp
 
 clean:
-	rm -rf build $(KERNEL) $(ISO) $(FLOPPY) willy.efi
+	rm -rf build willy.elf willy.iso willy-floppy.img willy.efi willy-i386.elf willy-i386.iso willy-i386-floppy.img
 
 .PHONY: all iso floppy efi run run-iso run-floppy run-efi clean FORCE
