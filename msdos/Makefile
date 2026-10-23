@@ -19,7 +19,8 @@
 # it when built with -DWW_SPRITE_HOOK).
 #
 # Needs a 386 with a 387 (or EMU387.DXE from DJGPP v2misc next to it).
-# WILLY /NOSOUND, WILLY /VGA; SET WILLYVID=800x600x16 picks a VESA mode.
+# WILLY /NOSOUND, WILLY /VGA, WILLY /SCALE:SMOOTH|NEAREST|BILINEAR (F2 switches
+# while playing); SET WILLYVID=800x600x16 picks a VESA mode.
 GAME    := ../cpp
 BM      := ../baremetal
 

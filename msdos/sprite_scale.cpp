@@ -2,7 +2,8 @@
 // with Scale2x / Scale3x (the EPX family of pixel-art scalers, chained for
 // 4x, 6x, 8x, 9x...) instead of as blocks, so diagonals come out smooth.
 // xBRZ does the same job but is GPL; these rules are short enough to write
-// out here. Each sprite is scaled once per size and kept.
+// out here. The result is averaged down to the cell's exact size, so
+// strokes keep an even weight. Each sprite is worked out once per size.
 #include <stdint.h>
 #include <string.h>
 #include <stdlib.h>
@@ -99,33 +100,115 @@ int pick_k(int need) {
     return 32;
 }
 
+// The sprite as coverage (0..255) at exactly w x h screen pixels: scaled up
+// past twice that size, then each screen pixel takes the share of the big
+// bitmap it covers. Playfield cells are rarely a multiple of 8 pixels
+// (14 at 640x480), and picking whole pixels out of a bigger bitmap drops
+// rows and columns unevenly; averaging keeps every stroke the same weight.
+// Plain blocks: each screen pixel takes the sprite pixel under its centre.
+void nearest(const uint8_t rows[8], int w, int h, std::vector<uint8_t>& out) {
+    for (int ty = 0; ty < h; ty++) {
+        uint8_t r = rows[(ty * 2 + 1) * 8 / (h * 2)];
+        for (int tx = 0; tx < w; tx++)
+            out[(size_t)ty * w + tx] = (r >> (7 - (tx * 2 + 1) * 8 / (w * 2))) & 1 ? 255 : 0;
+    }
+}
+
+// Bilinear: the four sprite pixels around each screen pixel's centre,
+// weighted by distance; soft edges.
+void bilinear(const uint8_t rows[8], int w, int h, std::vector<uint8_t>& out) {
+    auto px = [&](int x, int y) -> float {
+        x = x < 0 ? 0 : x > 7 ? 7 : x;
+        y = y < 0 ? 0 : y > 7 ? 7 : y;
+        return (rows[y] >> (7 - x)) & 1 ? 1.f : 0.f;
+    };
+    for (int ty = 0; ty < h; ty++) {
+        float v = (ty + 0.5f) * 8.f / h - 0.5f;
+        int y0 = v < 0.f ? -1 : (int)v;
+        float fy = v - y0;
+        for (int tx = 0; tx < w; tx++) {
+            float u = (tx + 0.5f) * 8.f / w - 0.5f;
+            int x0 = u < 0.f ? -1 : (int)u;
+            float fx = u - x0;
+            float c = (px(x0, y0) * (1 - fx) + px(x0 + 1, y0) * fx) * (1 - fy) +
+                      (px(x0, y0 + 1) * (1 - fx) + px(x0 + 1, y0 + 1) * fx) * fy;
+            out[(size_t)ty * w + tx] = (uint8_t)(c * 255.f + 0.5f);
+        }
+    }
+}
+
+const std::vector<uint8_t>& coverage(const uint8_t rows[8], int w, int h, int mode) {
+    static std::map<std::pair<uint64_t, int>, std::vector<uint8_t>> cache;
+    uint64_t bits = 0;
+    for (int i = 0; i < 8; i++) bits = bits << 8 | rows[i];
+    std::pair<uint64_t, int> key(bits, w << 20 | h << 8 | mode);
+    auto it = cache.find(key);
+    if (it != cache.end()) return it->second;
+
+    if (mode != 0) {
+        std::vector<uint8_t> out((size_t)w * h);
+        if (mode == 1) nearest(rows, w, h, out);
+        else bilinear(rows, w, h, out);
+        return cache[key] = out;
+    }
+    int big = w > h ? w : h, n;
+    const Bitmap& bm = scaled(rows, pick_k((2 * big + 7) / 8), n);
+    std::vector<uint8_t> out((size_t)w * h);
+    const float sx = (float)n / w, sy = (float)n / h;
+    for (int ty = 0; ty < h; ty++) {
+        float y0 = ty * sy, y1 = y0 + sy;
+        for (int tx = 0; tx < w; tx++) {
+            float x0 = tx * sx, x1 = x0 + sx, sum = 0.f;
+            for (int yy = (int)y0; yy < n && yy < y1; yy++) {
+                float wy = (yy + 1 < y1 ? yy + 1 : y1) - (yy > y0 ? yy : y0);
+                const uint8_t* row = &bm[(size_t)yy * n];
+                for (int xx = (int)x0; xx < n && xx < x1; xx++)
+                    if (row[xx]) sum += wy * ((xx + 1 < x1 ? xx + 1 : x1) - (xx > x0 ? xx : x0));
+            }
+            float c = sum / (sx * sy);
+            out[(size_t)ty * w + tx] = (uint8_t)(c >= 1.f ? 255 : c * 255.f + 0.5f);
+        }
+    }
+    return cache[key] = out;
+}
+
 inline int iround(float v) { return (int)(v < 0 ? v - 0.5f : v + 0.5f); }
 inline uint32_t chan(float c) { return c <= 0.f ? 0 : c >= 1.f ? 255 : (uint32_t)(c * 255.f + 0.5f); }
 
 } // namespace
 
+// Set by dos_main.cpp in 16-colour VGA, which has no shades to blend with:
+// edges are then cut at half coverage instead.
+bool sprite_hard_edges;
+
+// 0 smooth (Scale2x/Scale3x), 1 nearest (plain blocks), 2 bilinear.
+int sprite_mode;
+extern const char* const sprite_mode_names[3];
+const char* const sprite_mode_names[3] = {"SMOOTH", "NEAREST", "BILINEAR"};
+
 void gl_draw_sprite8(const uint8_t rows[8], float x, float y, float w, float h,
                      float r, float g, float b, float a) {
+    // Snap to the same pixel edges gl_draw_rect uses, so cells tile.
     int x0 = iround(x), y0 = iround(y), sw = iround(x + w) - x0, sh = iround(y + h) - y0;
     if (sw <= 0 || sh <= 0 || a <= 0.f) return;
-    int big = sw > sh ? sw : sh;
-    int n;
-    const Bitmap& bm = scaled(rows, pick_k((big + 7) / 8), n);
-    uint32_t rgb = chan(r) << 16 | chan(g) << 8 | chan(b);
-    uint32_t al = chan(a);
+    const std::vector<uint8_t>& cov = coverage(rows, sw, sh, sprite_mode);
+    uint32_t sr = (uint32_t)chan(r), sg = (uint32_t)chan(g), sb = (uint32_t)chan(b), al = chan(a);
     for (int ty = 0; ty < sh; ty++) {
         int py = y0 + ty;
         if (py < 0 || py >= (int)back_h) continue;
-        const uint8_t* src = &bm[(size_t)(ty * n / sh) * n];
+        const uint8_t* src = &cov[(size_t)ty * sw];
         uint32_t* row = back + (size_t)py * back_w;
         for (int tx = 0; tx < sw; tx++) {
             int px = x0 + tx;
-            if (px < 0 || px >= (int)back_w || !src[tx * n / sw]) continue;
-            if (al >= 255) { row[px] = rgb; continue; }
-            uint32_t d = row[px], ia = 255 - al;
-            row[px] = (((rgb >> 16) & 255) * al + ((d >> 16) & 255) * ia) / 255 << 16 |
-                      (((rgb >> 8) & 255) * al + ((d >> 8) & 255) * ia) / 255 << 8 |
-                      ((rgb & 255) * al + (d & 255) * ia) / 255;
+            uint32_t c = src[tx];
+            if (!c || px < 0 || px >= (int)back_w) continue;
+            if (sprite_hard_edges) { if (c < 128) continue; c = 255; }
+            c = c * al / 255;
+            if (c >= 255) { row[px] = sr << 16 | sg << 8 | sb; continue; }
+            uint32_t d = row[px], ic = 255 - c;
+            row[px] = (sr * c + ((d >> 16) & 255) * ic) / 255 << 16 |
+                      (sg * c + ((d >> 8) & 255) * ic) / 255 << 8 |
+                      (sb * c + (d & 255) * ic) / 255;
         }
     }
 }

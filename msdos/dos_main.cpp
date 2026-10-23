@@ -263,6 +263,17 @@ static void pump_audio() {
 // ---------------------------------------------------------------- video
 enum VMode { V_NONE, V_LFB, V_BANKED, V_VGA12 };
 static VMode vmode = V_NONE;
+extern bool sprite_hard_edges;                      // sprite_scale.cpp
+extern int sprite_mode;
+extern const char* const sprite_mode_names[3];
+
+static bool set_sprite_mode(const char* name) {
+    for (int i = 0; i < 3; i++)
+        if (!strcasecmp(name, sprite_mode_names[i])) { sprite_mode = i; return true; }
+    if (!strcasecmp(name, "xbrz") || !strcasecmp(name, "scale2x")) { sprite_mode = 0; return true; }
+    if (!strcasecmp(name, "normal") || !strcasecmp(name, "off")) { sprite_mode = 1; return true; }
+    return false;
+}
 static uint32_t fb_w, fb_h, fb_pitch;
 static int fb_bytes = 4;
 static bool fb_indexed;
@@ -485,6 +496,7 @@ static void vga12_init() {
     __dpmi_int(0x10, &r);
     fb_w = 640; fb_h = 480; fb_pitch = 80; fb_bytes = 1; fb_indexed = false;
     vmode = V_VGA12;
+    sprite_hard_edges = true;
 }
 
 static void text_mode() {
@@ -620,16 +632,20 @@ static void on_fault(int sig) {
 }
 
 int main(int argc, char** argv) {
+    if (const char* e = getenv("WILLYSCALE")) set_sprite_mode(e);
     for (int i = 1; i < argc; i++) {
         const char* a = argv[i];
         if (*a == '/' || *a == '-') a++;
         if (!strcasecmp(a, "nosound") || !strcasecmp(a, "q")) sound_off = true;
         else if (!strcasecmp(a, "vga")) setenv("WILLYVID", "vga", 1);
+        else if (!strncasecmp(a, "scale", 5) && (a[5] == ':' || a[5] == '=') && set_sprite_mode(a + 6)) {}
         else {
-            printf("WILLY [/NOSOUND] [/VGA]\n"
+            printf("WILLY [/NOSOUND] [/VGA] [/SCALE:SMOOTH|NEAREST|BILINEAR]\n"
                    "  /NOSOUND  no PC speaker\n"
                    "  /VGA      16-colour VGA, skip VESA\n"
-                   "  SET WILLYVID=800x600x16 picks a VESA mode\n");
+                   "  /SCALE    how sprites are enlarged (F2 switches while playing)\n"
+                   "  SET WILLYVID=800x600x16 picks a VESA mode\n"
+                   "  SET WILLYSCALE=NEAREST sets the default /SCALE\n");
             return 0;
         }
     }
@@ -685,6 +701,7 @@ int main(int argc, char** argv) {
     const uint32_t frame_ticks = (uint32_t)(TICK_HZ / 60.0 + 0.5);
 
     bool quit = false, quit_confirm = false;
+    uint32_t notice_until = 0;                       // F2's "SPRITES: ..." label
     uint32_t last = ticks;
     while (!quit) {
         while (ticks - last < frame_ticks) pump_audio();
@@ -697,6 +714,11 @@ int main(int argc, char** argv) {
             if (quit_confirm) {
                 if (k == SDLK_y || k == SDLK_RETURN) { quit = true; break; }
                 if (k == SDLK_n || k == SDLK_ESCAPE) quit_confirm = false;
+                continue;
+            }
+            if (k == SDLK_F2) {
+                sprite_mode = (sprite_mode + 1) % 3;
+                notice_until = ticks + (uint32_t)(TICK_HZ * 2);
                 continue;
             }
             if (k == SDLK_ESCAPE) {
@@ -714,6 +736,14 @@ int main(int argc, char** argv) {
         memset(back, 0, (size_t)back_w * back_h * 4);
         wopr_willy_render(&w, px, py, cw, ch, cols);
         if (quit_confirm) draw_quit_dialog();
+        if ((int32_t)(notice_until - ticks) > 0) {
+            char msg[40];
+            snprintf(msg, sizeof msg, "SPRITES: %s", sprite_mode_names[sprite_mode]);
+            float tw = gl_text_width(msg, 1.f), th = gl_text_height(1.f);
+            float x = (float)back_w - tw - 16.f, y = 8.f;
+            gl_draw_rect(x - 8.f, y - 4.f, tw + 16.f, th + 8.f, 0.f, 0.f, 0.f, 0.85f);
+            gl_draw_text(msg, x, y, 1.f, 1.f, 0.f, 1.f, 1.f);
+        }
         present();
     }
 
