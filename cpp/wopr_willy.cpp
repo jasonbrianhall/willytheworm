@@ -97,11 +97,22 @@ static int ww_sprite_idx(const std::string &tile) {
     return -1;
 }
 
+// A frontend that scales sprites itself (msdos/: Scale2x/Scale3x) defines
+// WW_SPRITE_HOOK and provides this; the rows are 8 bits each, MSB leftmost.
+#ifdef WW_SPRITE_HOOK
+void gl_draw_sprite8(const uint8_t rows[8], float x, float y, float w, float h,
+                     float r, float g, float b, float a);
+#endif
+
 // Draw one 8×8 sprite scaled to cell_w×cell_h. All sprites white (palette(1)
 // textcolor(3) in the original = white on blue background).
 static void ww_draw_sprite(int idx, float px, float py,
                            float cw, float ch) {
     if (!s_chr_loaded || idx<0 || idx>=128) return;
+#ifdef WW_SPRITE_HOOK
+    gl_draw_sprite8(s_chr[idx], px, py, cw, ch, 1.f,1.f,1.f,1.f);
+    return;
+#endif
     float pw = cw/8.f, ph = ch/8.f;
     for (int row=0; row<8; row++) {
         uint8_t b = s_chr[idx][row];

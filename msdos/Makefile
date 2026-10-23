@@ -12,9 +12,11 @@
 # Force either with DOCKER=1 / DOCKER=0.
 #
 # The game (../cpp/wopr_willy.cpp, highscores.cpp, miniz) is compiled
-# unchanged, drawing through ../baremetal/render.cpp with the bare-metal
+# as is, drawing through ../baremetal/render.cpp with the bare-metal
 # build's SDL2 stand-in; dos_main.cpp replaces the bare-metal kernel
-# (VESA/VGA video, BIOS keyboard, PC speaker on a sped-up IRQ0).
+# (VESA/VGA video, BIOS keyboard, PC speaker on a sped-up IRQ0), and
+# sprite_scale.cpp enlarges the sprites with Scale2x/Scale3x (the game calls
+# it when built with -DWW_SPRITE_HOOK).
 #
 # Needs a 386 with a 387 (or EMU387.DXE from DJGPP v2misc next to it).
 # WILLY /NOSOUND, WILLY /VGA; SET WILLYVID=800x600x16 picks a VESA mode.
@@ -53,11 +55,11 @@ EXE2COFF = $(shell command -v $(CROSS)exe2coff 2>/dev/null || echo $(dir $(shell
 endif
 
 ARCH     = -O2 -march=i386 -mtune=i586
-CXXFLAGS = $(ARCH) -std=gnu++17 -w -Iinclude -I$(BM) -I$(GAME) -DMSDOS
+CXXFLAGS = $(ARCH) -std=gnu++17 -w -Iinclude -I$(BM) -I$(GAME) -DMSDOS -DWW_SPRITE_HOOK
 CFLAGS   = $(ARCH) -w -I$(GAME) -DMINIZ_NO_STDIO -DMINIZ_NO_TIME -DMINIZ_NO_ARCHIVE_APIS
 LDFLAGS  = -s -Wl,--gc-sections
 
-CXX_SRCS = dos_main.cpp $(BM)/render.cpp $(GAME)/wopr_willy.cpp $(GAME)/highscores.cpp
+CXX_SRCS = dos_main.cpp sprite_scale.cpp $(BM)/render.cpp $(GAME)/wopr_willy.cpp $(GAME)/highscores.cpp
 C_SRCS   = $(addprefix $(GAME)/,miniz.c miniz_tdef.c miniz_tinfl.c miniz_zip.c)
 HDRS     = $(wildcard $(GAME)/*.h) $(BM)/video.hpp $(BM)/font.h $(BM)/dejavu20.h \
            $(BM)/overrides/SDL2/SDL.h include/SDL2/SDL.h

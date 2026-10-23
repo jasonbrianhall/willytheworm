@@ -665,8 +665,22 @@ int main(int argc, char** argv) {
 
     timer_init();
 
-    const int px = 40, py = 40;
+    // The game sizes its 40x25 grid from the screen less the margins. Pick
+    // margins that make a cell a whole multiple of 8 px, so every sprite
+    // pixel scales by the same amount (sprite_scale.cpp smooths them).
     const int cw = gl_font_cell_size(), ch = gl_font_cell_size();
+    int px = 40, py = 40;
+    {
+        int kw = (int)back_w / (40 * 8);
+        int kh = ((int)back_h - 40 - ch * 2 - 8) / (25 * 8);
+        int k = kw < kh ? kw : kh;
+        if (k >= 1) {
+            int cell = 8 * k;
+            px = ((int)back_w - 40 * cell) / 2;
+            int room = (int)back_h - ch * 2 - 8 - 25 * cell;     // rows above the grid
+            py = room < 40 ? room : 40;
+        }
+    }
     const int cols = ((int)back_w - px * 2) / cw;
     const uint32_t frame_ticks = (uint32_t)(TICK_HZ / 60.0 + 0.5);
 
